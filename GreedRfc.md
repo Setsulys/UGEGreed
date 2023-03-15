@@ -63,16 +63,44 @@
              --------------------------------
 
             Forme des données
-
-             -----------------------------------------------------------------------
-            |Taille URL (long) |URL(Ascii) |Val range min (int)| Val range max(int) |
-             -----------------------------------------------------------------------
+             -------------------------------------------------------------------------
+            |Taille URL (long) | URL (Ascii) |Val range min (int)| Val range max(int) |
+             -------------------------------------------------------------------------
     
     3.2.2 Cas d'une application en attente
         Lorsqu'une application vient de se connecter ou qu'elle a fini sa conjecture, elle est en attente.
         Si cette application vient de finir une tâche qui lui a été fournis elle vérifie d'abord si son buffer de stockage ne contiendrait pas des éléments à traiter si oui elle traitera ces éléments sinon elle se mettra en attente d'une nouvelle conjecture.
 
+    3.2.3 Table de routage
 
+        La table de routage sera considéré comme un dictionnaire ou toutes les routes vers toutes les applications seront définie a l'aide des applications connexes à l'application
+        Pour créer sa table de routage une application va regarder d'abord ses voisin (pere et fils (normalement que son pere vu que l'application viens de se connecter)) 
+        ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+
+
+        Exemple de table de routage
+
+                        A 
+                    /       \
+                  B          C 
+                /   \      /   \
+               D     E     F     G 
+              /\     /\
+             H  I   J  K                  
+
+               On admet ici que l'on est B
+               notre table de routage sera :
+
+               A -> A
+               C -> A
+               D -> D
+               E -> E
+               F -> A
+               G -> A
+               H -> D
+               I -> D
+               J -> E
+               K -> E
 
 3.3 Connexion et déconnexion d'une application de l'arbre
 
@@ -83,36 +111,53 @@
         
     3.3.2 Déconnexion
         La déconnexion d'une application se fera normalement et non brutalement.
-        Lors de la déconnexion de l'une des applications, cette dernière signalera sa déconnexion aux applications connexes et à toutes les applications du réseau en envoyant un paquet changement de connexion pour que toutes les applications du réseau changent leurs table de routage et transmettra les données qu'elle n'a pas encore traitée aux applications qui lui sont directement connecté avec des paquets Envoi de données à traiter aux applications en attente.
+        Lors de la déconnexion de l'une des applications, cette dernière signalera sa déconnexion aux applications connexes et à toutes les applications du réseau en envoyant un paquet changement de connexion pour que toutes les applications du réseau changent leurs table de routage et aussi elle transmettra les données qu'elle n'a pas encore traitée aux applications qui lui sont directement connecté avec des paquets Envoi de données à traiter aux applications en attente.
 
         Elle séparera les données en divisant la gamme de valeur par le nombre d'applications connexes. Si son buffer de stockage contient des données à traiter d'autre application qui se sont déconnectées, elle divisera et transmettra aussi ces données en plus de l’url du jar.
-        Quand une application connexe à celle qui s'est déconnectée, elle reçoit les données de cette dernière, elle les stocke dans son buffer de stockage et les traiteras quand elle sera libre. Si son buffer de stockage est plein elle transmettra, à ses autres voisins.
+        Quand une application connexe à celle qui s'est déconnectée, elle reçoit les données de cette dernière, elle les stocke dans son buffer de stockage et les traiteras quand elle sera libre. 
+        Si son buffer de stockage est plein elle transmettra, à ses fils.
         Pour ce qui est du stockage s'il y a plusieurs types de tâches dans le buffer de stockage, on les traitera un par un et lorsque l'application aura fini elle sera considérée comme libre.
-        Pour ce qui est de la reliaison entre les applications, Si parmi les applications connexes il y a l'application ROOT on lie toutes les applications restantes à celle-ci, sinon on lie toutes les applications à l'application contenant le plus petit des ports. Si il y a deux mêmes ports, on prendra la plus petite adresse ip.
+        Pour ce qui est de la reliaison entre les applications, on relie toutes les applications fils de l'application se déconnectant a son père.
 
         
         Exemple:
-            Application Z en cours de déconnexion à deux applications (A,B) connexe et contient lui meme un buffer contenant des elements d'applications qui se sont déconnecté.
-            application initiant la tâche : K
-            application initiant une taches ayant une application déja déconnecté : L,M
-            FonctionZ
-            buffer principal:
-             ----------
-            | [1...10] |
-             ----------
-            buffer de stockage d'élément déjà déconnecté:
-             ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-            |Adresse source L |taille fonction (long) | Fonction1 | [5...10]| 00000000 | Adresse source M |taille fonction (long) | Fonction2 | int range min | int range max |
-             ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+            Application Z en cours de déconnexion à deux applications (A,B) connexe et contient lui-même un buffer contenant des éléments d'applications qui se sont déconnecté.
+            A etant le père de Z et B le fils de Z
+            Application initiant la tâche : K
+            Application initiant une tache ayant une application déjà déconnecté : L,M
+            URL de l'application sera l'URL Z
 
-            Données envoyé à A:
-             -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            |OPCODE | Adresse source K | taille fonction (long) | FonctionZ | [1...5] | 00000000 | ID source L | taille fonction (long) | Fonction1 | [1...3] | 00000000 | ID source M | taille fonction (long) | Fonction2 | [5...13] |
-             -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            Données envoyé à B:
-             ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            |OPCODE | Adresse source K | taille fonction (long) | FonctionZ | [6...10] | 00000000 | ID source L | taille fonction (long) | Fonction1 | [4...5] | 00000000 |ID source M | taille fonction (long) | Fonction2 |[14...20]|
-             ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            Buffer d'element déja traités
+             -----------------------------------------------------------------------------
+            | Adresse Source K |Taille valeur (long) | 1 | ... | Taille valeur (long) | 3 |
+             -----------------------------------------------------------------------------
+
+            Buffer Contenant les element non traités
+             -------------------------------------------------
+            | Adresse Source K | Taille URL Z (long) | 4 | 10 |
+             -------------------------------------------------
+
+            Buffer de stockage d'element d'application déja déconnecté : 
+             ----------------------------------------------------------------------------------------------------------------
+            | Adresse Source L | Taille URL L (long) | 5 | 10 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 5 | 20 |
+             ----------------------------------------------------------------------------------------------------------------
+
+             ______________________________________________________
+
+            Lors de la déconnexion
+
+            Données envoyés a A
+             -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            | OPCODE | Adresse Source K | Taille URL Z (long) | 4 | 7 | 0000 0000 | Adresse Source L | Taille URL L (long) | 5 | 7 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 5 | 12 |
+             -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            Données envoyés a B
+             ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            | OPCODE | Adresse Source K | Taille URL Z (long) | 8 | 10 | 0000 0000 | Adresse Source L | Taille URL L (long) | 8 | 10 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 12 | 20 |
+             ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+            ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
         Ces applications qui receverons les données, traiterons ces conjectures après avoir traité ses propres conjectures.
         Pour cela chaque application a un buffer sur lequel il traite les données et un autre buffer contenant les données de déconnexion.
@@ -127,7 +172,7 @@
               /\     /\    /\    /
              H  I   J  K  L  M  N  
 
-    On déconnecte C qui a le port (5555)
+    On déconnecte C 
                         A 
                     /       \
                   B           
@@ -136,8 +181,7 @@
               /\     /\    /\   /
              H  I   J  K  L  M  N  
 
-    A a le port le plus petit parmis F G A
-    On lie F G à A
+    On lie au pere de C qui est donc A
                         A 
                     /     \ \
                   B        \ \ 
@@ -151,46 +195,61 @@
 
     (comment definir un type, structure de données, opcode pour voir si c'est une réception ou un aquitement etc...)
 
-    
+    Definition des données
+     -------------------------------------------------------------------------
+    |Taille URL (long) | URL (Ascii) |Val range min (int)| Val range max(int) |
+     -------------------------------------------------------------------------
+
     Envoi de données à traiter aux applications en attente<br>
      -----------------------------------
-    | OPcode | Adresse source | Données |       op code : 0
+    | OPcode | Adresse source | Données |                                           Op code : 0
      -----------------------------------
 
     Envoi de données de deconnexion à traiter aux applications connexes.
-     --------------------------------
-    | OPcode | Adresse source | Données |       op code : 1
-     --------------------------------
+     -----------------------------------
+    | OPcode | Adresse source | Données |                                           Op code : 1
+     -----------------------------------
      
     Envoi de données traitées
      -----------------------------------------------------
-    | Opcode | Adresse application source | donnee traite |       op code : 2
+    | Opcode | Adresse application source | donnee traite |                         Op code : 2
      -----------------------------------------------------
     
     Demande de connexion
      -------------------------------
-    | Opcode | Adresse du demandeur |       op code : 3
+    | Opcode | Adresse du demandeur |                                               Op code : 3
      -------------------------------
 
     acceptation connexion
      --------
-    | Opcode |       op code : 4
+    | Opcode |                                                                      Op code : 4
      --------
 
-    Changement de connexion
-     ----------------------------------------
-    | Opcode | nouvelle adresse de connexion |       op code : 5
-     ----------------------------------------
-    
-    paquet ping d'envoie
+    Changement de connexion lors de la déconnexion / Changement des tables de routages
+     --------------------------------------------------------
+    | opcode | Adresse application | Adresse application pere|                      Op code : 5
+     --------------------------------------------------------
+
+    Ping de retour du changement des tables de routages avant la déconnexion
+     ---------------
+    | Opcode | Byte |                                                               Op code : 6
+     ---------------
+    On a 1 ou 0 selon si l'operation s'est bien déroulé
+
+    Trame ping d'envoie
      -------------------------------------
-    | Opcode | Adresse Application source |       op code : 6
+    | Opcode | Adresse Application source |                                         Op code : 7 
      -------------------------------------
 
-    paquet ping reponse
+    Trame ping reponse
      -------------------------------------------------------------------
-    | Opcode | Adresse Application source | Adresse Application pinguée |       op code : 7
+    | Opcode | Adresse Application source | Adresse Application pinguée |           Op code : 8
      -------------------------------------------------------------------
+
+    Trame de transfert des données
+     --------------------------------------------------------------------------
+    | Opcode | Données A | 0000 0000 | Données B | 0000 0000 | Données C | ... |    Op code : 9
+     --------------------------------------------------------------------------
 
     Opcode sera un int
     Adresse sera un inetSocket
