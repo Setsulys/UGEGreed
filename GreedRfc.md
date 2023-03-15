@@ -1,3 +1,4 @@
+```
 1. Introduction 
         Ce document spécifie un protocole de réseau pour la distribution de taches parmi un groupe d'applications.
     Notre protocole permet à des applications liées entre eux avec une structure d'arbre d'appliquer des conjectures et les renvoyer à l'utilisateur
@@ -194,3 +195,5 @@
     Opcode sera un int
     Adresse sera un inetSocket
     données sera les differentes données (taille fonctions (long) fonctions ranges ) le tout séparé par un long égale à 0 
+
+```
