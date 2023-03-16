@@ -22,7 +22,7 @@
 3. Détails d'implémentations
 
 3.1 Format de communication
-    Au début de chaque tâche, l'application qui l'initie envoie à ses applications connectées des paquets ping d'envoie. Chaque application recevant ce paquet et étant libre va émettre à chacune de ses  connexions son paquet ping de réponse.
+    Au début de chaque tâche, l'application qui l'initie envoie à ses applications connectées des trames ping d'envoie. Chaque application recevant ce paquet et étant libre va émettre à chacune de ses  connexions son paquet ping de réponse.
     Chaque application recevant un paquet ping de réponse le retransmettra à toutes ses autres connexions.
     Si une application reçoit un paquet ping de réponse et est une feuille, elle l'ignore.
     Si cette feuille est libre, alors elle n'enverra uniquement qu'un paquet ping de réponse à sa connexion.
@@ -73,9 +73,19 @@
 
     3.2.3 Table de routage
 
-        La table de routage sera considéré comme un dictionnaire ou toutes les routes vers toutes les applications seront définie a l'aide des applications connexes à l'application
-        Pour créer sa table de routage une application va regarder d'abord ses voisin (pere et fils (normalement que son pere vu que l'application viens de se connecter)) 
-        ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+        Avant la première tâche a effectuer du réseau, l'application root va envoyer à ses fils une trame First root, les applications qui ne sont pas des feuilles vont les transmettres à leurs fils.
+        Quand une application feuille reçoit cette trame, Elle envoit First LEAF à son père, en incrémentant le nombre d'application et en ajoutant son adresse.
+        Chaque application reçevant une trame First LEAF va ajouter à sa table de rootage le chemin de chaque application ayant passé par ses fils et ainsi de suite.
+        Si une application à plusieurs fils, elle attendra chaque paquet First LEAF de ses fils avant d'envoyer le sien a son père. (On pourra modifier cela dans le futur si problème de performance il y a)
+        Quand la root reçoit chaque paquet First LEAF de ses fils, elle enverra une trame FULL TREE, à chacun de ses fils, contenant les autres applications que les fils ne connaissent pas.
+        Voici un exemple pour une meilleur compréhension : (~ signifie que l'arbre continue)
+            A
+          /   \
+          B   C
+          ~   ~ 
+        Ici B ne connait pas les applications C~, donc A envoie un FULL TREE contenant toute les applications C~ à B.
+        Pareil dans le sens inverse pour que chaque applications se connaissent.
+        Quand une application reçoit une trame FULL TREE, elle mettra à jour sa table de rootage pour que chaque application contenues dans la trame ait un chemin qui correspond au père de l'application qui à reçu la trame.
 
 
         Exemple de table de routage
@@ -88,8 +98,29 @@
               /\     /\
              H  I   J  K                  
 
-               On admet ici que l'on est B
-               notre table de routage sera :
+               On suit l'etat de la table de rootage de B 
+
+        A va envoyer un paquet First LEAF a ses Fils B et C
+
+        B va transmettre ce paquet à ses fils D et E car il n'est pas feuille.
+
+        B va recevoir ensuite deux trames First LEAF, le premier contenant les applications H,I et D, et l'autre contenant J,K et E et va construire une première itération de sa table de rootage
+
+        Sa table de routage sera :
+
+               A -> A
+               D -> D
+               E -> E
+               H -> D
+               I -> D
+               J -> E
+               K -> E
+
+        Il va envoyer un paquet FIRST LEAF contenant les applications H,I,J,K,D,E et B à son père qui est A.
+
+        A va envoyer à B un paquet FULL TREE qui contiendra les autres applications qui ne sont pas ses fils, donc C,F et G. Il prendra comme chemin pour ses applications son père.
+
+        Sa table de routage sera :
 
                A -> A
                C -> A
@@ -102,6 +133,34 @@
                J -> E
                K -> E
 
+        Imaginons qu'une nouvelle Application Z vienne se connecter aux réseau
+
+                        A 
+                    /       \
+                  B          C 
+                /   \      /   \
+               D     E     F     G 
+              /\     /\           \
+             H  I   J  K           Z
+
+        G va mettre sa table de rootage à jour et envoyer a son père et chacun de ses autre fils (que Z) un paquet NEW LEAF contenant l'adresse de l'application Z.
+
+        B va recevoir de A l'adresse de Z, il changera alors sa table de rootage et enverra le paquet NEW LEAF avec l'adresse Z à D et E
+
+        Sa table de routage sera :
+
+               A -> A
+               C -> A
+               D -> D
+               E -> E
+               F -> A
+               G -> A
+               H -> D
+               I -> D
+               J -> E
+               K -> E
+               Z -> A
+
 3.3 Connexion et déconnexion d'une application de l'arbre
 
     3.3.1 Connexion
@@ -111,13 +170,16 @@
         
     3.3.2 Déconnexion
         La déconnexion d'une application se fera normalement et non brutalement.
-        Lors de la déconnexion de l'une des applications, cette dernière signalera sa déconnexion aux applications connexes et à toutes les applications du réseau en envoyant un paquet changement de connexion pour que toutes les applications du réseau changent leurs table de routage et aussi elle transmettra les données qu'elle n'a pas encore traitée aux applications qui lui sont directement connecté avec des paquets Envoi de données à traiter aux applications en attente.
+        Lors de la déconnexion de l'une des applications, cette dernière signalera sa déconnexion aux applications connexes en envoyant un paquet Annonce d'intention de déconnexion et elle transmettra les données qu'elle n'a pas encore traitée aux applications connexes avec des paquets Envoi de données à traiter aux applications en attente.
 
         Elle séparera les données en divisant la gamme de valeur par le nombre d'applications connexes. Si son buffer de stockage contient des données à traiter d'autre application qui se sont déconnectées, elle divisera et transmettra aussi ces données en plus de l’url du jar.
-        Quand une application connexe à celle qui s'est déconnectée, elle reçoit les données de cette dernière, elle les stocke dans son buffer de stockage et les traiteras quand elle sera libre. 
+        Quand une application connexe à celle qui s'est déconnectée, elle reçoit les données de cette dernière, elle les stocke dans son buffer de stockage et les traiteras quand elle aura fini sa tache principale. 
         Si son buffer de stockage est plein elle transmettra, à ses fils.
         Pour ce qui est du stockage s'il y a plusieurs types de tâches dans le buffer de stockage, on les traitera un par un et lorsque l'application aura fini elle sera considérée comme libre.
-        Pour ce qui est de la reliaison entre les applications, on relie toutes les applications fils de l'application se déconnectant a son père.
+
+        Lors de la tentative de déconnexion, après avoir envoyer les données qu'elle devait traiter, l'application enverra un paquet Annonce d'intention de déconnexion aux application connexes signifiant qu'elle attend ses fils de se connecter à son père. Durant la procédure, et tant que tout ses fils ne lui ont pas confirmé qu'ils s'etaient connectés à son père en lui envoyant un paquet Ping de confirmation de changement de connexion, l'application agira comme si elle n'etait pas libre.
+        Une fois que chacun des anciens fils de l'application se déconnectant sera connectés à son père, elle pourra envoyer à son père une trame suppression d'application à son père et se déconnectera du réseau.
+        Le père renverra à toute ses connexions cette même trame pour que chaque application mettent à jour leur table de routage et supprime l'application qui s'est déconnectée.  
 
         
         Exemple:
@@ -127,17 +189,17 @@
             Application initiant une tache ayant une application déjà déconnecté : L,M
             URL de l'application sera l'URL Z
 
-            Buffer d'element déja traités
+            Buffer d'element déja traités (que l'application Z va envoyer avant de se déconnecter à l'application qui a initié le traitement de données)
              -----------------------------------------------------------------------------
             | Adresse Source K |Taille valeur (long) | 1 | ... | Taille valeur (long) | 3 |
              -----------------------------------------------------------------------------
 
-            Buffer Contenant les element non traités
+            Buffer Contenant les element non traités (que l'application Z va séparer et envoyé à A et B)
              -------------------------------------------------
             | Adresse Source K | Taille URL Z (long) | 4 | 10 |
              -------------------------------------------------
 
-            Buffer de stockage d'element d'application déja déconnecté : 
+            Buffer de stockage d'element d'application déja déconnecté (que l'application Z va séparer et envoyé à A et B)
              ----------------------------------------------------------------------------------------------------------------
             | Adresse Source L | Taille URL L (long) | 5 | 10 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 5 | 20 |
              ----------------------------------------------------------------------------------------------------------------
@@ -156,10 +218,39 @@
             | OPCODE | Adresse Source K | Taille URL Z (long) | 8 | 10 | 0000 0000 | Adresse Source L | Taille URL L (long) | 8 | 10 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 12 | 20 |
              ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+             Intention de déconnexion envoyé à A et B
+             -------------------------------------------------------------
+            | opcode | Adresse application déco | Adresse application pere|       
+             -------------------------------------------------------------
+            _________________________________________________________
 
-            ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+            A et B vont le recevoir, A est le père donc va l'ignorer, B est le fils donc va envoyer une demande de connexion au père
 
-        Ces applications qui receverons les données, traiterons ces conjectures après avoir traité ses propres conjectures.
+            Demande de reconnexion de B vers A
+             -------------------------------
+            | Opcode | Adresse du demandeur |          op code : 2
+             -------------------------------
+
+            A va accepter la connexion et envoyer à B l'acceptation de connexion (en passant par Z qui est toujours le fils de A et le père de B)
+
+             --------
+            | Opcode |                                 Op Code : 1
+             --------
+
+            B va initier la connexion à A, puis envoyer à Z la confirmation de reconnexion 
+
+             ---------------------------------------------------------------
+            | Opcode | Adresse Application source | Adresse Application déco |                                                           
+             ---------------------------------------------------------------
+
+            Z n'a donc plus de fils encore connecté à lui ni de données à traiter, il peut donc envoyer une trame suppression d'application a son père, signifiant qu'il ne fera plus partie réseau et qu'il faut donc le supprimer de la table de rootage. Son père le transmettra à tout le réseau.
+
+             -------------------------------------
+            | Opcode | Adresse Application déco |                                        
+             -------------------------------------
+
+
+        Les applications qui receverons les données, traiterons ces conjectures après avoir traité leurs propres conjectures.
         Pour cela chaque application a un buffer sur lequel il traite les données et un autre buffer contenant les données de déconnexion.
 
 1.  Structure de l'arbre
@@ -181,7 +272,7 @@
               /\     /\    /\   /
              H  I   J  K  L  M  N  
 
-    On lie au pere de C qui est donc A
+    On lie F et G au pere de C qui est donc A
                         A 
                     /     \ \
                   B        \ \ 
@@ -191,7 +282,7 @@
              H  I   J  K  L  M  N  
     
 
-5. Definition des paquets transmis
+5. Definition des trames transmis
 
     (comment definir un type, structure de données, opcode pour voir si c'est une réception ou un aquitement etc...)
 
@@ -199,60 +290,144 @@
      -------------------------------------------------------------------------
     |Taille URL (long) | URL (Ascii) |Val range min (int)| Val range max(int) |
      -------------------------------------------------------------------------
-
-    Envoi de données à traiter aux applications en attente<br>
-     -----------------------------------
-    | OPcode | Adresse source | Données |                                           Op code : 0
-     -----------------------------------
-
-    Envoi de données de deconnexion à traiter aux applications connexes.
-     -----------------------------------
-    | OPcode | Adresse source | Données |                                           Op code : 1
-     -----------------------------------
-     
-    Envoi de données traitées
-     -----------------------------------------------------
-    | Opcode | Adresse application source | donnee traite |                         Op code : 2
-     -----------------------------------------------------
     
+     /////Connexion
+
     Demande de connexion
      -------------------------------
-    | Opcode | Adresse du demandeur |                                               Op code : 3
+    | Opcode | Adresse du demandeur |                                               Op code : 0
      -------------------------------
 
     acceptation connexion
      --------
-    | Opcode |                                                                      Op code : 4
+    | Opcode |                                                                      Op code : 1
      --------
 
-    Changement de connexion lors de la déconnexion / Changement des tables de routages
-     --------------------------------------------------------
-    | opcode | Adresse application | Adresse application pere|                      Op code : 5
-     --------------------------------------------------------
+     /////Déconnexion
 
-    Ping de retour du changement des tables de routages avant la déconnexion
-     ---------------
-    | Opcode | Byte |                                                               Op code : 6
-     ---------------
-    On a 1 ou 0 selon si l'operation s'est bien déroulé
+     Demande de reconnexion
+     -------------------------------
+    | Opcode | Adresse du demandeur |                                               Op code : 2
+     -------------------------------
+
+    Annonce d'intention de déconnexion de l'application (donc de reconnexion des fils au père)
+     -------------------------------------------------------------
+    | opcode | Adresse application déco | Adresse application pere|                 Op code : 3
+     -------------------------------------------------------------
+
+    Ping de confirmation de changement de connexion
+     ---------------------------------------------------------------
+    | Opcode | Adresse Application source | Adresse Application déco |              Op code : 4
+     ---------------------------------------------------------------
+    
+     Trame suppression d'application 
+     -------------------------------------
+    | Opcode | Adresse Application déco |                                           Op code : 5
+     -------------------------------------
+
+     /////Rootage
+
+     Trame First ROOT 
+     --------
+    | Opcode |                                                                      Op code : 6
+     --------
+
+     Trame First LEAF (La première trame First LEAF aura un int égal à 1 et une seul adresse, celle de la feuille qui l'a envoyé)
+     ----------------------------------------------------------
+    | Opcode | Nombre Applications (int) | Adresse Application | ... |              Op code : 7
+     ----------------------------------------------------------
+
+     Trame FULL TREE 
+     ----------------------------------------------------------
+    | Opcode | Nombre Applications (int) | Adresse Application | ... |              Op code : 8 
+     ----------------------------------------------------------
+
+     Trame New LEAF
+
+     ---------------------------------------
+    | Opcode | Adresse Nouvelle Application |                                       Op code : 9
+     ---------------------------------------
+
+     /////ping
 
     Trame ping d'envoie
      -------------------------------------
-    | Opcode | Adresse Application source |                                         Op code : 7 
+    | Opcode | Adresse Application source |                                         Op code : 10
      -------------------------------------
 
     Trame ping reponse
-     -------------------------------------------------------------------
-    | Opcode | Adresse Application source | Adresse Application pinguée |           Op code : 8
-     -------------------------------------------------------------------
+     ----------------------------------------------------------------------
+    | Opcode | Adresse Application source | Adresse Application qui a ping |        Op code : 11
+     ----------------------------------------------------------------------
 
-    Trame de transfert des données
-     --------------------------------------------------------------------------
-    | Opcode | Données A | 0000 0000 | Données B | 0000 0000 | Données C | ... |    Op code : 9
-     --------------------------------------------------------------------------
+     /////données
+
+    Envoi de données à traiter aux applications en attente<br>
+     -----------------------------------------
+    | OPcode | Adresse destinataire | Données |                                     Op code : 12
+     -----------------------------------------
+
+    Envoi de données de deconnexion à traiter aux applications connexes
+     -----------------------------------
+    | OPcode | Adresse source | Données |                                           Op code : 13
+     -----------------------------------
+     
+    Envoi de données traitées
+     -----------------------------------------------------
+    | Opcode | Adresse application source | donnee traite |                         Op code : 14
+     -----------------------------------------------------
+
 
     Opcode sera un int
     Adresse sera un inetSocket
-    données sera les differentes données (taille fonctions (long) fonctions ranges ) le tout séparé par un long égale à 0 
+    données sera les differentes données (taille fonctions (long) fonctions ranges ) le tout séparé par un long égale à 0
+    Il n'y aura aucune série de 8 octet nulle autre que les long servant à délimiter les données
+
+6. Actions des trames
+
+    -Si je reçois une trame demande de connexion (op : 0), j'accepte la demande de connexion en envoyant une trame acceptation connexion (op : 1). Après l'initialisation de la connexion de mon nouveau fils, j'envoie à mon père et mes autres fils une trame new LEAF (op : 8), qui contient l'adresse de mon nouveau fils, a mon père et tout mes autres fils. Je mets ma table de rootage a jour pour accueillir mon nouveau fils
+
+    -Si je reçois une trame acceptation de connexion (op : 1), j'initie connexion à mon père
+
+    --Si je reçois une trame demande de reconnexion (op : 2), j'accepte la demande de connexion en envoyant une trame acceptation connexion (op : 1).
+
+    -Si je reçois une trame Annonce d'intention de déconnexion de l'application (op : 3), Si je suis l'application "Adresse application pere" je l'ignore, sinon j'envoie une trame demande de reconnexion (op : 2) à "Adresse application pere". j'inite la connexion avec mon nouveau père, et j'envoie une trame Ping de confirmation de changement de connexion (op : 4) à mon nouveau père.
+
+    -Si je reçois une trame Ping de confirmation de changement de connexion ET que je ne suis pas l'application "Adresse Application déco", c'est que je suis le nouveau père d'un fils. J'envoie donc cette même trame à l'adresse du fils "Adresse Application déco". Si je suis l'application "Adresse Application déco", c'est que c'est moi qui me déconnecte. Si l'ancien fils "Adresse Application source" n'est pas le dernier fils à m'avoir confirmer qu'il est bien reconnecter, j'attends jusqu'à avoir la réponse de tout les fils. Si c'est le dernier fils, j'envoie la trame suppression d'application (op : 5) à mon père, et je peux me déconnecter.
+
+    -Si je reçois une trame suppression d'application (op : 5), je supprime l'application "Adresse Application déco" de ma table de rootage, et j'envoie cette même trame à chacune de mes connexions hors celle de part laquelle je l'ai reçu.
+
+    -Si je reçois la trame First ROOT (op : 6), si je ne suis pas une feuille, je la renvoie à mes fils. Si je suis une feuille j'envoie une trame  First LEAF (op : 7) à mon père
+
+    -Si je reçois la trame First LEAF (op : 7), si je ne suis pas root, et que je n'ai qu'un fils, j'incrémente "Nombre Applications" et j'envoie une nouvelle First LEAF (op : 7) en ajoutant mon adresse à la fin de la trame. Si je ne suis pas root et que j'ai plusieurs fils, j'attends de recevoir toutes les trames First LEAF (op : 7)  de tout mes fils pour créer une nouvelle trame sans doublon ayant la bonne incrémentation d'application, sans m'oublier.
+    Je mets à jour la table de rootage avec chaque application contenu dans la trame que j'ai reçu ayant pour chemin le fils qui me l'a envoyé
+    Si je suis root et que j'ai plus d'un fils, je mets à jour ma table de rootage et j'envoie à chacun de mes fils une trame FULL TREE (op : 8) qui contiendra le nombre de toute les applications de tout mes fils et leurs adresses, hormis les applications fils au fils dont j'envoie le paquet.
+    Si je suis root et que je n'ai qu'un fils, je l'ignore.
+
+    -Si je reçois la trame FULL TREE (op : 8), je mets a jour ma table de rootage et pour chaque application contenue dans la trame, je mets le chemin de mon père.
+
+    -Si je reçois la trame NEW LEAF (op : 9), je mets à jour ma table de rootage et j'ajoute la nouvelle application et son chemin qui est l'application dont j'ai reçu la trame
+
+    -Si je reçois la trame ping d'envoie (op : 10), j'envoie cette même trame aux applications connexes hormis celle qui me l'a envoyé. Si je suis une feuille je ne le fais pas.
+    Si je suis libre,(qu'importe si je suis feuille) j'envoie une trame ping réponse (op : 11) à l'application "Adresse Application source" qui a initié la trame ping d'envoie (op : 10).
+    Je ne serai plus libre pour les autres applications et j'attendrai les données à traiter de cette application (avec un timeout qu'on modifiera à l'implémentation)
+    Dans la trame ping réponse (op : 11) je serai "Adresse Application source" et l'adresse qui sera dans "Adresse Application qui a ping" sera celle qui a initié la demande (Pour plus de clarté)
+    Si je ne suis pas libre, j'ignore. (Mais j'enverrai quand même la trame ping d'envoie aux autres connexes)
+
+    -Si je reçois la trame ping réponse (op : 11), si je ne suis pas l'application qui a envoyé un ping d'envoie (op : 10), je retransmet cette trame à l'application "Adresse Application qui a ping"
+    Si je suis cette application, je noterai que l'application "Adresse Application source" est libre, je pourrai lui envoyer des données à traiter.
+
+    -Si je reçois la trame Envoi de données à traiter aux applications en attente (op : 12), si je suis l'application "Adresse Destinataire", je traiterai les données et à la fin, j'enverrai la trame Envoi de données traitées (op : 14) vers l'application qui m'avait demandé le travail avec sa trame Trame ping d'envoie (op : 10) et pour laquelle je n'etais plus libre, s'il reste des données à traiter dans mes buffers de stockage, je les traiterai après et enverrai une trame Envoi de données traitées (op : 14) a l'application qui etait dans "Adresse source" de la trame Envoi de données de deconnexion à traiter aux applications connexes (op : 13) puis je serai libre.
+    Si je ne suis pas cette application, je renvoie la trame vers l'application "Adresse Destinataire".
+
+    -Si je reçois la trame Envoi de données de deconnexion à traiter aux applications connexes (op : 13), si je suis libre, je ne deviens plus libre et je traite les données et j'envoie une trame Envoi de données traitées (op : 14) a l'application qui etait dans "Adresse source" de la trame Envoi de données de deconnexion à traiter aux applications connexes (op : 13) puis je serai libre.
+    si je n'etais pas libre, s'il reste de la place dans mes buffers de stockage, je sépare les différentes données à traiter avec des long égal à 0 puis je stocke les données de la trame reçu dans mon buffer. Je le traiterai après la tache sur laquelle je travaille.
+    Si je n'ai plus de place dans mes buffer de stockage (cas rare car range de données divisée), je le transmet à mon père.
+    Si je suis la root et que mes buffer de stockage sont remplis, je vais envoyer une trame Trame ping d'envoie (op : 10) pour que les données soient traitées par des applications libres
+    
+    -Si je reçois la trame Envoi de données traitées (op : 14), si je ne suis pas l'application "Adresse application source", j'envoie la trame vers cette application.
+    Si je suis l'application "Adresse application source", donc l'application qui a initié la tache, j'attends de recevoir toute les données qui doivent être traiter et je renverrai un document texte avec ces données
+
+
 
 ```
