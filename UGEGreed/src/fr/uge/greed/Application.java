@@ -24,7 +24,5 @@ public class Application {
 		}
 		InetSocketAddress serverAddress = new InetSocketAddress(host,port);
 		
-		
-		
 	}
 }
