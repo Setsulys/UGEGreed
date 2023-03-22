@@ -1,5 +1,5 @@
 ```
-RFC Ly-Ieng-Debats 2023
+RFC Ly-Ieng-Debats
 1. Introduction 
         Ce document spécifie un protocole de réseau pour la distribution de taches parmi un groupe d'applications.
     Notre protocole permet à des applications liées entre eux avec une structure d'arbre d'appliquer des conjectures et les renvoyer à l'utilisateur
