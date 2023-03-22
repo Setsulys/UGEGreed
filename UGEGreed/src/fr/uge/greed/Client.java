@@ -1,7 +1,7 @@
-package fr.uge.clienttest;
+package fr.uge.greed;
 
 
-import fr.uge.ugegreed.Checker;
+import fr.uge.greed.Checker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
