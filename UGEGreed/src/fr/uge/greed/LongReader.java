@@ -7,8 +7,6 @@ public class LongReader implements Reader<Long>{
 		DONE , WAITING , ERROR
 	}
 	
-	
-	
 	private State state = State.WAITING;
 	private final ByteBuffer internalBuffer = ByteBuffer.allocate(Long.BYTES);
 	private long value;
