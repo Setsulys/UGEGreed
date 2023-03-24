@@ -75,7 +75,7 @@ public class ApplicationClient {
 					return ; //The selector lied
 				}
 			} catch (IOException e) {
-				e.getCause()
+				e.getCause();
 			}
 			key.interestOps(SelectionKey.OP_READ);
 		}
