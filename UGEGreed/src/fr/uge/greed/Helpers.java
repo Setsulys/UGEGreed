@@ -1,4 +1,4 @@
-package fr.upem.net.tcp.nonblocking;
+package fr.uge.greed;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
