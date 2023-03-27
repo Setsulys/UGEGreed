@@ -105,13 +105,13 @@ public class Application {
         sc.register(selector, SelectionKey.OP_ACCEPT);
         while (!Thread.interrupted()) {
             //Helpers.printKeys(selector); // for debug
-            System.out.println("Starting select");
+            //System.out.println("Starting select");
             try {
                 selector.select(this::treatKey);
             } catch (UncheckedIOException tunneled) {
                 throw tunneled.getCause();
             }
-            System.out.println("Select finished");
+            //System.out.println("Select finished");
         }
     }
 	
@@ -137,7 +137,6 @@ public class Application {
             }
             if (key.isValid() && key.isReadable()) {
                 ((Context) key.attachment()).doRead();
-            	System.out.println("ca");
             }
         } catch (IOException e) {
             logger.info("Connection closed with client due to IOException");
@@ -167,6 +166,7 @@ public class Application {
 		} catch (IOException e) {
 			e.getCause();
 		}
+		System.out.println();
         key.attach(new Context(key,this));	//A verif
 		consoleTest(key);
 		key.interestOps(SelectionKey.OP_READ);
@@ -186,6 +186,10 @@ public class Application {
             try (var scanner = new Scanner(System.in)) {
                 while (scanner.hasNextLine()) {
                    var msg = scanner.nextLine();
+//                   if(msg.equals("Disconnect")) {
+//                	   System.out.println("Disconnecting the node");
+//                	   return;
+//                   }
                    var buf = ByteBuffer.allocate(msg.length());
                    buf.put(Charset.forName("UTF-8").encode(msg));
                    var c = (Context) key.attachment();
