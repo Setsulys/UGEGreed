@@ -2,7 +2,6 @@ package fr.uge.greed;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.System.Logger.Level;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
@@ -10,6 +9,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 public class Application {
@@ -30,6 +31,10 @@ public class Application {
 			 this.server = server;
 			 
 		 }
+	     
+	     private SocketChannel getChannel() {
+	    	 return scContext;
+	     }
 	     
 	     private void updateInterestOps() {
 	            var ops = 0;
@@ -55,24 +60,19 @@ public class Application {
 	 		}
 	 	}
 	     
+	     public void doRead() {
+	 		
+	 	}
 	     
-//	     private void doConnect(){
-//	 		try {
-//	 			if(!sc.finishConnect()){
-//	 				return;
-//	 			}
-//	 		} catch (IOException e) {
-//	 			e.getCause();
-//	 		}
-//	 		//key.interestOps(SelectionKey.OP_READ);
-//	 	} 
+	     
+
 	 }
 	
 	
 	//private final SelectionKey key;
 	
 	private final ServerSocketChannel sc;
-	private final SocketChannel sca;
+	private final SocketChannel scDaron;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
 	private boolean isroot;
@@ -82,11 +82,9 @@ public class Application {
 	public Application(String host,int port) throws IOException { //root
 		isroot = true;
 		sc = ServerSocketChannel.open();
-		sca = null;
+		scDaron = null;
 		sc.bind(new InetSocketAddress(host,port));
-		sc.configureBlocking(false);
 		selector = Selector.open();
-		sc.register(selector, SelectionKey.OP_ACCEPT);
 	}
 	
 	public Application(String host,int port, InetSocketAddress fatherAddress) throws IOException { // Connecting to father
@@ -94,19 +92,16 @@ public class Application {
 		sc = ServerSocketChannel.open();
 		sc.bind(new InetSocketAddress(host,port));
 		selector = Selector.open();
-		sc.configureBlocking(false);
-		sc.register(selector, SelectionKey.OP_ACCEPT);
-		
-		sca = SocketChannel.open();
-		sca.configureBlocking(false);
-		sca.register(selector, SelectionKey.OP_CONNECT);
-		sca.connect(fatherAddress);
+		scDaron = SocketChannel.open();
+		scDaron.configureBlocking(false);
+		scDaron.register(selector, SelectionKey.OP_CONNECT);
+		scDaron.connect(fatherAddress);
 	}
 
 	
 	public void launch() throws IOException {
-//        sc.configureBlocking(false);
-//        sc.register(selector, SelectionKey.OP_ACCEPT);
+        sc.configureBlocking(false);
+        sc.register(selector, SelectionKey.OP_ACCEPT);
         while (!Thread.interrupted()) {
             Helpers.printKeys(selector); // for debug
             System.out.println("Starting select");
@@ -118,6 +113,8 @@ public class Application {
             System.out.println("Select finished");
         }
     }
+	
+	
 
     private void treatKey(SelectionKey key) {
 //        Helpers.printSelectedKey(key); // for debug
@@ -130,12 +127,15 @@ public class Application {
             throw new UncheckedIOException(ioe);
         }
        // try {
+        	if (key.isValid() && key.isConnectable()) {
+        		doConnect(key);
+        	}
             if (key.isValid() && key.isWritable()) {
             //    ((Context) key.attachment()).doWrite();
             System.out.println("A modi");
             }
             if (key.isValid() && key.isReadable()) {
-            //    ((Context) key.attachment()).doRead();
+                ((Context) key.attachment()).doRead();
             	System.out.println("ca");
             }
 //        } catch (IOException e) {
@@ -155,6 +155,20 @@ public class Application {
         newKey.attach(new Context(newKey,this));
     }
     
+    private void doConnect(SelectionKey key){
+		try {
+			if(!scDaron.finishConnect()){
+				return;
+			}
+
+		} catch (IOException e) {
+			e.getCause();
+		}
+        //key.attach(new Context(key,this));	A verif
+		consoleTest(key);
+		//key.interestOps(SelectionKey.OP_READ);
+	} 
+    
     private void silentlyClose(SelectionKey key) {
  		Channel sc = (Channel) key.channel();
  		try {
@@ -163,6 +177,26 @@ public class Application {
  			// ignore exception
  		}
  	}
+    
+    private void consoleTest(SelectionKey key) {
+        try {
+            try (var scanner = new Scanner(System.in)) {
+                while (scanner.hasNextLine()) {
+                   var msg = scanner.nextLine();
+                   var buf = ByteBuffer.allocate(msg.length());
+                   buf.put(Charset.forName("UTF-8").encode(msg));
+                   var c = (Context) key.attachment();
+                   SocketChannel a = c.getChannel();
+                   a.write(buf);
+                }
+            }
+            logger.info("Console thread stopping");
+      // } catch (InterruptedException e) {
+          //  logger.info("Console thread has been interrupted");
+        } catch (IOException e) {
+        	logger.info("IOE");
+        }
+    }
 	
 	private static void usage() {
 		System.out.println("Usage :");
