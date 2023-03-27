@@ -10,6 +10,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -36,36 +37,36 @@ public class Application {
 	    	 return scContext;
 	     }
 	     
-	     private void updateInterestOps() {
-	            var ops = 0;
-	            if (!closed && bufferOut.hasRemaining()) {
-	                ops |= SelectionKey.OP_READ;
-	            }
-	            if (bufferOut.position() != 0){
-	                ops |= SelectionKey.OP_WRITE;
-	            }
-	            if (ops == 0 && closed) {
-	                silentlyClose(key);
-	                return;
-	            }
-	            key.interestOps(ops);
-	        }
+//	     private void updateInterestOps() {
+//	            var ops = 0;
+//	            if (!closed && bufferOut.hasRemaining()) {
+//	                ops |= SelectionKey.OP_READ;
+//	            }
+//	            if (bufferOut.position() != 0){
+//	                ops |= SelectionKey.OP_WRITE;
+//	            }
+//	            if (ops == 0 && closed) {
+//	                silentlyClose(key);
+//	                return;
+//	            }
+//	            key.interestOps(ops);
+//	        }
 	     
-	     private void silentlyClose(SelectionKey key) {
-	 		Channel sc = (Channel) key.channel();
-	 		try {
-	 			sc.close();
-	 		} catch (IOException e) {
-	 			// ignore exception
-	 		}
+//	     private void silentlyClose(SelectionKey key) {
+//	 		Channel sc = (Channel) key.channel();
+//	 		try {
+//	 			sc.close();
+//	 		} catch (IOException e) {
+//	 			// ignore exception
+//	 		}
+//	 	}
+	     
+	     public void doRead() throws IOException {
+	 		scContext.read(bufferIn);
+	 		bufferIn.flip();
+	 		System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
 	 	}
 	     
-	     public void doRead() {
-	 	//	scContext.
-	 	}
-	     
-	     
-
 	 }
 	
 	
@@ -103,14 +104,14 @@ public class Application {
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_ACCEPT);
         while (!Thread.interrupted()) {
-            Helpers.printKeys(selector); // for debug
-            System.out.println("Starting select");
+            //Helpers.printKeys(selector); // for debug
+            //System.out.println("Starting select");
             try {
                 selector.select(this::treatKey);
             } catch (UncheckedIOException tunneled) {
                 throw tunneled.getCause();
             }
-            System.out.println("Select finished");
+            //System.out.println("Select finished");
         }
     }
 	
@@ -126,7 +127,7 @@ public class Application {
             // lambda call in select requires to tunnel IOException
             throw new UncheckedIOException(ioe);
         }
-       // try {
+       try {
         	if (key.isValid() && key.isConnectable()) {
         		doConnect(key);
         	}
@@ -136,12 +137,11 @@ public class Application {
             }
             if (key.isValid() && key.isReadable()) {
                 ((Context) key.attachment()).doRead();
-            	System.out.println("ca");
             }
-//        } catch (IOException e) {
-//            logger.info("Connection closed with client due to IOException");
-//            silentlyClose(key);
-//        }
+        } catch (IOException e) {
+            logger.info("Connection closed with client due to IOException");
+            silentlyClose(key);
+        }
     }
     
     private void doAccept(SelectionKey key) throws IOException {
@@ -151,8 +151,10 @@ public class Application {
             return;
         }
         nouvFils.configureBlocking(false);
-        var newKey = sc.register(selector, SelectionKey.OP_READ);
-        newKey.attach(new Context(newKey,this));
+        var newKey = nouvFils.register(selector, SelectionKey.OP_READ);
+        var context = new Application.Context(newKey,this);
+        newKey.attach(context);
+        System.out.println(context.getChannel());
     }
     
     private void doConnect(SelectionKey key){
@@ -164,9 +166,10 @@ public class Application {
 		} catch (IOException e) {
 			e.getCause();
 		}
-        //key.attach(new Context(key,this));	A verif
+		System.out.println();
+        key.attach(new Context(key,this));	//A verif
 		consoleTest(key);
-		//key.interestOps(SelectionKey.OP_READ);
+		key.interestOps(SelectionKey.OP_READ);
 	} 
     
     private void silentlyClose(SelectionKey key) {
@@ -183,11 +186,16 @@ public class Application {
             try (var scanner = new Scanner(System.in)) {
                 while (scanner.hasNextLine()) {
                    var msg = scanner.nextLine();
+//                   if(msg.equals("Disconnect")) {
+//                	   System.out.println("Disconnecting the node");
+//                	   return;
+//                   }
                    var buf = ByteBuffer.allocate(msg.length());
                    buf.put(Charset.forName("UTF-8").encode(msg));
                    var c = (Context) key.attachment();
                    SocketChannel a = c.getChannel();
-                   a.write(buf);
+                   a.write(buf.flip());
+                   
                 }
             }
             logger.info("Console thread stopping");
@@ -206,15 +214,15 @@ public class Application {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		if(args.length < 3 || args.length > 5) {
+		if(args.length < 2 || args.length > 5) {
 			usage();
 			return;
 		}
 
-		if(args.length >= 3){
+		if(args.length >=2){
 			String host = args[0];
 			int port = Integer.valueOf(args[1]);
-			if(args.length == 5){
+			if(args.length == 4){
 				String fatherHost = args[2];
 				int fatherPort = Integer.valueOf(args[3]);	
 				new Application(host,port,new InetSocketAddress(fatherHost,fatherPort)).launch(); //normal
