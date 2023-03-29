@@ -145,18 +145,14 @@ public class Application {
     }
     
     private void doAccept(SelectionKey key) throws IOException {
-      	System.out.println("enter do accept");
         SocketChannel nouvFils = sc.accept();
         if(sc == null) {
             logger.info("selector gave bad hint");
             return;
         }
-        System.out.println("caca1");
         nouvFils.configureBlocking(false);
         var newKey = nouvFils.register(selector, SelectionKey.OP_READ);
-        System.out.println("caca2");
         var context = new Application.Context(newKey,this);
-        System.out.println("caca3");
         newKey.attach(context);
         System.out.println(context.getChannel());
     }
@@ -204,7 +200,7 @@ public class Application {
                        a.write(buf.flip());
                     }
                 }
-                logger.info("Console thread stopping");
+                logger.info("Console thread stopping ");
             } catch (IOException e) {
             	logger.info("IOE");
             }
