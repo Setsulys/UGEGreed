@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class RouteTable {
 
-	private LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
+	private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
 	
 
 	
