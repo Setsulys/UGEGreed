@@ -145,14 +145,18 @@ public class Application {
     }
     
     private void doAccept(SelectionKey key) throws IOException {
+      	System.out.println("enter do accept");
         SocketChannel nouvFils = sc.accept();
         if(sc == null) {
             logger.info("selector gave bad hint");
             return;
         }
+        System.out.println("caca1");
         nouvFils.configureBlocking(false);
         var newKey = nouvFils.register(selector, SelectionKey.OP_READ);
+        System.out.println("caca2");
         var context = new Application.Context(newKey,this);
+        System.out.println("caca3");
         newKey.attach(context);
         System.out.println(context.getChannel());
     }
@@ -166,7 +170,8 @@ public class Application {
 		} catch (IOException e) {
 			e.getCause();
 		}
-		System.out.println();
+		System.out.println("CONNECTED");
+		System.out.println(scDaron);
         key.attach(new Context(key,this));	//A verif
 		consoleTest(key);
 		key.interestOps(SelectionKey.OP_READ);
@@ -181,29 +186,30 @@ public class Application {
  		}
  	}
     
-    private void consoleTest(SelectionKey key) {
-        try {
-            try (var scanner = new Scanner(System.in)) {
-                while (scanner.hasNextLine()) {
-                   var msg = scanner.nextLine();
-//                   if(msg.equals("Disconnect")) {
-//                	   System.out.println("Disconnecting the node");
-//                	   return;
-//                   }
-                   var buf = ByteBuffer.allocate(msg.length());
-                   buf.put(Charset.forName("UTF-8").encode(msg));
-                   var c = (Context) key.attachment();
-                   SocketChannel a = c.getChannel();
-                   a.write(buf.flip());
-                   
+    @SuppressWarnings("preview")
+	private void consoleTest(SelectionKey key) {
+    	Thread.ofPlatform().start(()->{
+    		try {
+                try (var scanner = new Scanner(System.in)) {
+                    while (scanner.hasNextLine()) {
+                       var msg = scanner.nextLine();
+//                       if(msg.equals("Disconnect")) {
+//                    	   System.out.println("Disconnecting the node");
+//                    	   return;
+//                       }
+                       var buf = ByteBuffer.allocate(msg.length());
+                       buf.put(Charset.forName("UTF-8").encode(msg));
+                       var c = (Context) key.attachment();
+                       SocketChannel a = c.getChannel();
+                       a.write(buf.flip());
+                    }
                 }
+                logger.info("Console thread stopping");
+            } catch (IOException e) {
+            	logger.info("IOE");
             }
-            logger.info("Console thread stopping");
-      // } catch (InterruptedException e) {
-          //  logger.info("Console thread has been interrupted");
-        } catch (IOException e) {
-        	logger.info("IOE");
-        }
+      });
+        
     }
 	
 	private static void usage() {
