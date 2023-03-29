@@ -1,0 +1,99 @@
+\documentclass[a4paper,titlepage]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[bottom=0.8in,top=0.8in]{geometry}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{%
+	language={c},
+	breaklines=true,
+	numberstyle=\footnotesize,
+	captionpos=b,
+	basicstyle=\ttfamily,
+	keywordstyle=\bfseries\color{blue},
+	commentstyle=\itshape\color{green}
+	}
+\usepackage[colorlinks]{hyperref}
+\renewcommand{\thesection}{\arabic{section}}
+\title{Rapport sur le projet UGEGreed}
+\date{}
+\author{DEBATS Julien - LY-IENG Steven}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\pagebreak
+\section{Introduction}
+\subsection{Présentation du projet}
+\paragraph{}
+Le but du projet UGEGreed est de réaliser un système de calcul distribué au dessus du protocol TPC. L'idée est d'aider les chercheurs qui veulent tester des conjectures sur un très grand nombre de cas en distribuant leurs calculs sur plusieurs machines.
+\subsection{Présentation de l'application}
+\paragraph{}
+Typiquement, un chercheur va vouloir tester une conjecture sur tous les nombres de 1 à 1 000 000 000. Pour cela, il va écrire une fonction Java qui teste cette conjecture pour un nombre n donné. Il ne lui reste qu'à exécuter cette fonction sur tous les nombres de 1 à 1 000 000 000. Cela peut prendre beaucoup de temps et on voudrait pouvoir accélérer le processus en partageant la vérification sur plusieurs machines. Par exemple, si l'on dispose de 10 machines, une machine peut vérifier les nombres de 1 à 100 000 000, une autre de 100 000 001 à 200 000 000, etc...
+\paragraph{}
+Le but des applications que vous allez développer sera de pouvoir se connecter les unes aux autres pour se répartir les tâches à faire. Ensuite, les applications téléchargeront le Jar correspondant et exécuteront le code pour chacune des valeurs qui leur ont été attribuées et renverront les réponses vers l'application qui a proposé la tâche initiale. C'est elle qui créera le fichier contenant toutes les réponses.
+\paragraph{}
+Nous vous donnerons le code nécessaire pour instancier une classe contenue dans un Jar. Ce n'est pas une difficulté du projet.
+\subsection{Détails sur le fonctionnement de l'application}
+\paragraph{}
+Quand on démarre une application, on lui donne un port d'écoute sur lequel elle acceptera la connexion d'autres applications. On peut, en plus, donner l'adresse d'une autre application. Dans ce cas, l'application va commencer par se connecter à l'autre application. Si l'application est démarrée sans l'adresse d'une autre application, on dit qu'elle est démarrée en mode ROOT.
+\paragraph{}
+Par exemple, on peut démarrer une application en mode ROOT à l’adresse A sur le port 6666, puis une application à l'adresse B sur le port 7777 en lui disant de se connecter à A sur le port 6666, et enfin une autre application à l'adresse C sur le port 8888 en lui disant de se connecter sur l'application à l'adresse B sur le port 7777.
+Les trois applications forment un réseau qui vont pouvoir s'échanger des informations.
+\paragraph{}
+Une fois qu'une application est démarrée, l'utilisateur va pouvoir demander le test d'une conjecture en donnant l'url du Jar, le nom qualifié de la classe contenue dans le Jar et la plage des valeurs à tester. Les calculs à faire doivent être répartis entre les différents membres du réseau et les réponses doivent être collectées par l'application qui a fait la demande. De plus, les clients doivent pouvoir moduler la charge de travail qu'ils acceptent. Par exemple, si le client fait déjà beaucoup de calculs pour le réseau, il doit pouvoir refuser.
+\paragraph{}
+De plus votre protocole doit permettre à une application qui n'a pas été démarrée en ROOT de se déconnecter du réseau sans impacter le reste du réseau, ni perdre des calculs. En particulier, si cette application s'était engagée à faire des calculs, ces calculs devront être réalisés par d'autres applications du réseau après son départ.
+\paragraph{}
+Sauf en cas de déconnexion d'une autre application du réseau, les applications ne doivent pas initier d'autres connexions que la connexion qu'elles établissent au démarrage
+\pagebreak
+\section{UGEGreed}
+\subsection{RFC}
+\paragraph{}
+Vous pouvez consulter notre RFC à tout moment
+\href {https://gitlab.com/Setsulys/ugegreed-debats-ly-ieng/-/blob/main/GreedRfc.md}{ici}
+\subsection{Code}
+\paragraph{}
+Nous avons commencé à coder le projet en travaillant sur le Readers, que nous avons pensé grace à notre RFC, il y aura donc un URLReader, INTreader et un LONGReader. Ensuite nous avons décidé de commencer à l'aide des derniers TP de Réseau la partie connexion entre les applications.
+TODO
+\section{Utilisation}
+\subsection{Connexion}
+TODO
+\paragraph{}
+Pour pouvoir lancer le code il faudra se rendre au niveau du //jar// et lancer la commande 
+\paragraph{}
+Pour la root
+\begin{lstlisting}
+java -jar Application.jar <Host> <Port>
+\end{lstlisting}
+\paragraph{}
+Pour la une autre application
+\begin{lstlisting}
+java -jar Application.jar <Host> <Port> <ServerHost> <ServerPort>
+\end{lstlisting}
+\subsection{Déconnexion}
+TODO
+\subsection{Lancement}
+TODO
+\section{Difficulté rencontré}
+\subsection{Difficulté sur la RFC}
+\paragraph{}
+Au début n'ayant pas le sujet assez clair, nous avons commencé a faire une RFC qui n'était pas du tout en rapport avec le sujet du projet, cependant à l'aide de Monsieur Carayol, nous avons mieux appréhendé le sujet et avons pu partir sur de bonnes bases.
+\paragraph{}
+Cependant lors de la soutenance de la RFC il nous à été montré que notre RFC n'était pas vraiment ce qui était attendu, mais rien de grave c'était quelques petites choses à corriger.
+Nous avons alors demandé à notre professeurs de plus amples explications pour mieux cerner ce qui était demandé et améliorer notre RFC, aussi pendant ce temps nous avons éssayé de commencer à travailler sur la partie code du protocole.
+\subsection{Difficulté sur le code}
+Au début du projet nous ne savions pas exactement comment commencer mais nous avons 
+\section{Division du travail}
+\paragraph{}
+Pour ce qui est du partage du travail nous avons partagé assez équitablement
+\subsection{RFC}
+\paragraph{}
+Pour la RFC on a beaucoup travaillé de notre coté mais on faisait des points pour assez vite comprendre la situation et échanger les idées entre nous et nous mettre d'accord dessus ou non.
+\subsection{Code}
+\paragraph{}
+A ce niveau on essayait d'avancer chacun de notre coté lorsque l'on pouvait, mais surtout on a essayé un maximum de coder ensemble sur Eclipse à l'aide de l'extension CodeTogether comme ca il était assez simple de savoir assez rapidement d'où venais l'erreur et on pouvais intervenir plus rapidement, lorsque l'on travaillait ensemble sur CodeTogether on essayait d'envoyer un peu prêt le même nombre de commits chacun sur le git
+\section{Annexe}
+\end{document}

@@ -1,0 +1,37 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.0.1}%
+\contentsline {subsection}{\numberline {1.1}Présentation du projet}{2}{subsection.0.1.1}%
+\contentsline {paragraph}{}{2}{section*.2}%
+\contentsline {subsection}{\numberline {1.2}Présentation de l'application}{2}{subsection.0.1.2}%
+\contentsline {paragraph}{}{2}{section*.3}%
+\contentsline {paragraph}{}{2}{section*.4}%
+\contentsline {paragraph}{}{2}{section*.5}%
+\contentsline {subsection}{\numberline {1.3}Détails sur le fonctionnement de l'application}{2}{subsection.0.1.3}%
+\contentsline {paragraph}{}{2}{section*.6}%
+\contentsline {paragraph}{}{2}{section*.7}%
+\contentsline {paragraph}{}{2}{section*.8}%
+\contentsline {paragraph}{}{2}{section*.9}%
+\contentsline {paragraph}{}{2}{section*.10}%
+\contentsline {section}{\numberline {2}UGEGreed}{3}{section.0.2}%
+\contentsline {subsection}{\numberline {2.1}RFC}{3}{subsection.0.2.1}%
+\contentsline {paragraph}{}{3}{section*.11}%
+\contentsline {subsection}{\numberline {2.2}Code}{3}{subsection.0.2.2}%
+\contentsline {paragraph}{}{3}{section*.12}%
+\contentsline {section}{\numberline {3}Utilisation}{3}{section.0.3}%
+\contentsline {subsection}{\numberline {3.1}Connexion}{3}{subsection.0.3.1}%
+\contentsline {paragraph}{}{3}{section*.13}%
+\contentsline {paragraph}{}{3}{section*.14}%
+\contentsline {paragraph}{}{3}{section*.15}%
+\contentsline {subsection}{\numberline {3.2}Déconnexion}{3}{subsection.0.3.2}%
+\contentsline {subsection}{\numberline {3.3}Lancement}{3}{subsection.0.3.3}%
+\contentsline {section}{\numberline {4}Difficulté rencontré}{3}{section.0.4}%
+\contentsline {subsection}{\numberline {4.1}Difficulté sur la RFC}{3}{subsection.0.4.1}%
+\contentsline {paragraph}{}{3}{section*.16}%
+\contentsline {paragraph}{}{3}{section*.17}%
+\contentsline {subsection}{\numberline {4.2}Difficulté sur le code}{3}{subsection.0.4.2}%
+\contentsline {section}{\numberline {5}Division du travail}{3}{section.0.5}%
+\contentsline {paragraph}{}{3}{section*.18}%
+\contentsline {subsection}{\numberline {5.1}RFC}{4}{subsection.0.5.1}%
+\contentsline {paragraph}{}{4}{section*.19}%
+\contentsline {subsection}{\numberline {5.2}Code}{4}{subsection.0.5.2}%
+\contentsline {paragraph}{}{4}{section*.20}%
+\contentsline {section}{\numberline {6}Annexe}{4}{section.0.6}%
