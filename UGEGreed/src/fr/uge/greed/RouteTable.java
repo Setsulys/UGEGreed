@@ -9,8 +9,6 @@ public class RouteTable {
 
 	private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
 	
-
-	
 	/**
 	 * Met A jour la Table de routage
 	 * @param newAdress
@@ -32,7 +30,6 @@ public class RouteTable {
 		Objects.requireNonNull(unlinked);
 		routeTable.remove(unlinked);
 	}
-
 	
 	/**
 	 * Recuppere le chemin (voisin) par lequel une trame doit passer pour atteindre sa destination
@@ -46,11 +43,10 @@ public class RouteTable {
 		return routeTable.get(destination);
 	}
 	
-	
-	
 	/**
 	 * Affiche Toute la route table
 	 */
+	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public String toString() {
 		return routeTable.entrySet().stream().map(key -> key +" : " + routeTable.get(key)).collect(Collectors.joining(",","[","]"));

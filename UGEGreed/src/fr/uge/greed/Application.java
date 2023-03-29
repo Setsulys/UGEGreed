@@ -12,8 +12,11 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class Application {
@@ -69,6 +72,55 @@ public class Application {
 		}
 
 	}
+	
+//	public class RouteTable {
+//
+//		private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
+//		
+//		/**
+//		 * Met A jour la Table de routage
+//		 * @param newAdress
+//		 * @param route
+//		 */
+//		public void UpdateRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
+//			//newAdress l'adresse de la node que l'on veut,route l'adresse de la node par laquelle on passe pour aller a newAdress
+//			Objects.requireNonNull(newAdress);
+//			Objects.requireNonNull(route);
+//			routeTable.put(newAdress, route);
+//		}
+//		
+//		
+//		/**
+//		 * Supprime une Application et son chemin (clé valeur) de la table de routage lors de la déconnexion de l'Application
+//		 * @param unlinked
+//		 */
+//		public void DeleteRouteTable(InetSocketAddress unlinked) {
+//			Objects.requireNonNull(unlinked);
+//			routeTable.remove(unlinked);
+//		}
+//		
+//		/**
+//		 * Recuppere le chemin (voisin) par lequel une trame doit passer pour atteindre sa destination
+//		 * renvoi null si il n'y a pas de chemin
+//		 * @param destination
+//		 * 
+//		 * @return InetSocketAddress
+//		 */
+//		public InetSocketAddress get(InetSocketAddress destination) {
+//			Objects.requireNonNull(destination);
+//			return routeTable.get(destination);
+//		}
+//		
+//		/**
+//		 * Affiche Toute la route table
+//		 */
+//		@Override
+//		public String toString() {
+//			return routeTable.entrySet().stream().map(key -> key +" : " + routeTable.get(key)).collect(Collectors.joining(",","[","]"));
+//		}
+//		
+//	}
+
 
 	// private final SelectionKey key;
 
@@ -78,7 +130,7 @@ public class Application {
 	private final Selector selector;
 	private boolean isroot;
 	private final HashSet<Context> connexions = new HashSet<>();
-	private RouteTable table;
+	//private RouteTable table = new RouteTable();
 
 	static private final int BUFFER_SIZE = 1024;
 
@@ -100,7 +152,7 @@ public class Application {
 		scDaron.configureBlocking(false);
 		scDaron.register(selector, SelectionKey.OP_CONNECT);
 		scDaron.connect(fatherAddress);
-		table.UpdateRouteTable(fatherAddress, fatherAddress);
+		//table.UpdateRouteTable(fatherAddress, fatherAddress);
 	}
 
 	public void launch() throws IOException {
@@ -157,7 +209,7 @@ public class Application {
 		var context = new Application.Context(newKey, this);
 		newKey.attach(context);
 		connexions.add(context);
-		table.UpdateRouteTable((InetSocketAddress) context.scContext.getRemoteAddress(), (InetSocketAddress)context.scContext.getRemoteAddress());
+		//table.UpdateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
 		printConnexions();
 	}
 
@@ -221,7 +273,8 @@ public class Application {
 				System.out.println("Conneted from : " + e.scContext);
 			}
 		}
-		System.out.println(table);
+		System.out.println("-----RouteTable------");
+		//System.out.println(table);
 	}
 	
 
