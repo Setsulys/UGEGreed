@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  29 MAR 2023 15:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  30 MAR 2023 21:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -411,20 +411,14 @@ LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 6
 File: t1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
 )
 [3] [4] (Rapport_UGEGreed.aux)
-
-Package rerunfilecheck Warning: File `Rapport_UGEGreed.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `Rapport_UGEGreed.out':
-(rerunfilecheck)             Before: 4887ACD938513F6876FFB1CCECE3630D;2200
-(rerunfilecheck)             After:  DBCB05F4952C6758DB8652018DB6D818;2384.
+Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
+(rerunfilecheck)             Checksum: 0BFE36F234FA3FEEDBEE668DB20853CD;2506.
  ) 
 Here is how much of TeX's memory you used:
- 11201 strings out of 476334
- 173906 string characters out of 5787499
+ 11204 strings out of 476334
+ 173958 string characters out of 5787499
  1877382 words of memory out of 5000000
- 31454 multiletter control sequences out of 15000+600000
+ 31456 multiletter control sequences out of 15000+600000
  522272 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,6n,76p,633b,1095s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -436,9 +430,9 @@ knappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/l
 jfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Steven\AppData\Local\MiK
 TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on Rapport_UGEGreed.pdf (5 pages, 91526 bytes).
+Output written on Rapport_UGEGreed.pdf (5 pages, 95072 bytes).
 PDF statistics:
- 365 PDF objects out of 1000 (max. 8388607)
- 47 named destinations out of 1000 (max. 500000)
- 137 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 378 PDF objects out of 1000 (max. 8388607)
+ 48 named destinations out of 1000 (max. 500000)
+ 153 words of extra memory for PDF output out of 10000 (max. 10000000)
 
