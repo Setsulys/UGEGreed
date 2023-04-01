@@ -213,6 +213,7 @@ public class Application {
 		}
 	}
 
+
 	private void doAccept(SelectionKey key) throws IOException {
 		SocketChannel nouvFils = sc.accept();
 
