@@ -11,6 +11,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Objects;
@@ -28,7 +29,7 @@ public class Application {
 		private final ByteBuffer bufferIn = ByteBuffer.allocate(BUFFER_SIZE);
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
 		private final Application server;
-		private final boolean closed = false;
+		private boolean closed = false;
 
 		private Context(SelectionKey key, Application server) {
 			this.key = key;
@@ -41,7 +42,7 @@ public class Application {
 			return scContext;
 		}
 
-//	     private void updateInterestOps() {
+	     private void updateInterestOps() {
 //	            var ops = 0;
 //	            if (!closed && bufferOut.hasRemaining()) {
 //	                ops |= SelectionKey.OP_READ;
@@ -50,27 +51,84 @@ public class Application {
 //	                ops |= SelectionKey.OP_WRITE;
 //	            }
 //	            if (ops == 0 && closed) {
-//	                silentlyClose(key);
+//	               	
 //	                return;
 //	            }
-//	            key.interestOps(ops);
-//	        }
+	    	 	if(closed){
+					 
+				 }
+	            key.interestOps(ops);
+	        }
 
-//	     private void silentlyClose(SelectionKey key) {
-//	 		Channel sc = (Channel) key.channel();
-//	 		try {
-//	 			sc.close();
-//	 		} catch (IOException e) {
-//	 			// ignore exception
-//	 		}
-//	 	}
+	     private void silentlyClose(SelectionKey key) {
+	 		Channel sc = (Channel) key.channel();
+	 		try {
+	 			sc.close();
+	 		} catch (IOException e) {
+	 			// ignore exception
+	 		}
+	 	}
 
 		public void doRead() throws IOException {
-			scContext.read(bufferIn);
+			if(scContext.read(bufferIn)==-1){
+				System.out.println("Connexion closed");
+				return;	
+			}
 			bufferIn.flip();
 			System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
+			bufferIn.clear();
+			
 		}
 
+	}
+	
+	public class RouteTable {
+
+		private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
+		
+		/**
+		 * Met A jour la Table de routage
+		 * @param newAdress
+		 * @param route
+		 */
+		public void updateRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
+			//newAdress l'adresse de la node que l'on veut,route l'adresse de la node par laquelle on passe pour aller a newAdress
+			Objects.requireNonNull(newAdress);
+			Objects.requireNonNull(route);
+			routeTable.put(newAdress, route);
+		}
+		
+		
+		/**
+		 * Supprime une Application et son chemin (clé valeur) de la table de routage lors de la déconnexion de l'Application
+		 * @param unlinked
+		 */
+		public void deleteRouteTable(InetSocketAddress unlinked) {
+			Objects.requireNonNull(unlinked);
+			routeTable.remove(unlinked);
+		}
+		
+		
+		/**
+		 * Recuppere le chemin (voisin) par lequel une trame doit passer pour atteindre sa destination
+		 * renvoi null si il n'y a pas de chemin
+		 * @param destination
+		 * 
+		 * @return InetSocketAddress
+		 */
+		public InetSocketAddress get(InetSocketAddress destination) {
+			Objects.requireNonNull(destination);
+			return routeTable.get(destination);
+		}
+		
+		/**
+		 * Affiche Toute la route table
+		 */
+		@Override
+		public String toString() {
+			return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining("\n"));
+		}
+		
 	}
 
 
@@ -104,7 +162,7 @@ public class Application {
 		scDaron.configureBlocking(false);
 		scDaron.register(selector, SelectionKey.OP_CONNECT);
 		scDaron.connect(fatherAddress);
-		table.UpdateRouteTable(fatherAddress, fatherAddress);
+		table.updateRouteTable(fatherAddress, fatherAddress);
 	}
 
 	public void launch() throws IOException {
@@ -163,7 +221,7 @@ public class Application {
 		var context = new Application.Context(newKey, this);
 		newKey.attach(context);
 		connexions.add(context);
-		table.UpdateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
+		table.updateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
 		printConnexions();
 	}
 
@@ -199,10 +257,14 @@ public class Application {
 				try (var scanner = new Scanner(System.in)) {
 					while (scanner.hasNextLine()) {
 						var msg = scanner.nextLine();
-//                       if(msg.equals("Disconnect")) {
-//                    	   System.out.println("Disconnecting the node");
-//                    	   return;
-//                       }
+                       if(msg.equals("Disconnect")) {
+                    	   System.out.println("Disconnecting the node");
+                    	   var con = (Context) key.attachment();
+                    	   con.closed = true;
+                    	   silentlyClose(key);
+                    	   Thread.currentThread().interrupt();
+                    	   return;
+                       }
 						var buf = ByteBuffer.allocate(msg.length());
 						buf.put(Charset.forName("UTF-8").encode(msg));
 						var c = (Context) key.attachment();
@@ -231,8 +293,8 @@ public class Application {
 				System.out.println("Conneted from : " + e.scContext);
 			}
 		}
-		System.out.println("-----RouteTable------");
-		System.out.println(table);
+//		System.out.println("-----RouteTable------");
+//		System.out.println(table);
 	}
 	
 

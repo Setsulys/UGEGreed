@@ -46,10 +46,9 @@ public class RouteTable {
 	/**
 	 * Affiche Toute la route table
 	 */
-	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public String toString() {
-		return routeTable.entrySet().stream().map(key -> key +" : " + routeTable.get(key)).collect(Collectors.joining(",","[","]"));
+		return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining(",","[","]"));
 	}
 	
 }
