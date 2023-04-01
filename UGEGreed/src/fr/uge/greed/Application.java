@@ -116,7 +116,7 @@ public class Application {
 //		 */
 //		@Override
 //		public String toString() {
-//			return routeTable.entrySet().stream().map(key -> key +" : " + routeTable.get(key)).collect(Collectors.joining(",","[","]"));
+//			return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining(",","[","]"));
 //		}
 //		
 //	}
@@ -130,7 +130,7 @@ public class Application {
 	private final Selector selector;
 	private boolean isroot;
 	private final HashSet<Context> connexions = new HashSet<>();
-	//private RouteTable table = new RouteTable();
+	private RouteTable table = new RouteTable();
 
 	static private final int BUFFER_SIZE = 1024;
 
@@ -152,7 +152,7 @@ public class Application {
 		scDaron.configureBlocking(false);
 		scDaron.register(selector, SelectionKey.OP_CONNECT);
 		scDaron.connect(fatherAddress);
-		//table.UpdateRouteTable(fatherAddress, fatherAddress);
+		table.UpdateRouteTable(fatherAddress, fatherAddress);
 	}
 
 	public void launch() throws IOException {
@@ -194,6 +194,8 @@ public class Application {
 		} catch (IOException e) {
 			logger.info("Connection closed with client due to IOException");
 			silentlyClose(key);
+			removeIfClosed();
+			printConnexions();
 		}
 	}
 
@@ -209,7 +211,7 @@ public class Application {
 		var context = new Application.Context(newKey, this);
 		newKey.attach(context);
 		connexions.add(context);
-		//table.UpdateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
+		table.UpdateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
 		printConnexions();
 	}
 
@@ -263,7 +265,11 @@ public class Application {
 		});
 
 	}
-
+	
+	private void removeIfClosed() {
+		connexions.removeIf(e -> !e.scContext.isOpen());
+	}
+	
 	private void printConnexions() {
     	System.out.println("-------------Table of connexions--------------");
 		for (var e : connexions) {
@@ -274,7 +280,7 @@ public class Application {
 			}
 		}
 		System.out.println("-----RouteTable------");
-		//System.out.println(table);
+		System.out.println(table);
 	}
 	
 
