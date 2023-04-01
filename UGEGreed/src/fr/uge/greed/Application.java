@@ -42,23 +42,23 @@ public class Application {
 			return scContext;
 		}
 
-	     private void updateInterestOps() {
-//	            var ops = 0;
-//	            if (!closed && bufferOut.hasRemaining()) {
-//	                ops |= SelectionKey.OP_READ;
-//	            }
-//	            if (bufferOut.position() != 0){
-//	                ops |= SelectionKey.OP_WRITE;
-//	            }
-//	            if (ops == 0 && closed) {
-//	               	
-//	                return;
-//	            }
-	    	 	if(closed){
-					 
-				 }
-	            key.interestOps(ops);
-	        }
+//	     private void updateInterestOps() {
+////	            var ops = 0;
+////	            if (!closed && bufferOut.hasRemaining()) {
+////	                ops |= SelectionKey.OP_READ;
+////	            }
+////	            if (bufferOut.position() != 0){
+////	                ops |= SelectionKey.OP_WRITE;
+////	            }
+////	            if (ops == 0 && closed) {
+////	               	
+////	                return;
+////	            }
+//	    	 	if(closed){
+//					 
+//				 }
+//	            key.interestOps(ops);
+//	        }
 
 	     private void silentlyClose(SelectionKey key) {
 	 		Channel sc = (Channel) key.channel();
@@ -72,8 +72,10 @@ public class Application {
 		public void doRead() throws IOException {
 			if(scContext.read(bufferIn)==-1){
 				System.out.println("Connexion closed");
+				silentlyClose(key);
 				return;	
 			}
+			//scContext.read(bufferIn);
 			bufferIn.flip();
 			System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
 			bufferIn.clear();
@@ -200,6 +202,8 @@ public class Application {
 			}
 			if (key.isValid() && key.isReadable()) {
 				((Context) key.attachment()).doRead();
+				removeIfClosed();
+				printConnexions();
 			}
 		} catch (IOException e) {
 			logger.info("Connection closed with client due to IOException");
@@ -238,6 +242,11 @@ public class Application {
 		key.attach(context);
 		connexions.add(context);
 		consoleTest(key);
+		var con = (Context) key.attachment();
+		if(con.closed){
+			System.out.println("interrrrr");
+			Thread.currentThread().interrupt();
+		}
 		key.interestOps(SelectionKey.OP_READ);
 	}
 
