@@ -268,12 +268,13 @@ public class Application {
 					while (scanner.hasNextLine()) {
 						var msg = scanner.nextLine();
                        if(msg.equals("Disconnect")) {
-                    	   System.out.println("Disconnecting the node");
+                    	   System.out.println("---------------------\nDisconnecting the node ...");
                     	   var con = (Context) key.attachment();
                     	   con.closed = true;
                     	   silentlyClose(key);
                     	   Thread.currentThread().interrupt();
-                    	   return;
+                    	   System.out.println("Disconnected Succesfully\n---------------------");
+                    	   
                        }
 						var buf = ByteBuffer.allocate(msg.length());
 						buf.put(Charset.forName("UTF-8").encode(msg));
@@ -285,6 +286,7 @@ public class Application {
 				logger.info("Console thread stopping ");
 			} catch (IOException e) {
 				logger.info("IOE");
+				System.exit(0);
 			}
 		});
 
