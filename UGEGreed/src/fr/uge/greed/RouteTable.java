@@ -14,7 +14,7 @@ public class RouteTable {
 	 * @param newAdress
 	 * @param route
 	 */
-	public void UpdateRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
+	public void updateRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
 		//newAdress l'adresse de la node que l'on veut,route l'adresse de la node par laquelle on passe pour aller a newAdress
 		Objects.requireNonNull(newAdress);
 		Objects.requireNonNull(route);
@@ -26,7 +26,7 @@ public class RouteTable {
 	 * Supprime une Application et son chemin (clé valeur) de la table de routage lors de la déconnexion de l'Application
 	 * @param unlinked
 	 */
-	public void DeleteRouteTable(InetSocketAddress unlinked) {
+	public void deleteRouteTable(InetSocketAddress unlinked) {
 		Objects.requireNonNull(unlinked);
 		routeTable.remove(unlinked);
 	}
