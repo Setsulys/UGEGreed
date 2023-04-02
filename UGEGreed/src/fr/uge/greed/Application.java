@@ -31,6 +31,11 @@ public class Application {
 		private final Application server;
 		private boolean closed = false;
 
+		/**
+		 * For every socket channel we link a context with a key
+		 * @param key
+		 * @param server
+		 */
 		private Context(SelectionKey key, Application server) {
 			this.key = key;
 			this.scContext = (SocketChannel) key.channel();
@@ -42,24 +47,28 @@ public class Application {
 			return scContext;
 		}
 
-//	     private void updateInterestOps() {
-////	            var ops = 0;
-////	            if (!closed && bufferOut.hasRemaining()) {
-////	                ops |= SelectionKey.OP_READ;
-////	            }
-////	            if (bufferOut.position() != 0){
-////	                ops |= SelectionKey.OP_WRITE;
-////	            }
-////	            if (ops == 0 && closed) {
-////	               	
-////	                return;
-////	            }
-//	    	 	if(closed){
-//					 
-//				 }
-//	            key.interestOps(ops);
-//	        }
+	     private void updateInterestOps() {
+            var ops = 0;
+//	            if (!closed && bufferOut.hasRemaining()) {
+//	                ops |= SelectionKey.OP_READ;
+//	            }
+//	            if (bufferOut.position() != 0){
+//	                ops |= SelectionKey.OP_WRITE;
+//	            }
+//	            if (ops == 0 && closed) {
+//	               	
+//	                return;
+//	            }
+	    	 	if(closed){
+					 
+				 }
+	            key.interestOps(ops);
+	     }
 
+	     /**
+	      * Close the channel between two applications
+	      * @param key
+	      */
 	     private void silentlyClose(SelectionKey key) {
 	 		Channel sc = (Channel) key.channel();
 	 		try {
@@ -68,7 +77,11 @@ public class Application {
 	 			// ignore exception
 	 		}
 	 	}
-
+	     /**
+	      * Read the buffer that get datas
+	      * if we close the connexion read return -1 and we shut down the connexion
+	      * @throws IOException
+	      */
 		public void doRead() throws IOException {
 			if(scContext.read(bufferIn)==-1){
 				System.out.println("Connexion closed");
@@ -83,58 +96,8 @@ public class Application {
 		}
 
 	}
-	
-//	public class RouteTable {
-//
-//		private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
-//		
-//		/**
-//		 * Met A jour la Table de routage
-//		 * @param newAdress
-//		 * @param route
-//		 */
-//		public void updateRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
-//			//newAdress l'adresse de la node que l'on veut,route l'adresse de la node par laquelle on passe pour aller a newAdress
-//			Objects.requireNonNull(newAdress);
-//			Objects.requireNonNull(route);
-//			routeTable.put(newAdress, route);
-//		}
-//		
-//		
-//		/**
-//		 * Supprime une Application et son chemin (clé valeur) de la table de routage lors de la déconnexion de l'Application
-//		 * @param unlinked
-//		 */
-//		public void deleteRouteTable(InetSocketAddress unlinked) {
-//			Objects.requireNonNull(unlinked);
-//			routeTable.remove(unlinked);
-//		}
-//		
-//		
-//		/**
-//		 * Recuppere le chemin (voisin) par lequel une trame doit passer pour atteindre sa destination
-//		 * renvoi null si il n'y a pas de chemin
-//		 * @param destination
-//		 * 
-//		 * @return InetSocketAddress
-//		 */
-//		public InetSocketAddress get(InetSocketAddress destination) {
-//			Objects.requireNonNull(destination);
-//			return routeTable.get(destination);
-//		}
-//		
-//		/**
-//		 * Affiche Toute la route table
-//		 */
-//		@Override
-//		public String toString() {
-//			return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining("\n"));
-//		}
-//		
-//	}
 
-
-	// private final SelectionKey key;
+	//private final SelectionKey key;
 
 	private final ServerSocketChannel sc;
 	private final SocketChannel scDaron;
@@ -143,9 +106,18 @@ public class Application {
 	private boolean isroot;
 	private final HashSet<Context> connexions = new HashSet<>();
 	private RouteTable table = new RouteTable();
+	private ByteBuffer bufferDonnee = ByteBuffer.allocate(4048);
+	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(4048);
+	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(4048);
 
 	static private final int BUFFER_SIZE = 1024;
 
+	/**
+	 * Start the application in mode Root
+	 * @param host
+	 * @param port
+	 * @throws IOException
+	 */
 	public Application(String host, int port) throws IOException { // root
 		isroot = true;
 		sc = ServerSocketChannel.open();
@@ -153,7 +125,14 @@ public class Application {
 		sc.bind(new InetSocketAddress(host, port));
 		selector = Selector.open();
 	}
-
+	/**
+	 * Start the application in normal mode it get it father inetsocketaddress and we need it inetsocketaddress to start
+	 * If the father doesn't exist 
+	 * @param host
+	 * @param port
+	 * @param fatherAddress
+	 * @throws IOException
+	 */
 	public Application(String host, int port, InetSocketAddress fatherAddress) throws IOException { // Connecting to
 																									// father
 		isroot = false;
@@ -165,6 +144,18 @@ public class Application {
 		scDaron.register(selector, SelectionKey.OP_CONNECT);
 		scDaron.connect(fatherAddress);
 		table.updateRouteTable(fatherAddress, fatherAddress);
+	}
+	
+	public ByteBuffer GetbufferDonnee(){
+		return this.bufferDonnee;
+	}
+	
+	public ByteBuffer GetbufferDonneeTraitee(){
+		return this.bufferDonneeTraitee;
+	}
+	
+	public ByteBuffer GetbufferDonneeDeco(){
+		return this.bufferDonneeDeco;
 	}
 
 	public void launch() throws IOException {
@@ -213,7 +204,11 @@ public class Application {
 		}
 	}
 
-
+	/**
+	 * Accept a connexion from a "Child node"	
+	 * @param key
+	 * @throws IOException
+	 */
 	private void doAccept(SelectionKey key) throws IOException {
 		SocketChannel nouvFils = sc.accept();
 
@@ -229,13 +224,15 @@ public class Application {
 		table.updateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
 		printConnexions();
 	}
-
+	/**
+	 * Connect to a "Parent node"
+	 * @param key
+	 */
 	private void doConnect(SelectionKey key) {
 		try {
 			if (!scDaron.finishConnect()) {
 				return;
 			}
-
 		} catch (IOException e) {
 			e.getCause();
 		}
@@ -245,12 +242,15 @@ public class Application {
 		consoleTest(key);
 		var con = (Context) key.attachment();
 		if(con.closed){
-			System.out.println("interrrrr");
 			Thread.currentThread().interrupt();
 		}
 		key.interestOps(SelectionKey.OP_READ);
 	}
 
+	/**
+	 * closing a Channel between two applications
+	 * @param key
+	 */
 	private void silentlyClose(SelectionKey key) {
 		Channel sc = (Channel) key.channel();
 		try {
@@ -260,6 +260,11 @@ public class Application {
 		}
 	}
 
+	/**
+	 * Function that read the lines prompted in the bash
+	 * if the lines is "Disconnect" it disconnect the application 
+	 * @param key
+	 */
 	@SuppressWarnings("preview")
 	private void consoleTest(SelectionKey key) {
 		Thread.ofPlatform().start(() -> {
@@ -274,7 +279,6 @@ public class Application {
                     	   silentlyClose(key);
                     	   Thread.currentThread().interrupt();
                     	   System.out.println("Disconnected Succesfully\n---------------------");
-                    	   
                        }
 						var buf = ByteBuffer.allocate(msg.length());
 						buf.put(Charset.forName("UTF-8").encode(msg));
@@ -292,10 +296,16 @@ public class Application {
 
 	}
 	
+	/**
+	 * Remove the closed connexion from the HashSet
+	 */
 	private void removeIfClosed() {
 		connexions.removeIf(e -> !e.scContext.isOpen());
 	}
 	
+	/**
+	 * Print connexions of each nodes connected to the application
+	 */
 	private void printConnexions() {
     	System.out.println("-------------Table of connexions--------------");
 		for (var e : connexions) {
@@ -310,14 +320,90 @@ public class Application {
 	}
 	
 
-
+	/**
+	 *  No need to tell you what is it about
+	 */
 	private static void usage() {
 		System.out.println("Usage :");
 		System.out.println("Application host port adress");
 		System.out.println(" - Root Mode - ");
 		System.out.println("Application host port");
 	}
+	
+	
+	
+	//READ MODE
+	/**
+	 * Read the frame op to know what to do next
+	 * @return
+	 */
+	int getOp() {
+		Objects.requireNonNull(this.bufferDonnee);	//buffer altéré
+		var op = new IntReader();
+		op.process(this.bufferDonnee);
+		return op.get();
+	}
+	
+	/**
+	 * Check and work on the frame from what op code we got
+	 * @param op
+	 * @param buf
+	 */
+	void analyseur(Trames op, ByteBuffer buf) {
+		switch(op) {
+		/*Une fonction pour chaque trame*/
+		case PINGENVOI -> {
+			traitementPingEnvoi(buf);
+		}
+		case ACCEPTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case CONFIRMATIONCHANGEMENTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case DEMANDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case DEMANDERECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case DONNEEATRAITER -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case DONNEEDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case DONNEETRAITEES -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case FIRSTLEAF -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case FIRSTROOT -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case FULLTREE -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case INTENTIONDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case NEWLEAF -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case PINGREP -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case SUPPRESSION -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		default -> throw new IllegalArgumentException("Unexpected value: " + op);
+		
+		}
+	}
+	
+	/**
+	 * 
+	 * @param buf
+	 */
+//	void traitementPingEnvoi(ByteBuffer buf){
+//		//var address = table.get(/*addresss*/);
+//		
+//		if(buf.remaining()<16){
+//			return;
+//		}
+//		var tr = buf.get();
+//		tr += buf.get();
+//		if(GetbufferDonnee().hasRemaining()){
+//			//Pas dispo, envoie trame pas dispo
+//			
+//		}
+//		
+//	}
+	
+	
+	
+	
+	
+	
 
+	/**
+	 * Main part of the application
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		if (args.length < 2 || args.length > 5) {
 			usage();
