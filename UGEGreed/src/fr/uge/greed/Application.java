@@ -2,7 +2,9 @@ package fr.uge.greed;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
@@ -19,7 +21,6 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
 public class Application {
 
 	static private class Context {
@@ -33,6 +34,7 @@ public class Application {
 
 		/**
 		 * For every socket channel we link a context with a key
+		 * 
 		 * @param key
 		 * @param server
 		 */
@@ -47,8 +49,8 @@ public class Application {
 			return scContext;
 		}
 
-	     private void updateInterestOps() {
-            var ops = 0;
+		private void updateInterestOps() {
+			var ops = 0;
 //	            if (!closed && bufferOut.hasRemaining()) {
 //	                ops |= SelectionKey.OP_READ;
 //	            }
@@ -59,47 +61,51 @@ public class Application {
 //	               	
 //	                return;
 //	            }
-	    	 	if(closed){
-					 
-				 }
-	            key.interestOps(ops);
-	     }
+			if (closed) {
 
-	     /**
-	      * Close the channel between two applications
-	      * @param key
-	      */
-	     private void silentlyClose(SelectionKey key) {
-	 		Channel sc = (Channel) key.channel();
-	 		try {
-	 			sc.close();
-	 		} catch (IOException e) {
-	 			// ignore exception
-	 		}
-	 	}
-	     /**
-	      * Read the buffer that get datas
-	      * if we close the connexion read return -1 and we shut down the connexion
-	      * @throws IOException
-	      */
+			}
+			key.interestOps(ops);
+		}
+
+		/**
+		 * Close the channel between two applications
+		 * 
+		 * @param key
+		 */
+		private void silentlyClose(SelectionKey key) {
+			Channel sc = (Channel) key.channel();
+			try {
+				sc.close();
+			} catch (IOException e) {
+				// ignore exception
+			}
+		}
+
+		/**
+		 * Read the buffer that get datas if we close the connexion read return -1 and
+		 * we shut down the connexion
+		 * 
+		 * @throws IOException
+		 */
 		public void doRead() throws IOException {
-			if(scContext.read(bufferIn)==-1){
+			if (scContext.read(bufferIn) == -1) {
 				System.out.println("Connexion closed");
 				silentlyClose(key);
-				return;	
+				return;
 			}
-			//scContext.read(bufferIn);
+			// scContext.read(bufferIn);
 			bufferIn.flip();
 			System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
 			bufferIn.clear();
-			
+
 		}
 
 	}
 
-	//private final SelectionKey key;
+	// private final SelectionKey key;
 
 	private final ServerSocketChannel sc;
+	private final InetSocketAddress inet;
 	private final SocketChannel scDaron;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
@@ -109,11 +115,13 @@ public class Application {
 	private ByteBuffer bufferDonnee = ByteBuffer.allocate(4048);
 	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(4048);
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(4048);
+	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(4048);
 
 	static private final int BUFFER_SIZE = 1024;
 
 	/**
 	 * Start the application in mode Root
+	 * 
 	 * @param host
 	 * @param port
 	 * @throws IOException
@@ -122,12 +130,16 @@ public class Application {
 		isroot = true;
 		sc = ServerSocketChannel.open();
 		scDaron = null;
-		sc.bind(new InetSocketAddress(host, port));
+		inet = new InetSocketAddress(host, port);
+		sc.bind(inet);
 		selector = Selector.open();
+
 	}
+
 	/**
-	 * Start the application in normal mode it get it father inetsocketaddress and we need it inetsocketaddress to start
-	 * If the father doesn't exist 
+	 * Start the application in normal mode it get it father inetsocketaddress and
+	 * we need it inetsocketaddress to start If the father doesn't exist
+	 * 
 	 * @param host
 	 * @param port
 	 * @param fatherAddress
@@ -137,7 +149,8 @@ public class Application {
 																									// father
 		isroot = false;
 		sc = ServerSocketChannel.open();
-		sc.bind(new InetSocketAddress(host, port));
+		inet = new InetSocketAddress(host, port);
+		sc.bind(inet);
 		selector = Selector.open();
 		scDaron = SocketChannel.open();
 		scDaron.configureBlocking(false);
@@ -145,16 +158,16 @@ public class Application {
 		scDaron.connect(fatherAddress);
 		table.updateRouteTable(fatherAddress, fatherAddress);
 	}
-	
-	public ByteBuffer GetbufferDonnee(){
+
+	public ByteBuffer GetbufferDonnee() {
 		return this.bufferDonnee;
 	}
-	
-	public ByteBuffer GetbufferDonneeTraitee(){
+
+	public ByteBuffer GetbufferDonneeTraitee() {
 		return this.bufferDonneeTraitee;
 	}
-	
-	public ByteBuffer GetbufferDonneeDeco(){
+
+	public ByteBuffer GetbufferDonneeDeco() {
 		return this.bufferDonneeDeco;
 	}
 
@@ -205,7 +218,8 @@ public class Application {
 	}
 
 	/**
-	 * Accept a connexion from a "Child node"	
+	 * Accept a connexion from a "Child node"
+	 * 
 	 * @param key
 	 * @throws IOException
 	 */
@@ -221,11 +235,14 @@ public class Application {
 		var context = new Application.Context(newKey, this);
 		newKey.attach(context);
 		connexions.add(context);
-		table.updateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(), (InetSocketAddress)context.getChannel().getRemoteAddress());
+		table.updateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(),
+				(InetSocketAddress) context.getChannel().getRemoteAddress());
 		printConnexions();
 	}
+
 	/**
 	 * Connect to a "Parent node"
+	 * 
 	 * @param key
 	 */
 	private void doConnect(SelectionKey key) {
@@ -241,7 +258,7 @@ public class Application {
 		connexions.add(context);
 		consoleTest(key);
 		var con = (Context) key.attachment();
-		if(con.closed){
+		if (con.closed) {
 			Thread.currentThread().interrupt();
 		}
 		key.interestOps(SelectionKey.OP_READ);
@@ -249,6 +266,7 @@ public class Application {
 
 	/**
 	 * closing a Channel between two applications
+	 * 
 	 * @param key
 	 */
 	private void silentlyClose(SelectionKey key) {
@@ -261,8 +279,9 @@ public class Application {
 	}
 
 	/**
-	 * Function that read the lines prompted in the bash
-	 * if the lines is "Disconnect" it disconnect the application 
+	 * Function that read the lines prompted in the bash if the lines is
+	 * "Disconnect" it disconnect the application
+	 * 
 	 * @param key
 	 */
 	@SuppressWarnings("preview")
@@ -272,14 +291,14 @@ public class Application {
 				try (var scanner = new Scanner(System.in)) {
 					while (scanner.hasNextLine()) {
 						var msg = scanner.nextLine();
-                       if(msg.equals("Disconnect")) {
-                    	   System.out.println("---------------------\nDisconnecting the node ...");
-                    	   var con = (Context) key.attachment();
-                    	   con.closed = true;
-                    	   silentlyClose(key);
-                    	   Thread.currentThread().interrupt();
-                    	   System.out.println("Disconnected Succesfully\n---------------------");
-                       }
+						if (msg.equals("Disconnect")) {
+							System.out.println("---------------------\nDisconnecting the node ...");
+							var con = (Context) key.attachment();
+							con.closed = true;
+							silentlyClose(key);
+							Thread.currentThread().interrupt();
+							System.out.println("Disconnected Succesfully\n---------------------");
+						}
 						var buf = ByteBuffer.allocate(msg.length());
 						buf.put(Charset.forName("UTF-8").encode(msg));
 						var c = (Context) key.attachment();
@@ -295,19 +314,19 @@ public class Application {
 		});
 
 	}
-	
+
 	/**
 	 * Remove the closed connexion from the HashSet
 	 */
 	private void removeIfClosed() {
 		connexions.removeIf(e -> !e.scContext.isOpen());
 	}
-	
+
 	/**
 	 * Print connexions of each nodes connected to the application
 	 */
 	private void printConnexions() {
-    	System.out.println("-------------Table of connexions--------------");
+		System.out.println("-------------Table of connexions--------------");
 		for (var e : connexions) {
 			if (e.scContext.equals(scDaron)) {
 				System.out.println("Connected To : " + e.scContext);
@@ -318,10 +337,9 @@ public class Application {
 //		System.out.println("-----RouteTable------");
 //		System.out.println(table);
 	}
-	
 
 	/**
-	 *  No need to tell you what is it about
+	 * No need to tell you what is it about
 	 */
 	private static void usage() {
 		System.out.println("Usage :");
@@ -329,10 +347,8 @@ public class Application {
 		System.out.println(" - Root Mode - ");
 		System.out.println("Application host port");
 	}
-	
-	
-	
-	//READ MODE
+
+	// READ MODE
 	/**
 	 * Read the frame op to know what to do next
 	 * @return
@@ -343,7 +359,7 @@ public class Application {
 		op.process(this.bufferDonnee);
 		return op.get();
 	}
-	
+
 	/**
 	 * Check and work on the frame from what op code we got
 	 * @param op
@@ -378,20 +394,66 @@ public class Application {
 	 * 
 	 * @param buf
 	 */
-//	void traitementPingEnvoi(ByteBuffer buf){
-//		//var address = table.get(/*addresss*/);
-//		
-//		if(buf.remaining()<16){
-//			return;
-//		}
-//		var tr = buf.get();
-//		tr += buf.get();
-//		if(GetbufferDonnee().hasRemaining()){
-//			//Pas dispo, envoie trame pas dispo
-//			
-//		}
-//		
-//	}
+	void traitementPingEnvoi(ByteBuffer buf){
+		//var address = table.get(/*addresss*/);
+		
+		//envoie paquet PINGENVOI a toute les autres connexions
+		
+		/*___________METHODE WAKE UP ENVOIE PAQUET_________*/
+		
+		
+		if(buf.remaining()<10){
+			return;
+		}
+		byte[] ipByte = new byte[8];
+		buf.get(ipByte);
+		short port = buf.getShort();
+		try {
+			InetAddress address = InetAddress.getByAddress(ipByte);
+			InetSocketAddress socketAddress = new InetSocketAddress(address,port);
+			// Partie envoi des donnée
+			byte bit = 11;
+			//opcode
+			bufferEnvoie.put(bit);
+			//mise de notre addresse dans le buffer
+			ipByte = new byte[8];
+			ipByte = inet.getAddress().getAddress();
+			bufferEnvoie.put(ipByte);
+			bufferEnvoie.putShort((short) inet.getPort());
+
+			//mise de l'addresse qui a ping
+			ipByte = socketAddress.getAddress().getAddress();
+			bufferEnvoie.put(ipByte);
+			bufferEnvoie.putShort((short) socketAddress.getPort());
+
+			//mise de la reponse
+			if(GetbufferDonnee().hasRemaining()){
+				//Not Avaliable
+				bit = 0;
+			}
+			else{
+				//Avaliable
+				bit = 1;
+			}
+			
+			bufferEnvoie.put(bit);
+			bufferEnvoie.flip();
+			/*___________METHODE WAKE UP ENVOIE PAQUET_________*/
+			
+			
+			
+			
+			
+			
+		} catch (UnknownHostException e) {
+			e.getCause();
+		}
+		
+		
+		//tr += buf.get();
+		
+		
+	}
 	
 	
 	
