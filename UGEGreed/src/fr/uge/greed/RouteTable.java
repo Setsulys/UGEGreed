@@ -10,7 +10,7 @@ public class RouteTable {
 	private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
 	
 	/**
-	 * Met A jour la Table de routage
+	 * Update The Route Table
 	 * @param newAdress
 	 * @param route
 	 */
@@ -23,7 +23,7 @@ public class RouteTable {
 	
 	
 	/**
-	 * Supprime une Application et son chemin (clé valeur) de la table de routage lors de la déconnexion de l'Application
+	 * Suppress the application and it channel from the route table when an application is disconnecting
 	 * @param unlinked
 	 */
 	public void deleteRouteTable(InetSocketAddress unlinked) {
@@ -32,8 +32,8 @@ public class RouteTable {
 	}
 	
 	/**
-	 * Recuppere le chemin (voisin) par lequel une trame doit passer pour atteindre sa destination
-	 * renvoi null si il n'y a pas de chemin
+	 * Get the (neighbore) channel that the frame need to pass to the destination
+	 * Return null if there is no way to the destination
 	 * @param destination
 	 * 
 	 * @return InetSocketAddress
@@ -44,7 +44,7 @@ public class RouteTable {
 	}
 	
 	/**
-	 * Affiche Toute la route table
+	 * Print the route table
 	 */
 	@Override
 	public String toString() {
