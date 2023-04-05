@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  30 MAR 2023 21:50
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  5 APR 2023 14:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -417,7 +417,7 @@ Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
 Here is how much of TeX's memory you used:
  11204 strings out of 476334
  173958 string characters out of 5787499
- 1877382 words of memory out of 5000000
+ 1878382 words of memory out of 5000000
  31456 multiletter control sequences out of 15000+600000
  522272 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -430,9 +430,9 @@ knappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/l
 jfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Steven\AppData\Local\MiK
 TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on Rapport_UGEGreed.pdf (5 pages, 95072 bytes).
+Output written on Rapport_UGEGreed.pdf (5 pages, 95885 bytes).
 PDF statistics:
- 378 PDF objects out of 1000 (max. 8388607)
+ 380 PDF objects out of 1000 (max. 8388607)
  48 named destinations out of 1000 (max. 500000)
  153 words of extra memory for PDF output out of 10000 (max. 10000000)
 
