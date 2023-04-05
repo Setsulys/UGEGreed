@@ -1,5 +1,6 @@
 package fr.uge.greed;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
@@ -157,18 +158,6 @@ public class Application {
 		scDaron.register(selector, SelectionKey.OP_CONNECT);
 		scDaron.connect(fatherAddress);
 		table.updateRouteTable(fatherAddress, fatherAddress);
-	}
-
-	public ByteBuffer GetbufferDonnee() {
-		return this.bufferDonnee;
-	}
-
-	public ByteBuffer GetbufferDonneeTraitee() {
-		return this.bufferDonneeTraitee;
-	}
-
-	public ByteBuffer GetbufferDonneeDeco() {
-		return this.bufferDonneeDeco;
 	}
 
 	public void launch() throws IOException {
@@ -365,11 +354,14 @@ public class Application {
 	 * @param op
 	 * @param buf
 	 */
-	void analyseur(Trames op, ByteBuffer buf) {
+	void analyseur(Trames op, ByteBuffer buf,InetSocketAddress address) {
 		switch(op) {
 		/*Une fonction pour chaque trame*/
 		case PINGENVOI -> {
-			traitementPingEnvoi(buf);
+			
+			renvoiePingEnvoi(address);
+			//TODO
+			receivePingEnvoiAndSendPingReponse(buf);
 		}
 		case ACCEPTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case CONFIRMATIONCHANGEMENTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
@@ -391,10 +383,25 @@ public class Application {
 	}
 	
 	/**
-	 * 
+	 * Add in a buffer the inetSocketAddress that was get in the parameters
+	 * @param inet
+	 * @return
+	 */
+	ByteBuffer addressTrame(InetSocketAddress inet) {
+		ByteBuffer internBuffer = ByteBuffer.allocate(BUFFER_SIZE);
+		var ipByte = new byte[8];			//constructiontrame(truc)
+		ipByte = inet.getAddress().getAddress();
+		internBuffer.put(ipByte);
+		internBuffer.putShort((short) inet.getPort());
+		
+		return internBuffer.flip();
+	}
+	
+	/**
+	 * Construct the frame for Opcode :11 Trame ping reponse (see here https://gitlab.com/Setsulys/ugegreed-debats-ly-ieng/-/blob/main/GreedRfc.md)
 	 * @param buf
 	 */
-	void traitementPingEnvoi(ByteBuffer buf){
+	void receivePingEnvoiAndSendPingReponse(ByteBuffer buf){
 		//var address = table.get(/*addresss*/);
 		
 		//envoie paquet PINGENVOI a toute les autres connexions
@@ -412,48 +419,44 @@ public class Application {
 			InetAddress address = InetAddress.getByAddress(ipByte);
 			InetSocketAddress socketAddress = new InetSocketAddress(address,port);
 			// Partie envoi des donnée
-			byte bit = 11;
-			//opcode
+			
+			byte bit = 11;//opcode
 			bufferEnvoie.put(bit);
-			//mise de notre addresse dans le buffer
-			ipByte = new byte[8];
-			ipByte = inet.getAddress().getAddress();
-			bufferEnvoie.put(ipByte);
-			bufferEnvoie.putShort((short) inet.getPort());
-
-			//mise de l'addresse qui a ping
-			ipByte = socketAddress.getAddress().getAddress();
-			bufferEnvoie.put(ipByte);
-			bufferEnvoie.putShort((short) socketAddress.getPort());
-
+			bufferEnvoie.put(addressTrame(inet)); //Addresse Source
+			bufferEnvoie.put(addressTrame(socketAddress)); // Adresse ping
+			
 			//mise de la reponse
-			if(GetbufferDonnee().hasRemaining()){
-				//Not Avaliable
-				bit = 0;
+			if(bufferDonnee.hasRemaining()){
+				bit = 0;//Not Avaliable
 			}
 			else{
-				//Avaliable
-				bit = 1;
+				bit = 1;//Avaliable
 			}
-			
 			bufferEnvoie.put(bit);
 			bufferEnvoie.flip();
 			/*___________METHODE WAKE UP ENVOIE PAQUET_________*/
 			
 			
-			
-			
-			
-			
 		} catch (UnknownHostException e) {
-			e.getCause();
+			//e.getCause();
 		}
 		
-		
-		//tr += buf.get();
-		
+	}
+	
+	void renvoiePingEnvoi(InetSocketAddress address) {
+		bufferEnvoie.position(0);
 		
 	}
+	void broadCast(InetSocketAddress address) throws IOException{
+		for(var key : selector.keys()){
+			var context = (Context) key.attachment();
+			if(context != null && address!=(InetSocketAddress) context.scContext.getRemoteAddress()){
+				
+			}
+		}
+	}
+
+	
 	
 	
 	
