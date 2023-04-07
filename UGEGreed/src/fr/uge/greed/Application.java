@@ -1,6 +1,5 @@
 package fr.uge.greed;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
@@ -14,13 +13,10 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class Application {
 
@@ -117,6 +113,7 @@ public class Application {
 	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(4048);
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(4048);
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(4048);
+	private InetSocketAddress dataFrom =null;
 
 	static private final int BUFFER_SIZE = 1024;
 
@@ -310,16 +307,16 @@ public class Application {
 	 * @throws IOException 
 	 */
 	private void removeIfClosed()  {
-//		try {
-//			for(var e : connexions) {
-//				if(!e.scContext.isOpen()) {
-//					System.out.println("lolololololololo"+e.scContext.getRemoteAddress());
-//					//table.deleteRouteTable((InetSocketAddress) e.scContext.getRemoteAddress());
-//				}
-//			}
-//		}catch (IOException e) {
-//			e.getCause();
-//		}
+		try {
+			for(var e : connexions) {
+				if(!e.scContext.isOpen()) {
+					System.out.println("lolololololololo"+e.scContext.getRemoteAddress());
+					//table.deleteRouteTable((InetSocketAddress) e.scContext.getRemoteAddress());
+				}
+			}
+		}catch (IOException e) {
+			e.getCause();
+		}
 		connexions.removeIf(e -> !e.scContext.isOpen());
 		
 	}
@@ -371,7 +368,7 @@ public class Application {
 		switch(op) {
 		/*Une fonction pour chaque trame*/
 		case PINGENVOI -> {
-			
+			//getAddressFromBuffer(buf);
 			renvoiePingEnvoi(address);
 			//TODO
 			receivePingEnvoiAndSendPingReponse(buf);
@@ -408,6 +405,29 @@ public class Application {
 		internBuffer.putShort((short) inet.getPort());
 		
 		return internBuffer.flip();
+	}
+	
+	
+	///////////////////////////////////////////////////////////////////////////////REVOIR CETTE FONCTION aussi a ligne  375
+	
+	/**
+	 * Get The address Of Source for the broadCast
+	 * @param internBuffer
+	 * @return
+	 */
+	void getAddressFromBuffer(ByteBuffer internBuffer) {
+		try {
+		internBuffer.flip();
+		internBuffer.getInt();
+		internBuffer.limit(8);
+		byte[] ipByte = new byte[8];
+		internBuffer.get(ipByte);
+		var port = internBuffer.getShort();
+		var ipAddress = InetAddress.getByAddress(ipByte);
+		this.dataFrom =  new InetSocketAddress(ipAddress,port);
+		}catch (IOException e) {
+			// TODO: handle exception
+		}
 	}
 	
 	/**
