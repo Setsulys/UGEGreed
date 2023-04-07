@@ -74,7 +74,7 @@ Pour la une autre application
 java -jar Application.jar <Host> <Port> <ServerHost> <ServerPort>
 \end{lstlisting}
 \subsection{Déconnexion}
-TODO
+Pour pouvoir se déconnecter "correctement sans "ctrl+c" il y aura un scanner sur chaque applications qui lorsqu'il lira "Deconnexion" déconnectera l'application 
 \subsection{Lancement}
 TODO
 \section{Difficulté rencontré}
@@ -85,9 +85,13 @@ Au début n'ayant pas le sujet assez clair, nous avons commencé à faire une RF
 Cependant, lors de la soutenance de la RFC, il nous a été montré que notre RFC n'était pas vraiment ce qui était attendu, mais rien de grave, c'étaient quelques petites choses à corriger.
 Nous avons alors demandé à notre enseignant de plus amples explications pour mieux cerner ce qui était demandé et améliorer notre RFC, aussi pendant ce temps nous avons essayé de commencer à travailler sur la partie code du protocole.
 \subsection{Difficulté sur le code}
+\paragraph{}
 Au début du projet, nous ne savions pas exactement comment commencer, mais après avoir pataugé un peu, on a essayé plusieurs choses ce qui nous a permis  de nous débloquer.
 Aussi, nous avons eu un problème de compilation lorsque l'on devait utiliser la classe des Tables de Routages dans la classe principale, la classe de routage n'était pas reconnue lors de la compilation et après avoir fait plusieurs tests et demandé au professeur, il s'avérait que le problème ne venait pas de nous, mais de notre terminal, en effet nous utilisions un terminal Windows pour compiler et lancer le code.
 Nous avons réglé notre problème en ajoutant l'option -cp lors du démarrage des applications
+\paragraph{}
+Un autre problème que nous avons rencontré mais que nous nous y attendions déjà était le fait de reconnaître de quel socketChannel à été envoyé la trame.
+\\Nous avons décidé de changer un peu par rapport a la rfc et d'ajouter l'adresse qui a envoyé la trame et en regardant la table de routage on regardais de quel valeur venait l'adresse\\.
 \section{Division du travail}
 \paragraph{}
 Pour ce qui est du partage du travail nous avons partagé assez équitablement, on a essayé de faire un maximum pour éviter que la charge de travail repose plus sur une personne qu'une autre.
