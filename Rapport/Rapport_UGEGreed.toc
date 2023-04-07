@@ -28,11 +28,13 @@
 \contentsline {paragraph}{}{3}{section*.16}%
 \contentsline {paragraph}{}{3}{section*.17}%
 \contentsline {subsection}{\numberline {4.2}Difficulté sur le code}{3}{subsection.0.4.2}%
-\contentsline {section}{\numberline {5}Division du travail}{4}{section.0.5}%
-\contentsline {paragraph}{}{4}{section*.18}%
-\contentsline {subsection}{\numberline {5.1}RFC}{4}{subsection.0.5.1}%
+\contentsline {paragraph}{}{3}{section*.18}%
 \contentsline {paragraph}{}{4}{section*.19}%
-\contentsline {subsection}{\numberline {5.2}Code}{4}{subsection.0.5.2}%
+\contentsline {section}{\numberline {5}Division du travail}{4}{section.0.5}%
 \contentsline {paragraph}{}{4}{section*.20}%
+\contentsline {subsection}{\numberline {5.1}RFC}{4}{subsection.0.5.1}%
+\contentsline {paragraph}{}{4}{section*.21}%
+\contentsline {subsection}{\numberline {5.2}Code}{4}{subsection.0.5.2}%
+\contentsline {paragraph}{}{4}{section*.22}%
 \contentsline {section}{\numberline {6}Annexe}{4}{section.0.6}%
 \contentsline {subsection}{\numberline {6.1}Commentaires}{4}{subsection.0.6.1}%

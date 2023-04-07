@@ -196,6 +196,7 @@ public class Application {
 			if (key.isValid() && key.isReadable()) {
 				((Context) key.attachment()).doRead();
 				removeIfClosed();
+				System.out.println("yesyes");
 				printConnexions();
 			}
 		} catch (IOException e) {
@@ -306,9 +307,21 @@ public class Application {
 
 	/**
 	 * Remove the closed connexion from the HashSet
+	 * @throws IOException 
 	 */
-	private void removeIfClosed() {
+	private void removeIfClosed()  {
+//		try {
+//			for(var e : connexions) {
+//				if(!e.scContext.isOpen()) {
+//					System.out.println("lolololololololo"+e.scContext.getRemoteAddress());
+//					//table.deleteRouteTable((InetSocketAddress) e.scContext.getRemoteAddress());
+//				}
+//			}
+//		}catch (IOException e) {
+//			e.getCause();
+//		}
 		connexions.removeIf(e -> !e.scContext.isOpen());
+		
 	}
 
 	/**
@@ -323,8 +336,8 @@ public class Application {
 				System.out.println("Conneted from : " + e.scContext);
 			}
 		}
-//		System.out.println("-----RouteTable------");
-//		System.out.println(table);
+		System.out.println("-----RouteTable------");
+		System.out.println(table);
 	}
 
 	/**

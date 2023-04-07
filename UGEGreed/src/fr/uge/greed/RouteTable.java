@@ -1,8 +1,11 @@
 package fr.uge.greed;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class RouteTable {
@@ -27,6 +30,7 @@ public class RouteTable {
 	 * @param unlinked
 	 */
 	public void deleteRouteTable(InetSocketAddress unlinked) {
+		System.out.println("this need to be removed"+unlinked);
 		Objects.requireNonNull(unlinked);
 		routeTable.remove(unlinked);
 	}
@@ -48,7 +52,7 @@ public class RouteTable {
 	 */
 	@Override
 	public String toString() {
-		return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining(",","[","]"));
+		return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining(",\n"));
 	}
 	
 }
