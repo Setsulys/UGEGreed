@@ -56,8 +56,9 @@ Vous pouvez consulter notre RFC à tout moment
 \href {https://gitlab.com/Setsulys/ugegreed-debats-ly-ieng/-/blob/main/GreedRfc.md}{ici}
 \subsection{Code}
 \paragraph{}
-Nous avons commencé à coder le projet en travaillant sur le Readers, que nous avons pensé grâce à notre RFC, il y aura donc un URLReader, INTreader et un LONGReader. Ensuite, nous avons décidé de commencer à l'aide des derniers TP de Réseau la partie connexion entre les applications.
-TODO
+Nous avons en majorité utilisé la RFC pour faire la partie code même si il y a certains moment ou nous avons décidé de dévier légèrement de la RFC. Mais globalement cela reste la même chose
+\linebreak
+TOADD?
 \section{Utilisation}
 \subsection{Connexion}
 TODO
@@ -74,7 +75,18 @@ Pour la une autre application
 java -jar Application.jar <Host> <Port> <ServerHost> <ServerPort>
 \end{lstlisting}
 \subsection{Déconnexion}
-Pour pouvoir se déconnecter "correctement sans "ctrl+c" il y aura un scanner sur chaque applications qui lorsqu'il lira "Deconnexion" déconnectera l'application 
+Pour pouvoir se déconnecter "correctement sans "ctrl+c" il y aura un scanner sur chaque applications qui lorsqu'il lira 
+\begin{lstlisting}
+"Disconnect" 
+\end{lstlisting}
+déconnectera l'application 
+Lorsque l'application se déconnecte elle nous affichera quelquechose dans ce style
+\begin{lstlisting}
+Disconnecting the node ...
+avr. 07, 2023 4:15:46 PM fr.uge.greed.Application lambda$1
+INFO: Disconnected Succesfully
+\end{lstlisting}
+et nous renverra sur la ligne de commande.
 \subsection{Lancement}
 TODO
 \section{Difficulté rencontré}

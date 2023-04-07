@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  7 APR 2023 12:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  7 APR 2023 16:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -405,20 +405,25 @@ l.28 \section
 
 ] [2]
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 6
-8.
+9.
 
 (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
 )
-[3] [4] (Rapport_UGEGreed.aux)
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 105--107
+
+ []
+
+[4] (Rapport_UGEGreed.aux)
 Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
 (rerunfilecheck)             Checksum: 0BFE36F234FA3FEEDBEE668DB20853CD;2506.
  ) 
 Here is how much of TeX's memory you used:
- 11206 strings out of 476334
- 173980 string characters out of 5787499
- 1878382 words of memory out of 5000000
- 31456 multiletter control sequences out of 15000+600000
+ 11237 strings out of 476334
+ 174337 string characters out of 5787499
+ 1896382 words of memory out of 5000000
+ 31480 multiletter control sequences out of 15000+600000
  522272 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,6n,76p,633b,1095s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -430,9 +435,9 @@ knappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/l
 jfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Steven\AppData\Local\MiK
 TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on Rapport_UGEGreed.pdf (5 pages, 97662 bytes).
+Output written on Rapport_UGEGreed.pdf (5 pages, 107275 bytes).
 PDF statistics:
- 387 PDF objects out of 1000 (max. 8388607)
- 50 named destinations out of 1000 (max. 500000)
+ 422 PDF objects out of 1000 (max. 8388607)
+ 57 named destinations out of 1000 (max. 500000)
  153 words of extra memory for PDF output out of 10000 (max. 10000000)
 

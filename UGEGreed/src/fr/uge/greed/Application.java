@@ -193,7 +193,7 @@ public class Application {
 			if (key.isValid() && key.isReadable()) {
 				((Context) key.attachment()).doRead();
 				removeIfClosed();
-				System.out.println("yesyes");
+			
 				printConnexions();
 			}
 		} catch (IOException e) {
@@ -273,7 +273,7 @@ public class Application {
 	 */
 	@SuppressWarnings("preview")
 	private void consoleTest(SelectionKey key) {
-		Thread.ofPlatform().start(() -> {
+		Thread.ofPlatform().daemon().start(() -> {
 			try {
 				try (var scanner = new Scanner(System.in)) {
 					while (scanner.hasNextLine()) {
@@ -284,7 +284,6 @@ public class Application {
 							con.closed = true;
 							silentlyClose(key);
 							Thread.currentThread().interrupt();
-							System.out.println("Disconnected Succesfully\n---------------------");
 						}
 						var buf = ByteBuffer.allocate(msg.length());
 						buf.put(Charset.forName("UTF-8").encode(msg));
@@ -295,7 +294,7 @@ public class Application {
 				}
 				logger.info("Console thread stopping ");
 			} catch (IOException e) {
-				logger.info("IOE");
+				logger.info("Disconnected Succesfully\n---------------------");
 				System.exit(0);
 			}
 		});
@@ -307,16 +306,16 @@ public class Application {
 	 * @throws IOException 
 	 */
 	private void removeIfClosed()  {
-		try {
-			for(var e : connexions) {
-				if(!e.scContext.isOpen()) {
-					System.out.println("lolololololololo"+e.scContext.getRemoteAddress());
-					//table.deleteRouteTable((InetSocketAddress) e.scContext.getRemoteAddress());
-				}
-			}
-		}catch (IOException e) {
-			e.getCause();
-		}
+//		try {
+//			for(var e : connexions) {
+//				if(!e.scContext.isOpen()) {
+//					System.out.println("lolololololololo"+e.scContext.getRemoteAddress());
+//					//table.deleteRouteTable((InetSocketAddress) e.scContext.getRemoteAddress());
+//				}
+//			}
+//		}catch (IOException e) {
+//			e.getCause();
+//		}
 		connexions.removeIf(e -> !e.scContext.isOpen());
 		
 	}
@@ -416,12 +415,13 @@ public class Application {
 	 * @return
 	 */
 	void getAddressFromBuffer(ByteBuffer internBuffer) {
+		
 		try {
-		internBuffer.flip();
-		internBuffer.getInt();
-		internBuffer.limit(8);
-		byte[] ipByte = new byte[8];
-		internBuffer.get(ipByte);
+		internBuffer.flip(); 
+		internBuffer.getInt();  //je get dans le vide l'opcode
+		internBuffer.limit(8);  //jsp si on a besoin de fix la limite ou non 
+		byte[] ipByte = new byte[8]; //et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans ma tete faudrait check
+		internBuffer.get(ipByte); 
 		var port = internBuffer.getShort();
 		var ipAddress = InetAddress.getByAddress(ipByte);
 		this.dataFrom =  new InetSocketAddress(ipAddress,port);
