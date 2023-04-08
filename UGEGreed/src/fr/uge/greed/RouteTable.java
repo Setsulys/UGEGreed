@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 public class RouteTable {
 
@@ -45,6 +46,11 @@ public class RouteTable {
 	public InetSocketAddress get(InetSocketAddress destination) {
 		Objects.requireNonNull(destination);
 		return routeTable.get(destination);
+	}
+	
+	
+	public ArrayList<InetSocketAddress> getAllAddress(){
+		return new ArrayList<>(routeTable.keySet().stream().collect(Collectors.toList()));
 	}
 	
 	/**

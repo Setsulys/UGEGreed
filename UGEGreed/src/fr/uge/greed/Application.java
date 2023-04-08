@@ -389,10 +389,11 @@ public class Application {
 		case DONNEETRAITEES -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case FIRSTLEAF -> {
 			if(isroot) { //on est la root, on update notre table de rootage
+				decomposeFirstLEAF(buf);
 				
 			}
 			else { //on est un pion dans la matrix
-				renvoiFirstLEAF();
+				renvoiFirstLEAF(buf);
 			}
 		}
 		case FIRSTROOT -> {
@@ -405,7 +406,9 @@ public class Application {
 		}
 		case FULLTREE -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case INTENTIONDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
-		case NEWLEAF -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case NEWLEAF -> {
+			
+		}
 		case PINGREP -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case SUPPRESSION -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		default -> throw new IllegalArgumentException("Unexpected value: " + op);
@@ -453,37 +456,72 @@ public class Application {
 		//ENVOYER DARON
 	}
 	
-	void updateTable() {
+	void decomposeFirstLEAF(ByteBuffer buf) {
+		int nb = buf.getInt();
+		int oldPosition = buf.position();
+		int lastAddress = nb-1 * (8+Short.BYTES);
+		buf.position(lastAddress);
+		var routeAddress = getAddressFromBuffer(buf);
+		buf.position(oldPosition);
+		for(int i = 1 ;i < nb;i++) {
+			var address = getAddressFromBuffer(buf);
+			table.updateRouteTable(address,routeAddress);
+		}
+	}
+	
+	void envoiFullTREE(){
+		ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
+		var ipByte = new byte[8];	
+		var allAddress = table.getAllAddress();
+		int nbAddress = allAddress.size();
+		
+		buf.putInt(8);
+		buf.putInt(nbAddress);
+		
+		for(var address : allAddress){
+			ipByte = address.getAddress().getAddress();
+			buf.put(ipByte);
+			buf.putShort((short) address.getPort());
+		}
+	}
+	
+	void renvoiFirstLEAF(ByteBuffer buf) {
+		var nouvBuffer = ByteBuffer.allocate(4080);
+		nouvBuffer.put(buf);
+		decomposeFirstLEAF(buf);
+		//ENVOYER nouvBuffer DARON
 		
 	}
 	
-	void renvoiFirstLEAF() {
-		
-	}
 	
 	
 	
 	
 	///////////////////////////////////////////////////////////////////////////////REVOIR CETTE FONCTION aussi a ligne  375
+	void dataFromGetAddress(ByteBuffer internBuffer){
+		this.dataFrom = getAddressFromBuffer(internBuffer);
+	}
+	
 	
 	/**
 	 * Get The address Of Source for the broadCast
 	 * @param internBuffer
 	 * @return
 	 */
-	void getAddressFromBuffer(ByteBuffer internBuffer) {
+	InetSocketAddress getAddressFromBuffer(ByteBuffer internBuffer) {
 		
 		try {
-			internBuffer.flip(); 
-			internBuffer.getInt();  //je get dans le vide l'opcode
-			internBuffer.limit(8);  //jsp si on a besoin de fix la limite ou non 
+			internBuffer.flip();
+			if(internBuffer.remaining()<10){
+				return null;
+			}
 			byte[] ipByte = new byte[8]; //et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans ma tete faudrait check
 			internBuffer.get(ipByte); 
 			var port = internBuffer.getShort();
 			var ipAddress = InetAddress.getByAddress(ipByte);
-			this.dataFrom =  new InetSocketAddress(ipAddress,port);
+			return new InetSocketAddress(ipAddress,port);
 		}catch (IOException e) {
-			// TODO: handle exception
+			return null;
 		}
 	}
 	
