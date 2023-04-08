@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
@@ -96,13 +97,20 @@ public class Application {
 			bufferIn.clear();
 
 		}
+		
+		public void doWrite() throws IOException{
+			bufferOut.flip();
+			scContext.write(bufferOut);
+			bufferOut.compact();
+			updateInterestOps();
+		}
 
 	}
 
 	// private final SelectionKey key;
 
 	private final ServerSocketChannel sc;
-	private final InetSocketAddress inet;
+	private final InetSocketAddress localInet;
 	private final SocketChannel scDaron;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
@@ -128,8 +136,8 @@ public class Application {
 		isroot = true;
 		sc = ServerSocketChannel.open();
 		scDaron = null;
-		inet = new InetSocketAddress(host, port);
-		sc.bind(inet);
+		localInet = new InetSocketAddress(host, port);
+		sc.bind(localInet);
 		selector = Selector.open();
 
 	}
@@ -147,8 +155,8 @@ public class Application {
 																									// father
 		isroot = false;
 		sc = ServerSocketChannel.open();
-		inet = new InetSocketAddress(host, port);
-		sc.bind(inet);
+		localInet = new InetSocketAddress(host, port);
+		sc.bind(localInet);
 		selector = Selector.open();
 		scDaron = SocketChannel.open();
 		scDaron.configureBlocking(false);
@@ -379,8 +387,22 @@ public class Application {
 		case DONNEEATRAITER -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case DONNEEDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case DONNEETRAITEES -> throw new UnsupportedOperationException("Unimplemented case: " + op);
-		case FIRSTLEAF -> throw new UnsupportedOperationException("Unimplemented case: " + op);
-		case FIRSTROOT -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case FIRSTLEAF -> {
+			if(isroot) { //on est la root, on update notre table de rootage
+				
+			}
+			else { //on est un pion dans la matrix
+				renvoiFirstLEAF();
+			}
+		}
+		case FIRSTROOT -> {
+			if(connexions.size()>1) { //Pas une feuille, on renvoit
+				envoiFirstROOT();
+			}
+			else { //Une feuille, on envoit La trame First LEAF à son père
+				envoiFirstLEAF();
+			}
+		}
 		case FULLTREE -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case INTENTIONDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case NEWLEAF -> throw new UnsupportedOperationException("Unimplemented case: " + op);
@@ -406,6 +428,41 @@ public class Application {
 		return internBuffer.flip();
 	}
 	
+	ByteBuffer TrameOp(int op) {
+		var buf = ByteBuffer.allocate(4080);
+		buf.putInt(op);
+		return buf;
+	}
+	
+	void envoiFirstROOT() {
+		for (var e : connexions) {
+			if(e.scContext == scDaron) {
+				continue;
+			}
+			var buf = TrameOp(6);
+			bufferEnvoie.put(buf);
+			//ENVOYER WAKEUP
+		}
+	}
+	
+	void envoiFirstLEAF(){
+		ByteBuffer connex = ByteBuffer.allocate(BUFFER_SIZE);
+		connex.putInt(7);
+		connex.putInt(1);
+		connex.put(addressTrame(localInet));
+		//ENVOYER DARON
+	}
+	
+	void updateTable() {
+		
+	}
+	
+	void renvoiFirstLEAF() {
+		
+	}
+	
+	
+	
 	
 	///////////////////////////////////////////////////////////////////////////////REVOIR CETTE FONCTION aussi a ligne  375
 	
@@ -417,14 +474,14 @@ public class Application {
 	void getAddressFromBuffer(ByteBuffer internBuffer) {
 		
 		try {
-		internBuffer.flip(); 
-		internBuffer.getInt();  //je get dans le vide l'opcode
-		internBuffer.limit(8);  //jsp si on a besoin de fix la limite ou non 
-		byte[] ipByte = new byte[8]; //et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans ma tete faudrait check
-		internBuffer.get(ipByte); 
-		var port = internBuffer.getShort();
-		var ipAddress = InetAddress.getByAddress(ipByte);
-		this.dataFrom =  new InetSocketAddress(ipAddress,port);
+			internBuffer.flip(); 
+			internBuffer.getInt();  //je get dans le vide l'opcode
+			internBuffer.limit(8);  //jsp si on a besoin de fix la limite ou non 
+			byte[] ipByte = new byte[8]; //et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans ma tete faudrait check
+			internBuffer.get(ipByte); 
+			var port = internBuffer.getShort();
+			var ipAddress = InetAddress.getByAddress(ipByte);
+			this.dataFrom =  new InetSocketAddress(ipAddress,port);
 		}catch (IOException e) {
 			// TODO: handle exception
 		}
@@ -452,10 +509,10 @@ public class Application {
 			InetAddress address = InetAddress.getByAddress(ipByte);
 			InetSocketAddress socketAddress = new InetSocketAddress(address,port);
 			// Partie envoi des donnée
-			
+			/*
 			byte bit = 11;//opcode
 			bufferEnvoie.put(bit);
-			bufferEnvoie.put(addressTrame(inet)); //Addresse Source
+			bufferEnvoie.put(addressTrame(localInet)); //Addresse Source
 			bufferEnvoie.put(addressTrame(socketAddress)); // Adresse ping
 			
 			//mise de la reponse
@@ -467,6 +524,7 @@ public class Application {
 			}
 			bufferEnvoie.put(bit);
 			bufferEnvoie.flip();
+			*/
 			/*___________METHODE WAKE UP ENVOIE PAQUET_________*/
 			
 			
