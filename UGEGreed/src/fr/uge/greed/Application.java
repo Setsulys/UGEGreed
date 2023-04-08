@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
@@ -14,6 +13,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Scanner;
@@ -122,6 +122,7 @@ public class Application {
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(4048);
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(4048);
 	private InetSocketAddress dataFrom =null;
+	private ArrayList<InetSocketAddress> workers = new ArrayList<>();
 
 	static private final int BUFFER_SIZE = 1024;
 
@@ -370,8 +371,9 @@ public class Application {
 	 * Check and work on the frame from what op code we got
 	 * @param op
 	 * @param buf
+	 * @throws IOException 
 	 */
-	void analyseur(Trames op, ByteBuffer buf,InetSocketAddress address) {
+	void analyseur(Trames op, ByteBuffer buf,InetSocketAddress address) throws IOException {
 		switch(op) {
 		/*Une fonction pour chaque trame*/
 		case PINGENVOI -> {
@@ -404,12 +406,16 @@ public class Application {
 				envoiFirstLEAF();
 			}
 		}
-		case FULLTREE -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case FULLTREE -> {
+			recoiFullTREE(buf);
+		}
 		case INTENTIONDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case NEWLEAF -> {
-			
+			recoitNewLEAF(buf);
 		}
-		case PINGREP -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case PINGREP -> {
+			recoitPingReponse(buf);
+		}
 		case SUPPRESSION -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		default -> throw new IllegalArgumentException("Unexpected value: " + op);
 		
@@ -431,12 +437,21 @@ public class Application {
 		return internBuffer.flip();
 	}
 	
+	
+	/**
+	 * Create a frame that contain only an integer
+	 * @param op
+	 * @return
+	 */
 	ByteBuffer TrameOp(int op) {
 		var buf = ByteBuffer.allocate(4080);
 		buf.putInt(op);
 		return buf;
 	}
 	
+	/**
+	 * Redirect the frame to every node that are not his connexion father
+	 */
 	void envoiFirstROOT() {
 		for (var e : connexions) {
 			if(e.scContext == scDaron) {
@@ -447,7 +462,9 @@ public class Application {
 			//ENVOYER WAKEUP
 		}
 	}
-	
+	/**
+	 * When we are on a leaf of the application it create a new Buffer with op code 7 and put 
+	 */
 	void envoiFirstLEAF(){
 		ByteBuffer connex = ByteBuffer.allocate(BUFFER_SIZE);
 		connex.putInt(7);
@@ -456,6 +473,11 @@ public class Application {
 		//ENVOYER DARON
 	}
 	
+	
+	/**
+	 * Deconstruct the FirstLea
+	 * @param buf
+	 */
 	void decomposeFirstLEAF(ByteBuffer buf) {
 		int nb = buf.getInt();
 		int oldPosition = buf.position();
@@ -467,8 +489,12 @@ public class Application {
 			var address = getAddressFromBuffer(buf);
 			table.updateRouteTable(address,routeAddress);
 		}
+		
 	}
 	
+	/**
+	 * 
+	 */
 	void envoiFullTREE(){
 		ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
 		var ipByte = new byte[8];	
@@ -484,13 +510,74 @@ public class Application {
 			buf.putShort((short) address.getPort());
 		}
 	}
+	/**
+	 * 
+	 * @param buf
+	 * @throws IOException
+	 */
+	void recoiFullTREE(ByteBuffer buf) throws IOException {
+		int nb = buf.getInt();
+		for(int i = 1 ;i < nb;i++) {
+			var address = getAddressFromBuffer(buf);
+			if(table.get(address)!=null) {
+				continue;
+			}
+			table.updateRouteTable(address,(InetSocketAddress) scDaron.getLocalAddress());	//A voir
+		}
+	}
 	
+	/**
+	 * flip the buffer received to get the number of nodes and increment it 
+	 * at the end we flip the buffer again
+	 * @param buf
+	 * @return ByteBuffer
+	 */
+	ByteBuffer incrementNbNodes(ByteBuffer buf){
+		buf.flip(); 
+		buf.getInt();
+		var nb =buf.getInt() +1;
+		buf.position(Integer.BYTES);
+		buf.putInt(nb);
+		buf.position(0);
+		buf.flip();
+		return buf;
+	}
+	
+	/**
+	 * 
+	 * @param buf
+	 */
 	void renvoiFirstLEAF(ByteBuffer buf) {
 		var nouvBuffer = ByteBuffer.allocate(4080);
 		nouvBuffer.put(buf);
 		decomposeFirstLEAF(buf);
+		buf = incrementNbNodes(buf);
+
 		//ENVOYER nouvBuffer DARON
 		
+	}
+	/**
+	 * Le caca a julien
+	 * @param buf
+	 * @throws IOException 
+	 */
+	void recoitNewLEAF(ByteBuffer buf) throws IOException {
+		buf.position(0);
+		broadCast(dataFrom,buf);
+		buf.getInt();
+		var address = getAddressFromBuffer(buf);
+		table.updateRouteTable(address,dataFrom);
+	}
+	
+	void recoitPingReponse(ByteBuffer buf) throws IOException {
+		var address1 = getAddressFromBuffer(buf);
+		var address = getAddressFromBuffer(buf);
+		if(address != localInet){
+			buf.position(0);
+			broadCast(dataFrom,buf);
+			return;
+		}
+		workers.add(address1);
 	}
 	
 	
@@ -572,11 +659,19 @@ public class Application {
 		
 	}
 	
+	
 	void renvoiePingEnvoi(InetSocketAddress address) {
 		bufferEnvoie.position(0);
 		
 	}
-	void broadCast(InetSocketAddress address) throws IOException{
+	
+	/**
+	 * BroadCast the buffer to all connexions apart the address that the frame come from
+	 * @param address the guy who send it to us
+	 * @param buf
+	 * @throws IOException
+	 */
+	void broadCast(InetSocketAddress address,ByteBuffer buf) throws IOException{
 		for(var key : selector.keys()){
 			var context = (Context) key.attachment();
 			if(context != null && address!=(InetSocketAddress) context.scContext.getRemoteAddress()){
