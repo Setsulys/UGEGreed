@@ -475,7 +475,7 @@ public class Application {
 	
 	
 	/**
-	 * Deconstruct the FirstLea
+	 * Deconstruct the FirstLEAF frame to put all address in the RouteTable
 	 * @param buf
 	 */
 	void decomposeFirstLEAF(ByteBuffer buf) {
@@ -493,7 +493,7 @@ public class Application {
 	}
 	
 	/**
-	 * 
+	 * Fill a buffer with all the keys from the root RouteTable and send to every 
 	 */
 	void envoiFullTREE(){
 		ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
