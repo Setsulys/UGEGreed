@@ -123,6 +123,7 @@ public class Application {
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(4048);
 	private InetSocketAddress dataFrom =null;
 	private ArrayList<InetSocketAddress> workers = new ArrayList<>();
+	private InetSocketAddress beauDaron = null;
 
 	static private final int BUFFER_SIZE = 1024;
 
@@ -315,16 +316,17 @@ public class Application {
 	 * @throws IOException 
 	 */
 	private void removeIfClosed()  {
-//		try {
-//			for(var e : connexions) {
-//				if(!e.scContext.isOpen()) {
-//					System.out.println("lolololololololo"+e.scContext.getRemoteAddress());
-//					//table.deleteRouteTable((InetSocketAddress) e.scContext.getRemoteAddress());
-//				}
-//			}
-//		}catch (IOException e) {
-//			e.getCause();
-//		}
+		try{
+			for(var e : connexions) {
+				if(!e.scContext.isOpen()) {
+					var address = (InetSocketAddress) e.scContext.getRemoteAddress();
+					var remoteisa = new InetSocketAddress(address.getAddress().getHostAddress(),address.getPort());
+					table.deleteRouteTable(remoteisa);
+				}
+			}
+		}catch(IOException e){
+			logger.info("Not Doing Anything");
+		}
 		connexions.removeIf(e -> !e.scContext.isOpen());
 		
 	}
@@ -362,6 +364,7 @@ public class Application {
 	 */
 	int getOp() {
 		Objects.requireNonNull(this.bufferDonnee);	//buffer altéré
+		bufferDonnee.flip();
 		var op = new IntReader();
 		op.process(this.bufferDonnee);
 		return op.get();
@@ -409,7 +412,9 @@ public class Application {
 		case FULLTREE -> {
 			recoiFullTREE(buf);
 		}
-		case INTENTIONDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case INTENTIONDECO -> {
+			recoitIntentionDeco(buf);
+		}
 		case NEWLEAF -> {
 			recoitNewLEAF(buf);
 		}
@@ -436,6 +441,91 @@ public class Application {
 		
 		return internBuffer.flip();
 	}
+	
+	ByteBuffer recoitDonneeDeco(ByteBuffer buf) {
+		//TODO
+		return null;
+	}
+	/**
+	 * Receive the buffer that say a proximity connexion is starting to deconnect
+	 * After the frame received it check if it is connected to the to deconnect application and send a frame to the connexion saying that it accept the deconnexion
+	 * @param buf
+	 * @throws IOException
+	 */
+	void recoitIntentionDeco(ByteBuffer buf) throws IOException {
+		var address = getAddressFromBuffer(buf);
+		if(address == (InetSocketAddress) scDaron.getLocalAddress()) {
+			return;
+		}
+		address = getAddressFromBuffer(buf);
+		beauDaron = (InetSocketAddress) scDaron.getLocalAddress();
+		scDaron.connect(address);
+		/*for (var e : table) {
+			if(table.get(e) == beauDaron){
+				table.updateRouteTable(scDaron,address);
+			}
+		}
+		}*/
+		
+		envoiConfirmationChangementConnexion();
+	}
+	
+	void envoiConfirmationChangementConnexion() {
+		var buf = ByteBuffer.allocate(4080);
+		buf.putInt(4);
+		buf.put(addressTrame(localInet));
+		buf.put(addressTrame(beauDaron));
+		buf.flip();
+		//TODO ENVOI DARON
+	}
+	
+	void recoitConfirmationChangementConnexion(ByteBuffer buf) throws IOException {
+		var address = getAddressFromBuffer(buf);
+		var address2 = getAddressFromBuffer(buf);
+		if(address2 != localInet) {
+			//TODO ENVOI ADDRESS2
+			return;
+		}
+		for(var e: connexions) {
+			if(e.scContext.getRemoteAddress() == address) {
+				connexions.remove(e);
+			}
+		}
+		if(connexions.size() == 1) {
+			envoiSuppression();
+			deconnexion();
+		}
+		
+	}
+	
+	void envoiSuppression() {
+		var buf = ByteBuffer.allocate(4080);
+		buf.putInt(5);
+		buf.put(addressTrame(localInet));
+		//TODO ENVOI DARON
+	}
+	
+	void deconnexion() {
+		System.out.println("---------------------\nDisconnecting the node ...");
+		try {
+			sc.close();
+			Thread.currentThread().interrupt();
+		} catch (IOException e) {
+			logger.info("Disconnected Succesfully\n---------------------");
+			System.exit(0);
+		}
+		
+	}
+	
+	void recoitSuppression(ByteBuffer buf) throws IOException {
+		
+		var address = getAddressFromBuffer(buf);
+		table.deleteRouteTable(address);
+		buf.position(0);
+		broadCast(dataFrom,buf);
+	}
+	
+	
 	
 	
 	/**
@@ -584,26 +674,28 @@ public class Application {
 	
 	
 	
-	///////////////////////////////////////////////////////////////////////////////REVOIR CETTE FONCTION aussi a ligne  375
+	///////////////////////////////////////////////////////////////////////////////REVOIR CETTE FONCTION aussi a ligne  382
 	void dataFromGetAddress(ByteBuffer internBuffer){
 		this.dataFrom = getAddressFromBuffer(internBuffer);
 	}
 	
 	
 	/**
-	 * Get The address Of Source for the broadCast
+	 * Get The address Of Source for the broadCast 
+	 * ATTENTION THIS METHOD HAVE THE BUFFER IN READMODE
 	 * @param internBuffer
 	 * @return
 	 */
 	InetSocketAddress getAddressFromBuffer(ByteBuffer internBuffer) {
 		
 		try {
-			internBuffer.flip();
-			if(internBuffer.remaining()<10){
+			//internBuffer.flip();
+			if(internBuffer.remaining()<8 + Short.BYTES){
+				logger.info("Not enought remaining");
 				return null;
 			}
 			byte[] ipByte = new byte[8]; //et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans ma tete faudrait check
-			internBuffer.get(ipByte); 
+			internBuffer.get(ipByte); //recupere l'op dans le vide
 			var port = internBuffer.getShort();
 			var ipAddress = InetAddress.getByAddress(ipByte);
 			return new InetSocketAddress(ipAddress,port);
@@ -634,8 +726,8 @@ public class Application {
 			InetAddress address = InetAddress.getByAddress(ipByte);
 			InetSocketAddress socketAddress = new InetSocketAddress(address,port);
 			// Partie envoi des donnée
-			/*
 			byte bit = 11;//opcode
+			bufferEnvoie.clear();
 			bufferEnvoie.put(bit);
 			bufferEnvoie.put(addressTrame(localInet)); //Addresse Source
 			bufferEnvoie.put(addressTrame(socketAddress)); // Adresse ping
@@ -648,8 +740,7 @@ public class Application {
 				bit = 1;//Avaliable
 			}
 			bufferEnvoie.put(bit);
-			bufferEnvoie.flip();
-			*/
+			
 			/*___________METHODE WAKE UP ENVOIE PAQUET_________*/
 			
 			
@@ -675,16 +766,11 @@ public class Application {
 		for(var key : selector.keys()){
 			var context = (Context) key.attachment();
 			if(context != null && address!=(InetSocketAddress) context.scContext.getRemoteAddress()){
-				
+			//TODO	
 			}
 		}
 	}
 
-	
-	
-	
-	
-	
 	
 	
 
