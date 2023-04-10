@@ -29,6 +29,8 @@ public class Application {
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
 		private final Application server;
 		private boolean closed = false;
+		
+		private InetSocketAddress disconnectedAddress;
 
 		/**
 		 * For every socket channel we link a context with a key
@@ -88,14 +90,20 @@ public class Application {
 		public void doRead() throws IOException {
 			if (scContext.read(bufferIn) == -1) {
 				System.out.println("Connexion closed");
+				disconnectedAddress = (InetSocketAddress) scContext.getRemoteAddress();
 				silentlyClose(key);
 				return;
 			}
 			// scContext.read(bufferIn);
 			bufferIn.flip();
 			System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
+
 			bufferIn.clear();
 
+		}
+		
+		public InetSocketAddress disconnectedAddress(){
+			return disconnectedAddress;
 		}
 		
 		public void doWrite() throws IOException{
@@ -202,8 +210,12 @@ public class Application {
 			}
 			if (key.isValid() && key.isReadable()) {
 				((Context) key.attachment()).doRead();
+				var c = (Context) key.attachment();
+				if(c.disconnectedAddress != null){
+					removeIfClosedTable(c.disconnectedAddress);
+				}
 				removeIfClosed();
-			
+				
 				printConnexions();
 			}
 		} catch (IOException e) {
@@ -312,21 +324,16 @@ public class Application {
 	}
 
 	/**
+	* Remove the closed connexion from the hashTable that is the routeTable
+	*/
+	private void removeIfClosedTable(InetSocketAddress address){
+		System.out.println("I CAME HERE");
+			table.deleteRouteTable(address);
+	}
+	/**
 	 * Remove the closed connexion from the HashSet
-	 * @throws IOException 
 	 */
 	private void removeIfClosed()  {
-		try{
-			for(var e : connexions) {
-				if(!e.scContext.isOpen()) {
-					var address = (InetSocketAddress) e.scContext.getRemoteAddress();
-					var remoteisa = new InetSocketAddress(address.getAddress().getHostAddress(),address.getPort());
-					table.deleteRouteTable(remoteisa);
-				}
-			}
-		}catch(IOException e){
-			logger.info("Not Doing Anything");
-		}
 		connexions.removeIf(e -> !e.scContext.isOpen());
 		
 	}
@@ -386,7 +393,9 @@ public class Application {
 			receivePingEnvoiAndSendPingReponse(buf);
 		}
 		case ACCEPTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
-		case CONFIRMATIONCHANGEMENTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case CONFIRMATIONCHANGEMENTCO -> {
+			recoitConfirmationChangementConnexion(buf);
+		}
 		case DEMANDECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case DEMANDERECO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
 		case DONNEEATRAITER -> throw new UnsupportedOperationException("Unimplemented case: " + op);
@@ -460,12 +469,11 @@ public class Application {
 		address = getAddressFromBuffer(buf);
 		beauDaron = (InetSocketAddress) scDaron.getLocalAddress();
 		scDaron.connect(address);
-		/*for (var e : table) {
+		for (var e : table) {
 			if(table.get(e) == beauDaron){
-				table.updateRouteTable(scDaron,address);
+				table.updateRouteTable((InetSocketAddress) scDaron.getRemoteAddress(),address);
 			}
 		}
-		}*/
 		
 		envoiConfirmationChangementConnexion();
 	}

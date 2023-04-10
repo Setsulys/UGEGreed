@@ -1,15 +1,14 @@
 package fr.uge.greed;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class RouteTable {
+public class RouteTable implements Iterable<InetSocketAddress> {
 
 	private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
 	
@@ -61,4 +60,26 @@ public class RouteTable {
 		return routeTable.entrySet().stream().map(e -> e.getKey() + " : " + e.getValue()).collect(Collectors.joining(",\n"));
 	}
 	
+	public Iterator<InetSocketAddress> iterator(){
+		return new myIterator();
+	}
+	
+	private class myIterator implements Iterator<InetSocketAddress>{
+		private Iterator<Map.Entry<InetSocketAddress,InetSocketAddress>> iterator  = routeTable.entrySet().iterator();
+		
+		@Override 
+		public boolean hasNext(){
+			return iterator.hasNext();
+		}
+		
+		@Override
+		public InetSocketAddress next(){
+			return iterator.next().getKey();
+		}
+		
+		@Override
+		public void remove(){
+			iterator.remove();	
+		}
+	}
 }
