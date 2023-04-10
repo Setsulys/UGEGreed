@@ -30,7 +30,6 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 	 * @param unlinked
 	 */
 	public void deleteRouteTable(InetSocketAddress unlinked) {
-		System.out.println("this need to be removed"+unlinked);
 		Objects.requireNonNull(unlinked);
 		routeTable.remove(unlinked);
 	}

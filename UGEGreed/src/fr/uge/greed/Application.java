@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import java.util.ArrayDeque;
 
 public class Application {
 
@@ -29,6 +30,7 @@ public class Application {
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
 		private final Application server;
 		private boolean closed = false;
+		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
 		
 		private InetSocketAddress disconnectedAddress;
 
@@ -89,8 +91,9 @@ public class Application {
 		 */
 		public void doRead() throws IOException {
 			if (scContext.read(bufferIn) == -1) {
-				System.out.println("Connexion closed");
+				
 				disconnectedAddress = (InetSocketAddress) scContext.getRemoteAddress();
+				System.out.println( "Connexion closed >>>>>>>>>>>>>>>>>>>>>>>>>>> " + disconnectedAddress +"\n");
 				silentlyClose(key);
 				return;
 			}
@@ -112,6 +115,28 @@ public class Application {
 			bufferOut.compact();
 			updateInterestOps();
 		}
+		
+		
+		public void queueMessage(ByteBuffer buffer) {
+			buffer.flip();
+			queue.add(buffer);
+			buffer.flip();
+			if(bufferOut.hasRemaining()) {
+				processOut();
+			}
+			updateInterestOps();
+		}
+		
+		public void processOut() {
+			if(bufferOut.remaining() < BUFFER_SIZE) {
+				return;
+			}
+			var frame = queue.poll();
+			if(frame == null) {
+				return;
+			}
+			bufferOut.put(frame);
+		}
 
 	}
 
@@ -125,15 +150,15 @@ public class Application {
 	private boolean isroot;
 	private final HashSet<Context> connexions = new HashSet<>();
 	private RouteTable table = new RouteTable();
-	private ByteBuffer bufferDonnee = ByteBuffer.allocate(4048);
-	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(4048);
-	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(4048);
-	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(4048);
+	private ByteBuffer bufferDonnee = ByteBuffer.allocate(BUFFER_SIZE);
+	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(BUFFER_SIZE);
+	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(BUFFER_SIZE);
+	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(BUFFER_SIZE);
 	private InetSocketAddress dataFrom =null;
 	private ArrayList<InetSocketAddress> workers = new ArrayList<>();
 	private InetSocketAddress beauDaron = null;
 
-	static private final int BUFFER_SIZE = 1024;
+	static private final int BUFFER_SIZE = 4096;
 
 	/**
 	 * Start the application in mode Root
@@ -327,7 +352,6 @@ public class Application {
 	* Remove the closed connexion from the hashTable that is the routeTable
 	*/
 	private void removeIfClosedTable(InetSocketAddress address){
-		System.out.println("I CAME HERE");
 			table.deleteRouteTable(address);
 	}
 	/**
@@ -350,8 +374,8 @@ public class Application {
 				System.out.println("Conneted from : " + e.scContext);
 			}
 		}
-		System.out.println("-----RouteTable------");
-		System.out.println(table);
+		System.out.println("\n-----RouteTable------");
+		System.out.println(table+"\n\n\n\n");
 	}
 
 	/**
@@ -430,7 +454,9 @@ public class Application {
 		case PINGREP -> {
 			recoitPingReponse(buf);
 		}
-		case SUPPRESSION -> throw new UnsupportedOperationException("Unimplemented case: " + op);
+		case SUPPRESSION -> {
+			recoitSuppression(buf);
+		}
 		default -> throw new IllegalArgumentException("Unexpected value: " + op);
 		
 		}
@@ -479,7 +505,7 @@ public class Application {
 	}
 	
 	void envoiConfirmationChangementConnexion() {
-		var buf = ByteBuffer.allocate(4080);
+		var buf = ByteBuffer.allocate(BUFFER_SIZE);
 		buf.putInt(4);
 		buf.put(addressTrame(localInet));
 		buf.put(addressTrame(beauDaron));
@@ -507,7 +533,7 @@ public class Application {
 	}
 	
 	void envoiSuppression() {
-		var buf = ByteBuffer.allocate(4080);
+		var buf = ByteBuffer.allocate(BUFFER_SIZE);
 		buf.putInt(5);
 		buf.put(addressTrame(localInet));
 		//TODO ENVOI DARON
@@ -542,7 +568,7 @@ public class Application {
 	 * @return
 	 */
 	ByteBuffer TrameOp(int op) {
-		var buf = ByteBuffer.allocate(4080);
+		var buf = ByteBuffer.allocate(BUFFER_SIZE);
 		buf.putInt(op);
 		return buf;
 	}
@@ -646,7 +672,7 @@ public class Application {
 	 * @param buf
 	 */
 	void renvoiFirstLEAF(ByteBuffer buf) {
-		var nouvBuffer = ByteBuffer.allocate(4080);
+		var nouvBuffer = ByteBuffer.allocate(BUFFER_SIZE);
 		nouvBuffer.put(buf);
 		decomposeFirstLEAF(buf);
 		buf = incrementNbNodes(buf);
@@ -775,6 +801,7 @@ public class Application {
 			var context = (Context) key.attachment();
 			if(context != null && address!=(InetSocketAddress) context.scContext.getRemoteAddress()){
 			//TODO	
+				
 			}
 		}
 	}

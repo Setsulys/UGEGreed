@@ -67,32 +67,77 @@ Pour pouvoir lancer le code, il faudra se rendre au niveau du //jar// et lancer 
 \paragraph{}
 Pour la root
 \begin{lstlisting}
-java -jar Application.jar <Host> <Port>
+java -jar UGEGreed.jar <Host> <Port>
+\end{lstlisting}
+ou bien
+\begin{lstlisting}
+java bin.fr.uge.greed.Application <Host> <Port>
 \end{lstlisting}
 \paragraph{}
 Pour la une autre application
 \begin{lstlisting}
-java -jar Application.jar <Host> <Port> <ServerHost> <ServerPort>
+java -jar UGEGreed.jar <Host> <Port> <ServerHost> <ServerPort>
 \end{lstlisting}
+ou bien
+\begin{lstlisting}
+java bin.fr.uge.greed.Application <Host> <Port> <ServerHost> <ServerPort>
+\end{lstlisting}
+\subsubsection{Connexion établis}
+Lorsqu'une connexion s'etablis la table de routage et la table de connexion se met a jour et nous affiche
+\begin{lstlisting}
+-------------Table of connexions--------------
+Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
+
+-----RouteTable------
+/127.0.0.1:51609 : /127.0.0.1:51609
+
+
+
+
+-------------Table of connexions--------------
+Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
+Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
+
+-----RouteTable------
+/127.0.0.1:51609 : /127.0.0.1:51609,
+/127.0.0.1:51612 : /127.0.0.1:51612
+\end{lstlisting}
+(Ceci est un exemple lorsque l'on connecte deux application à une autre)
+\linebreak
+le "connected from" s'affiche pour présenter les applications qui se sont connecté à cette application
+\linebreak
+le "connected to" s'affiche lorsqu'on se connecte à une autre application, il ne peut y avoir que un ou 0 "connected to"
 \subsection{Déconnexion}
 Pour pouvoir se déconnecter "correctement sans "ctrl+c" il y aura un scanner sur chaque applications qui lorsqu'il lira 
 \begin{lstlisting}
 "Disconnect" 
 \end{lstlisting}
 déconnectera l'application 
-Lorsque l'application se déconnecte elle nous affichera quelquechose dans ce style
+\subsubsection{Sur le terminal qui se déconnecte on aura}
 \begin{lstlisting}
+---------------------
 Disconnecting the node ...
-avr. 07, 2023 4:15:46 PM fr.uge.greed.Application lambda$1
+avr. 10, 2023 4:10:24 PM fr.uge.greed.Application lambda$1
 INFO: Disconnected Succesfully
+---------------------
 \end{lstlisting}
-et nous renverra sur la ligne de commande.
+et ça nous renverra sur la ligne de commande
+\subsubsection{Pour les autres terminaux}
+\begin{lstlisting}
+Connexion closed >>>>>>>>>>>>>>>>>>>>>>>>>>> /127.0.0.1:51609
+
+-------------Table of connexions--------------
+Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
+
+-----RouteTable------
+/127.0.0.1:51612 : /127.0.0.1:51612
+\end{lstlisting}
 \subsection{Lancement}
 TODO
 \section{Difficulté rencontré}
 \subsection{Difficulté sur la RFC}
 \paragraph{}
-Au début n'ayant pas le sujet assez clair, nous avons commencé à faire une RFC qui n'était pas du tout en rapport avec le sujet du projet, cependant à l'aide de Monsieur Carayol, nous avons mieux appréhendé le sujet et avons pu partir sur de bonnes bases.
+Au début n'ayant pas le sujet assez clair en tête, nous avons commencé à faire une RFC qui n'était pas du tout en rapport avec le sujet du projet, cependant à l'aide de Monsieur Carayol, nous avons mieux appréhendé le sujet et avons pu partir sur de bonnes bases. (On précise que ceci c'est passé bien avant la soutenance)
 \paragraph{}
 Cependant, lors de la soutenance de la RFC, il nous a été montré que notre RFC n'était pas vraiment ce qui était attendu, mais rien de grave, c'étaient quelques petites choses à corriger.
 Nous avons alors demandé à notre enseignant de plus amples explications pour mieux cerner ce qui était demandé et améliorer notre RFC, aussi pendant ce temps nous avons essayé de commencer à travailler sur la partie code du protocole.
@@ -103,12 +148,12 @@ Aussi, nous avons eu un problème de compilation lorsque l'on devait utiliser la
 Nous avons réglé notre problème en ajoutant l'option -cp lors du démarrage des applications
 \paragraph{}
 Un autre problème que nous avons rencontré mais que nous nous y attendions déjà était le fait de reconnaître de quel socketChannel à été envoyé la trame.
-\\Nous avons décidé de changer un peu par rapport a la rfc et d'ajouter l'adresse qui a envoyé la trame et en regardant la table de routage on regardais de quel valeur venait l'adresse.\\
+Nous avons décidé de changer un peu par rapport a la rfc et d'ajouter l'adresse qui a envoyé la trame et en regardant la table de routage on regardais de quel valeur venait l'adresse.
 \paragraph{}
-La table de routage aussi a fait partis des difficulté de ce projet, en effet lorsque l'on supprimais les connexions la table de routage ne se mettais pas à jour. elle ne se mettais à jour uniquement si on ajoutais des éléments.
+La table de routage aussi a fait partis des difficulté de ce projet, en effet lorsque l'on supprimais les connexions la table de routage ne se mettais pas à jour. elle ne se mettais à jour uniquement si on ajoutais des éléments, on a cependant réussi, au début on pensait utiliser des trames et envoyer pour mettre a jour la table de routage pour les applications à proximité mais nous avons trouvé une méthode pour le faire sans, cependant la table de routage des autres applications doivent être modifier pour supprimer l'application qui s'est déconnecté.
 \section{Division du travail}
 \paragraph{}
-Pour ce qui est du partage du travail nous avons partagé assez équitablement, on a essayé de faire un maximum pour éviter que la charge de travail repose plus sur une personne qu'une autre.
+Pour ce qui est du partage du travail nous avons partagé assez équitablement, on a essayé de faire un maximum pour éviter que la charge de travail repose plus sur une personne qu'une autre. Aussi on essayais de travailler environ 3h par jours sur le projet weekend compris.
 \subsection{RFC}
 \paragraph{}
 Pour la RFC, on a beaucoup travaillé de notre coté, mais on faisait des points pour assez vite comprendre la situation et échanger les idées entre nous et nous mettre d'accord dessus ou non.
@@ -117,5 +162,8 @@ Pour la RFC, on a beaucoup travaillé de notre coté, mais on faisait des points
 À ce niveau, on essayait d'avancer chacun de notre côté lorsque l'on pouvait, mais surtout, on a essayé un maximum de coder ensemble sur Eclipse à l'aide de l'extension CodeTogether comme ça, il était assez simple de savoir assez rapidement d'où venais l'erreur et on pouvait intervenir plus rapidement, lorsque l'on travaillait ensemble sur CodeTogether, on essayait d'envoyer un peu prêt le même nombre de commit chacun sur le git
 \section{Annexe}
 \subsection{Commentaires}
+\paragraph{}
 On a trouvé le projet de réseau plutôt intéressant, un projet qui nous laissait beaucoup de liberté, où il fallait poser beaucoup de questions pour pouvoir se donner une ligne directrice, même si le projet était assez complexe et nous pensions que le projet serait très très long, nous avons pris du plaisir à travailler dessus.
+\subsection{Remerciement}
+Nous remercions l'équipe chargé de la matière Réseau pour tout le soutient mais aussi les idées que vous nous avez données tout le long du projet.
 \end{document}
