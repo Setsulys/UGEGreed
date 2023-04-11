@@ -13,12 +13,13 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
-import java.util.ArrayDeque;
 
 public class Application {
 
@@ -28,9 +29,11 @@ public class Application {
 		private final SocketChannel scContext;
 		private final ByteBuffer bufferIn = ByteBuffer.allocate(BUFFER_SIZE);
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
+		private final OneAddressReader oaread= new OneAddressReader();
 		private final Application server;
 		private boolean closed = false;
 		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
+		private final IntReader intread = new IntReader();
 		
 		private InetSocketAddress disconnectedAddress;
 
@@ -53,21 +56,49 @@ public class Application {
 
 		private void updateInterestOps() {
 			var ops = 0;
-//	            if (!closed && bufferOut.hasRemaining()) {
-//	                ops |= SelectionKey.OP_READ;
-//	            }
-//	            if (bufferOut.position() != 0){
-//	                ops |= SelectionKey.OP_WRITE;
-//	            }
-//	            if (ops == 0 && closed) {
-//	               	
-//	                return;
-//	            }
+	            if (!closed && bufferOut.hasRemaining()) {
+	                ops |= SelectionKey.OP_READ;
+	            }
+	            if (bufferOut.position() != 0){
+	                ops |= SelectionKey.OP_WRITE;
+	            }
+	            if (ops == 0 && closed) {
+	               	
+	                return;
+	            }
 			if (closed) {
 
 			}
 			key.interestOps(ops);
 		}
+		
+		private void processIn() throws IOException {
+            for (;;) {
+                Reader.ProcessStatus status = intread.process(bufferIn);
+                switch (status) {
+                    case DONE:
+                    	int op = intread.get();
+                        Reader.ProcessStatus status2 = oaread.process(bufferIn);
+                        	switch(status2) {
+                        	case DONE:
+                        		server.analyseur(Trames.values()[op], bufferIn, disconnectedAddress);
+                        		bufferIn.clear();
+                        	case REFILL:
+                        		return;
+                        	case ERROR:
+                        		silentlyClose(key);
+                        	}
+                        break;
+                    	
+                    case REFILL:
+                        return;
+                    case ERROR:
+                        silentlyClose(key);
+                        return;
+                }
+            }
+        }
+		
 
 		/**
 		 * Close the channel between two applications
@@ -99,8 +130,8 @@ public class Application {
 			}
 			// scContext.read(bufferIn);
 			bufferIn.flip();
+			processIn();
 			System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
-
 			bufferIn.clear();
 
 		}
@@ -122,20 +153,17 @@ public class Application {
 			queue.add(buffer);
 			buffer.flip();
 			if(bufferOut.hasRemaining()) {
-				processOut();
+				//processOut();
 			}
 			updateInterestOps();
 		}
 		
-		public void processOut() {
+		public void processOutTest(InetSocketAddress address) {
 			if(bufferOut.remaining() < BUFFER_SIZE) {
 				return;
 			}
-			var frame = queue.poll();
-			if(frame == null) {
-				return;
-			}
-			bufferOut.put(frame);
+			//ceci est un test
+			bufferOut.put(envoiFirstLEAF());
 		}
 
 	}
@@ -143,7 +171,7 @@ public class Application {
 	// private final SelectionKey key;
 
 	private final ServerSocketChannel sc;
-	private final InetSocketAddress localInet;
+	private static InetSocketAddress localInet;
 	private final SocketChannel scDaron;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
@@ -325,13 +353,39 @@ public class Application {
 				try (var scanner = new Scanner(System.in)) {
 					while (scanner.hasNextLine()) {
 						var msg = scanner.nextLine();
-						if (msg.equals("Disconnect")) {
+						if (msg.equals("DISCONNECT")) {
 							System.out.println("---------------------\nDisconnecting the node ...");
 							var con = (Context) key.attachment();
 							con.closed = true;
 							silentlyClose(key);
 							Thread.currentThread().interrupt();
 						}
+						if (msg.equals("Test")) {
+							System.out.println("---------------------\nWhich One to send test ?");
+							msg = scanner.nextLine();
+							var who = Integer.parseInt(msg);
+							Context element = null;
+							Iterator<Context> it = connexions.iterator();
+							while(it.hasNext() && who != 0){
+								element = it.next();
+								System.out.println("trux");
+								who--;
+							}
+							element.processOutTest((InetSocketAddress) element.scContext.getRemoteAddress());
+							
+						}
+						
+						
+						
+						
+//						for (var e : connexions) {
+//							if (e.scContext.equals(scDaron)) {
+//								System.out.println("Connected To : " + e.scContext);
+//							} else {
+//								System.out.println("Conneted from : " + e.scContext);
+//							}
+//						}
+						
 						var buf = ByteBuffer.allocate(msg.length());
 						buf.put(Charset.forName("UTF-8").encode(msg));
 						var c = (Context) key.attachment();
@@ -347,6 +401,8 @@ public class Application {
 		});
 
 	}
+	
+	
 
 	/**
 	* Remove the closed connexion from the hashTable that is the routeTable
@@ -413,7 +469,8 @@ public class Application {
 		case PINGENVOI -> {
 			//getAddressFromBuffer(buf);
 			renvoiePingEnvoi(address);
-			//TODO
+			
+			
 			receivePingEnvoiAndSendPingReponse(buf);
 		}
 		case ACCEPTCO -> throw new UnsupportedOperationException("Unimplemented case: " + op);
@@ -467,7 +524,7 @@ public class Application {
 	 * @param inet
 	 * @return
 	 */
-	ByteBuffer addressTrame(InetSocketAddress inet) {
+	static ByteBuffer addressTrame(InetSocketAddress inet) {
 		ByteBuffer internBuffer = ByteBuffer.allocate(BUFFER_SIZE);
 		var ipByte = new byte[8];			//constructiontrame(truc)
 		ipByte = inet.getAddress().getAddress();
@@ -589,12 +646,12 @@ public class Application {
 	/**
 	 * When we are on a leaf of the application it create a new Buffer with op code 7 and put 
 	 */
-	void envoiFirstLEAF(){
+	static ByteBuffer envoiFirstLEAF(){
 		ByteBuffer connex = ByteBuffer.allocate(BUFFER_SIZE);
 		connex.putInt(7);
 		connex.putInt(1);
 		connex.put(addressTrame(localInet));
-		//ENVOYER DARON
+		return connex;
 	}
 	
 	
@@ -724,14 +781,14 @@ public class Application {
 		
 		try {
 			//internBuffer.flip();
-			if(internBuffer.remaining()<8 + Short.BYTES){
+			if(internBuffer.remaining()<8 * Byte.BYTES + Short.BYTES){
 				logger.info("Not enought remaining");
 				return null;
 			}
 			byte[] ipByte = new byte[8]; //et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans ma tete faudrait check
 			internBuffer.get(ipByte); //recupere l'op dans le vide
+			var ipAddress = InetAddress.getByAddress(ipByte); // 
 			var port = internBuffer.getShort();
-			var ipAddress = InetAddress.getByAddress(ipByte);
 			return new InetSocketAddress(ipAddress,port);
 		}catch (IOException e) {
 			return null;
