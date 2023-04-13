@@ -1,11 +1,12 @@
 package fr.uge.greed;
 
-import java.lang.Thread.State;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
-import fr.uge.greed.reader.*;
 import fr.uge.greed.data.*;
+import fr.uge.greed.reader.*;
+
 
 public class TrameReader implements Reader<InetSocketAddress>{
 	
@@ -13,14 +14,18 @@ public class TrameReader implements Reader<InetSocketAddress>{
 		DONE,WAITING,ERROR
 	}
 	
-	private LotAddressReader lotAddReader = new LotAddressReader();
-	private DoubleAddressReader doubleAddReader = new DoubleAddressReader();
+
 	private DataDoubleAddress dataDoubleAddress = null;
 	private DataOneAddress dataOneAddress = null;
+	private DataResponse dataResponse = null;
+	private ArrayList<InetSocketAddress> list = null;
 	private int ipType;
 	private State state = State.WAITING;
+		private LotAddressReader lotAddReader = new LotAddressReader();
+	private DoubleAddressReader doubleAddReader = new DoubleAddressReader();
 	private final IntReader intReader = new IntReader();
 	private final AddressReader addReader = new AddressReader();
+	private final ResponseReader responseReader = new ResponseReader();
 	
 	
 	
@@ -75,11 +80,21 @@ public class TrameReader implements Reader<InetSocketAddress>{
 				case 7://Trame Firstt LEAF
 					var lotAddReaderState = lotAddReader.process(bb);
 					if(lotAddReaderState == ProcessStatus.DONE){
-						var lot = lotAddReader.get();
+						list = lotAddReader.get();
 						
 					}
+					else{
+						return lotAddReaderState;
+					}
 				case 8://Trame Full TREE
-					System.out.println("hellow");
+					var lotAddReaderStateFT = lotAddReader.process(bb);
+					if(lotAddReaderStateFT == ProcessStatus.DONE){
+						list = lotAddReader.get();
+						
+					}
+					else{
+						return lotAddReaderStateFT;
+					}
 				case 9://Trame New LEAF
 					var addReaderStateNL = addReader.process(bb);
 					if(addReaderStateNL == ProcessStatus.DONE){
@@ -104,7 +119,14 @@ public class TrameReader implements Reader<InetSocketAddress>{
 					}
 					
 				case 11://Trame ping reponse
-					System.out.println("hellow");
+					var responseReaderState = responseReader.process(bb);
+					if(responseReaderState == ProcessStatus.DONE) {
+						var resp = responseReader.get();
+						dataResponse = new DataResponse(op,resp.addressSrc(),resp.addressDst(),resp.boolbyte());
+					}
+					else{
+						return responseReaderState;
+					}
 				case 12://envoi de donnee à traiter
 					System.out.println("hellow");
 				case 13://envoi de donnee deco
