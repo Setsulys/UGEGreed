@@ -130,8 +130,9 @@ public class AddressReader implements Reader<InetSocketAddress>{
 	@Override
 	public void reset() {
 		state = State.WAITING_TYPE;
-		bufferAddress.reset();
-		bufferType.reset();
+		bufferAddress.clear();
+		bufferType.clear();
+		bufferHost.clear();
 	}
 
 	

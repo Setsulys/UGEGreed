@@ -1,7 +1,6 @@
 package fr.uge.greed.reader;
 
 import java.nio.ByteBuffer;
-import fr.uge.greed.*;
 import fr.uge.greed.reader.readerrecord.*;
 
 public class DoubleAddressReader implements Reader<DoubleAddress>{
@@ -15,6 +14,10 @@ public class DoubleAddressReader implements Reader<DoubleAddress>{
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
 		// TODO Auto-generated method stub
+		if(state == State.DONE || state == State.ERROR) {
+			throw new IllegalStateException();
+		}
+		// On ne flip pas car On flip deja dans AddressReader
 		var readerState = reader.process(bb); //On process la premiere addresse
 		if(readerState == ProcessStatus.DONE) {
 			var address1 = reader.get();

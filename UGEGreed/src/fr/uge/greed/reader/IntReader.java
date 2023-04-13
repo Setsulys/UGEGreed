@@ -11,14 +11,10 @@ public class IntReader implements Reader<Integer>{
 	private State state = State.WAITING;
 	private final ByteBuffer internalBuffer = ByteBuffer.allocate(Integer.BYTES);
 	private int value;
-	private boolean flag = false;
 	
 	
 	@Override
 	public ProcessStatus process(ByteBuffer buffer){
-		if(flag) {
-			return ProcessStatus.DONE;
-		}
 		if(state == State.DONE || state == State.ERROR){
 			throw new IllegalStateException();
 		}
@@ -45,7 +41,6 @@ public class IntReader implements Reader<Integer>{
 		state = State.DONE;
 		internalBuffer.flip();
 		value = internalBuffer.getInt();
-		flag = true;
 		return ProcessStatus.DONE;
 	}
 
@@ -61,9 +56,5 @@ public class IntReader implements Reader<Integer>{
 	public void reset(){
 		state = State.WAITING;
 		internalBuffer.clear();
-	}
-	
-	public void setFlag(boolean flag) {
-		this.flag = flag;
 	}
 }
