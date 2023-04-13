@@ -1,18 +1,24 @@
-package fr.uge.greed;
+package fr.uge.greed.reader;
 
 import java.nio.ByteBuffer;
 
-public class LongReader implements Reader<Long>{
-		private enum State{
+public class IntReader implements Reader<Integer>{
+	
+	private enum State{
 		DONE , WAITING , ERROR
 	}
 	
 	private State state = State.WAITING;
-	private final ByteBuffer internalBuffer = ByteBuffer.allocate(Long.BYTES);
-	private long value;
+	private final ByteBuffer internalBuffer = ByteBuffer.allocate(Integer.BYTES);
+	private int value;
+	private boolean flag = false;
+	
 	
 	@Override
 	public ProcessStatus process(ByteBuffer buffer){
+		if(flag) {
+			return ProcessStatus.DONE;
+		}
 		if(state == State.DONE || state == State.ERROR){
 			throw new IllegalStateException();
 		}
@@ -38,12 +44,13 @@ public class LongReader implements Reader<Long>{
 		
 		state = State.DONE;
 		internalBuffer.flip();
-		value = internalBuffer.getLong();
+		value = internalBuffer.getInt();
+		flag = true;
 		return ProcessStatus.DONE;
 	}
 
 	@Override
-	public Long get(){
+	public Integer get(){
 		if(state != State.DONE){
 			throw new IllegalStateException();
 		}
@@ -54,5 +61,9 @@ public class LongReader implements Reader<Long>{
 	public void reset(){
 		state = State.WAITING;
 		internalBuffer.clear();
+	}
+	
+	public void setFlag(boolean flag) {
+		this.flag = flag;
 	}
 }

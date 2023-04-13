@@ -1,4 +1,4 @@
-package fr.uge.greed;
+package fr.uge.greed.reader;
 
 import java.nio.ByteBuffer;
 
