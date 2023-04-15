@@ -22,11 +22,11 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 		}
 		//On flip pas car on flip deja dans AddressReader et intReader
 		var readerState = intReader.process(bb);
-		if(readerState == ProcessStatus.DONE) {
+		if(readerState == ProcessStatus.DONE) { // On recupere le nombre d'addresse que la trame possede
 			nbAddress = intReader.get();
 			intReader.reset();
 			var nb = 0;
-			while(nb < nbAddress) {
+			while(nb < nbAddress) {//On recupere chaque addresse qu'on met dans une liste
 				readerState = reader.process(bb);
 				if(readerState == ProcessStatus.DONE) {
 					list.add(reader.get());

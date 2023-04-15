@@ -1,14 +1,24 @@
-package fr.uge.greed;
+package fr.uge.greed.reader;
 
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
-import fr.uge.greed.data.*;
-import fr.uge.greed.reader.*;
+import fr.uge.greed.data.DataALotAddress;
+import fr.uge.greed.data.DataDoubleAddress;
+import fr.uge.greed.data.DataOneAddress;
+import fr.uge.greed.data.DataResponse;
+import fr.uge.greed.trame.Trame;
+import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
+import fr.uge.greed.trame.TrameFirstLeaf;
+import fr.uge.greed.trame.TrameFirstRoot;
+import fr.uge.greed.trame.TrameFullTree;
+import fr.uge.greed.trame.TrameNewLeaf;
+import fr.uge.greed.trame.TramePingConfirmationChangementCo;
+import fr.uge.greed.trame.TramePingEnvoi;
+import fr.uge.greed.trame.TramePingReponse;
+import fr.uge.greed.trame.TrameSuppression;
 
 
-public class TrameReader implements Reader<InetSocketAddress>{
+public class TrameReader implements Reader<Trame>{
 	
 	private enum State{
 		DONE,WAITING,ERROR
@@ -18,16 +28,15 @@ public class TrameReader implements Reader<InetSocketAddress>{
 	private DataDoubleAddress dataDoubleAddress = null;
 	private DataOneAddress dataOneAddress = null;
 	private DataResponse dataResponse = null;
-	private ArrayList<InetSocketAddress> list = null;
+	private DataALotAddress dataALotAddress = null;
 	private int ipType;
 	private State state = State.WAITING;
-		private LotAddressReader lotAddReader = new LotAddressReader();
+	private LotAddressReader lotAddReader = new LotAddressReader();
 	private DoubleAddressReader doubleAddReader = new DoubleAddressReader();
 	private final IntReader intReader = new IntReader();
 	private final AddressReader addReader = new AddressReader();
 	private final ResponseReader responseReader = new ResponseReader();
-	
-	
+	private int op =-1;
 	
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
@@ -80,7 +89,7 @@ public class TrameReader implements Reader<InetSocketAddress>{
 				case 7://Trame Firstt LEAF
 					var lotAddReaderState = lotAddReader.process(bb);
 					if(lotAddReaderState == ProcessStatus.DONE){
-						list = lotAddReader.get();
+						dataALotAddress = new DataALotAddress(op,lotAddReader.get());
 						
 					}
 					else{
@@ -89,7 +98,7 @@ public class TrameReader implements Reader<InetSocketAddress>{
 				case 8://Trame Full TREE
 					var lotAddReaderStateFT = lotAddReader.process(bb);
 					if(lotAddReaderStateFT == ProcessStatus.DONE){
-						list = lotAddReader.get();
+						dataALotAddress = new DataALotAddress(op,lotAddReader.get());
 						
 					}
 					else{
@@ -146,11 +155,44 @@ public class TrameReader implements Reader<InetSocketAddress>{
 	}
 
 	@Override
-	public InetSocketAddress get() {
+	public Trame get() {
 		if(state == State.DONE) {
 			return null;
 		}
-		throw new IllegalStateException();
+		switch(op) {
+		case 0:
+			return null; //______DUMP
+		case 1:
+			return null; //______DUMP
+		case 2:
+			return null; //______DUMP
+		case 3:
+			return new TrameAnnonceIntentionDeco(dataDoubleAddress);
+		case 4:
+			return new TramePingConfirmationChangementCo(dataDoubleAddress);
+		case 5:
+			return new TrameSuppression(dataOneAddress);
+		case 6:
+			return new TrameFirstRoot(op);
+		case 7:
+			return new TrameFirstLeaf(dataALotAddress);
+		case 8:
+			return new TrameFullTree(dataALotAddress);
+		case 9:
+			return new TrameNewLeaf(dataOneAddress);
+		case 10:
+			return new TramePingEnvoi(dataOneAddress);
+		case 11:
+			return new TramePingReponse(dataResponse);
+		case 12:
+			return null; // TODO
+		case 13:
+			return null; // TODO
+		case 14:
+			return null; // TODO
+		}
+		
+		return null;
 	}
 
 	@Override

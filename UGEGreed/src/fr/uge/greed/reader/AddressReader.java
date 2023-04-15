@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-import fr.uge.greed.*;
 
 public class AddressReader implements Reader<InetSocketAddress>{
 	
