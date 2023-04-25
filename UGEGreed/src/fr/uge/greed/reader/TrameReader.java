@@ -17,13 +17,11 @@ import fr.uge.greed.trame.TramePingEnvoi;
 import fr.uge.greed.trame.TramePingReponse;
 import fr.uge.greed.trame.TrameSuppression;
 
+public class TrameReader implements Reader<Trame> {
 
-public class TrameReader implements Reader<Trame>{
-	
-	private enum State{
-		DONE,WAITING,ERROR
+	private enum State {
+		DONE, WAITING, ERROR
 	}
-	
 
 	private DataDoubleAddress dataDoubleAddress = null;
 	private DataOneAddress dataOneAddress = null;
@@ -36,66 +34,79 @@ public class TrameReader implements Reader<Trame>{
 	private final IntReader intReader = new IntReader();
 	private final AddressReader addReader = new AddressReader();
 	private final ResponseReader responseReader = new ResponseReader();
-	private int op =-1;
-	
+	private int op = -1;
+
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
+		System.out.println("PROCESS TRAMEREADER" + bb.remaining());
 		var readerState = intReader.process(bb);
+		System.out.println("APRES INTREADER");
 		if(readerState == ProcessStatus.DONE){
+			System.out.println("DONE INT READER TRAMEREADER");
 			var op = intReader.get();
 			intReader.reset();
 			switch(op){
-				case 0://Demande de connexion_________DUMP
-					System.out.println("hellow");
-				case 1://Acceptation de connexion_______DUMP
-					System.out.println("hellow");
-				case 2://Demande de reconnexion_______DUMP
-					System.out.println("hellow");
-				case 3://Annonce intention de deconnexion
-					var doubleAddReaderState = doubleAddReader.process(bb);
-					if(doubleAddReaderState == ProcessStatus.DONE){
-						var doubleadd = doubleAddReader.get();
-						dataDoubleAddress = new DataDoubleAddress(op.intValue(),doubleadd.addressSource(),doubleadd.addressDestination());
+				case 0 ->{//Demande de connexion_________DUMP
+						System.out.println("hellow");
+					}
+				case 1 ->{//Acceptation de connexion_______DUMP
+						System.out.println("hellow");
+					}
+				case 2 ->{//Demande de reconnexion_______DUMP
+						System.out.println("hellow");
+					}
+				case 3 ->{//Annonce intention de deconnexion
+						var doubleAddReaderState = doubleAddReader.process(bb);
+						if(doubleAddReaderState == ProcessStatus.DONE){
+							var doubleadd = doubleAddReader.get();
+							dataDoubleAddress = new DataDoubleAddress(op.intValue(),doubleadd.addressSource(),doubleadd.addressDestination());
+							
+						}
 						
+						else{
+							return doubleAddReaderState;
+						}
 					}
-					else{
-						return doubleAddReaderState;
+				case 4 ->{//Ping de confirmation de changement de connexion
+						var doubleAddReaderStatePC = doubleAddReader.process(bb);
+						if(doubleAddReaderStatePC == ProcessStatus.DONE){
+							var doubleadd = doubleAddReader.get();
+							dataDoubleAddress = new DataDoubleAddress(op.intValue(),doubleadd.addressSource(),doubleadd.addressDestination());
+							
+						}
+						else{
+							return doubleAddReaderStatePC;
+						}
 					}
-				case 4://Ping de confirmation de changement de connexion
-					var doubleAddReaderStatePC = doubleAddReader.process(bb);
-					if(doubleAddReaderStatePC == ProcessStatus.DONE){
-						var doubleadd = doubleAddReader.get();
-						dataDoubleAddress = new DataDoubleAddress(op.intValue(),doubleadd.addressSource(),doubleadd.addressDestination());
-						
-					}
-					else{
-						return doubleAddReaderStatePC;
-					}
-				case 5://Trame suppression d'application'
-					var addReaderState = addReader.process(bb);
-					if(addReaderState == ProcessStatus.DONE){
-						var address = addReader.get();
-						dataOneAddress = new DataOneAddress(op,address);
-						//reset addReader
-					}
-					else{
-						return addReaderState;
+				case 5 ->{//Trame suppression d'application'
+						var addReaderState = addReader.process(bb);
+						if(addReaderState == ProcessStatus.DONE){
+							var address = addReader.get();
+							dataOneAddress = new DataOneAddress(op,address);
+							//reset addReader
+						}
+						else{
+							return addReaderState;
+						}
 					}
 					
 					
-				case 6://Trame First ROOT
+				case 6 ->{
+					
+				}//Trame First ROOT
 					//ONLY OP 
 					
-				case 7://Trame Firstt LEAF
-					var lotAddReaderState = lotAddReader.process(bb);
-					if(lotAddReaderState == ProcessStatus.DONE){
-						dataALotAddress = new DataALotAddress(op,lotAddReader.get());
-						
+				case 7 ->{//Trame Firstt LEAF
+						var lotAddReaderState = lotAddReader.process(bb);
+						if(lotAddReaderState == ProcessStatus.DONE){
+							dataALotAddress = new DataALotAddress(op,lotAddReader.get());
+							
+						}
+						else{
+							return lotAddReaderState;
+						}
 					}
-					else{
-						return lotAddReaderState;
-					}
-				case 8://Trame Full TREE
+				case 8-> { //Trame Full TREE
 					var lotAddReaderStateFT = lotAddReader.process(bb);
 					if(lotAddReaderStateFT == ProcessStatus.DONE){
 						dataALotAddress = new DataALotAddress(op,lotAddReader.get());
@@ -104,7 +115,8 @@ public class TrameReader implements Reader<Trame>{
 					else{
 						return lotAddReaderStateFT;
 					}
-				case 9://Trame New LEAF
+				}
+				case 9-> {//Trame New LEAF
 					var addReaderStateNL = addReader.process(bb);
 					if(addReaderStateNL == ProcessStatus.DONE){
 						var address = addReader.get();
@@ -114,20 +126,28 @@ public class TrameReader implements Reader<Trame>{
 					else{
 						return addReaderStateNL;
 					}
+				}
 				
 
-				case 10://Trame ping d'envoie'
-					var addReaderStatePE = addReader.process(bb);
-					if(addReaderStatePE == ProcessStatus.DONE){
-						var address = addReader.get();
-						dataOneAddress = new DataOneAddress(op,address);
-						//reset addReader
-					}
-					else{
-						return addReaderStatePE;
+				case 10 -> {//Trame ping d'envoie'
+						System.out.println("Case 10 trameReader");
+						var addReaderStatePE = addReader.process(bb);
+						System.out.println(addReaderStatePE);
+						if(addReaderStatePE == ProcessStatus.DONE){
+							System.out.println("Case 10 trameReader DONE");
+							var address = addReader.get();
+							dataOneAddress = new DataOneAddress(op,address);
+							//reset addReader
+							addReader.reset();
+						}
+						else{
+							System.out.println("loooooooool");
+							return addReaderStatePE;
+						}
 					}
 					
-				case 11://Trame ping reponse
+				case 11->{
+					//Trame ping reponse
 					var responseReaderState = responseReader.process(bb);
 					if(responseReaderState == ProcessStatus.DONE) {
 						var resp = responseReader.get();
@@ -136,18 +156,26 @@ public class TrameReader implements Reader<Trame>{
 					else{
 						return responseReaderState;
 					}
-				case 12://envoi de donnee à traiter
+				}
+					
+				case 12->{
+					//envoi de donnee à traiter
+				
 					System.out.println("hellow");
-				case 13://envoi de donnee deco
+				}
+				case 13->{
+					System.out.println("hellow");//envoi de donnee deco
+				}
+					
+				case 14->{//envoi de donnee traitee
 					System.out.println("hellow");
-				case 14://envoi de donnee traitee
-					System.out.println("hellow");
-
+				}
 					
 			}
 			
 		} 
 		else{
+			System.out.println("here i am");
 			return readerState;
 		}
 		state = state.DONE;
@@ -156,16 +184,16 @@ public class TrameReader implements Reader<Trame>{
 
 	@Override
 	public Trame get() {
-		if(state == State.DONE) {
+		if (state == State.DONE) {
 			return null;
 		}
-		switch(op) {
+		switch (op) {
 		case 0:
-			return null; //______DUMP
+			return null; // ______DUMP
 		case 1:
-			return null; //______DUMP
+			return null; // ______DUMP
 		case 2:
-			return null; //______DUMP
+			return null; // ______DUMP
 		case 3:
 			return new TrameAnnonceIntentionDeco(dataDoubleAddress);
 		case 4:
@@ -191,18 +219,21 @@ public class TrameReader implements Reader<Trame>{
 		case 14:
 			return null; // TODO
 		}
-		
+
 		return null;
+	}
+
+	public int getOp() {
+		return op;
 	}
 
 	@Override
 	public void reset() {
 		state = State.WAITING;
-		
-		intReader.reset();
-		
-	}
-	
 
-	
+		intReader.reset();
+		addReader.reset();
+
+	}
+
 }

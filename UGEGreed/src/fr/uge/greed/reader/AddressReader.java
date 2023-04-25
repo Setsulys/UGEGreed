@@ -14,14 +14,14 @@ public class AddressReader implements Reader<InetSocketAddress>{
 	}
 
 	private static int BUFFER_SIZE = 1024;
-	private final ByteBuffer bufferType =  ByteBuffer.allocate(Integer.BYTES);
+	private final ByteBuffer bufferType =  ByteBuffer.allocate(Byte.BYTES);
 	private final ByteBuffer bufferHost = ByteBuffer.allocate(Short.BYTES);
 	private final ByteBuffer bufferAddress = ByteBuffer.allocate(BUFFER_SIZE);
-	private int ipType;
+	private byte ipType;
 	
 	private InetSocketAddress address;
 	private  Short host;
-	private State state = State.WAITING_IP;
+	private State state = State.WAITING_TYPE;
 	
 	private int IPV4 = 4 * Byte.BYTES;
 	private int IPV6 = 16 * Byte.BYTES;
@@ -32,8 +32,11 @@ public class AddressReader implements Reader<InetSocketAddress>{
 		if(state == State.DONE || state == State.ERROR) {
 			throw new IllegalStateException();
 		}
+		System.out.println("intreader of addressReader"+bb.remaining());
 		bb.flip();
+		System.out.println("intreader of addressReader"+bb.remaining());
 		try {
+			System.out.println("process AddressReader");
 			if(state == State.WAITING_TYPE) {
 				var oldLimit = bb.limit();
 				if(bufferType.remaining() > oldLimit) {
@@ -44,13 +47,14 @@ public class AddressReader implements Reader<InetSocketAddress>{
 					bufferType.put(bb);
 					bb.limit(oldLimit);
 				}
-				
+				System.out.println("ipv4"+ bb.remaining());
 				//If not getting all the integer
 				if(bufferType.remaining() != 0) {
+					System.out.println("remain");
 					return ProcessStatus.REFILL;
 				}
-				ipType = bufferType.flip().getInt();
-				if(ipType != 4 || ipType != 6) {
+				ipType = bufferType.flip().get();
+				if(ipType != 4 && ipType != 6) {
 					return ProcessStatus.ERROR;
 				}
 				state = State.WAITING_IP;
@@ -60,7 +64,9 @@ public class AddressReader implements Reader<InetSocketAddress>{
 					while(bb.hasRemaining() && bufferAddress.position() < IPV4 && bufferAddress.hasRemaining()) {
 						bufferAddress.put(bb.get());
 					}
+					System.out.println("ipv4 remain" + bb.remaining());
 					if(bufferAddress.position() < IPV4) {
+						System.out.println("ipv4refill");
 						return ProcessStatus.REFILL;
 					}
 				}
@@ -69,23 +75,29 @@ public class AddressReader implements Reader<InetSocketAddress>{
 						bufferAddress.put(bb.get());
 					}
 					if(bufferAddress.position() < IPV6) {
+						System.out.println("ipv6refill");
 						return ProcessStatus.REFILL;
 					}
 				}
 				state = State.WAITING_HOST;
 			}
+			System.out.println("short buff" + bb.remaining() + " " + bb.limit());
 			if(state == State.WAITING_HOST) {
-				var oldLimit = bb.limit();
-				if(bufferHost.remaining() > oldLimit) {
+				
+				if(bb.remaining() <= bufferHost.remaining() ) {
 					bufferHost.put(bb);
 				}
 				else {
+					System.out.println("pass in else");
+					var oldLimit = bb.limit();
 					bb.limit(bufferHost.remaining());
 					bufferHost.put(bb);
 					bb.limit(oldLimit);
 				}
 				//If not getting All the Short
+				System.out.println("short buff bis" + bb.remaining());
 				if(bufferHost.remaining() != 0) {
+					System.out.println("Refill short");
 					return ProcessStatus.REFILL;
 				}
 				host = bufferHost.flip().getShort();

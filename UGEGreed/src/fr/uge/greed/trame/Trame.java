@@ -21,4 +21,5 @@ TramePingReponse
 	TramePingEnvoi = 10
 	TramePingReponse = 11
 	*/
+	public int getOp();
 }
