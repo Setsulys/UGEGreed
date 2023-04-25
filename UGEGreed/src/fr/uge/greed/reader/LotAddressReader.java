@@ -31,8 +31,14 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 				if(readerState == ProcessStatus.DONE) {
 					list.add(reader.get());
 				}
+				else {
+					return readerState;
+				}
 				nb++;
 			}
+		}
+		else {
+			return readerState;
 		}
 		
 		state = State.DONE;
