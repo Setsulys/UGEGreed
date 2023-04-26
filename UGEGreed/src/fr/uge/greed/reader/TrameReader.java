@@ -181,7 +181,8 @@ public class TrameReader implements Reader<Trame> {
 		return ProcessStatus.DONE;
 	}
 
-	public Trame get(int op) {
+	@Override
+	public Trame get() {
 		if (state != State.DONE) {
 			return null;
 		}

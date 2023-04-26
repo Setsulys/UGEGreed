@@ -110,6 +110,7 @@ public class Application {
 				switch (status) {
 				case DONE -> {
 					System.out.println("DONE");
+					var op = trameReader.getOp();
 					tramez = trameReader.get();
 					trameReader.reset();
 					try {

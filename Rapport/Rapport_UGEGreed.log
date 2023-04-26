@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  10 APR 2023 16:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  26 APR 2023 15:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -420,13 +420,18 @@ Underfull \hbox (badness 10000) in paragraph at lines 105--110
 \T1/cmr/m/n/10 tion
  []
 
-[3] [4] [5] (Rapport_UGEGreed.aux)
+[3] [4]
+Underfull \hbox (badness 10000) in paragraph at lines 155--158
+\T1/cmr/m/n/10 s'envoyaient par-fois mais par-fois ne s'envoyaient pas.
+ []
+
+[5] (Rapport_UGEGreed.aux)
 Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
 (rerunfilecheck)             Checksum: AD95A80FC0522FD4947E2286CE04BBE8;2628.
  ) 
 Here is how much of TeX's memory you used:
- 11307 strings out of 476334
- 175244 string characters out of 5787499
+ 11308 strings out of 476334
+ 175255 string characters out of 5787499
  1953382 words of memory out of 5000000
  31513 multiletter control sequences out of 15000+600000
  522272 words of font info for 51 fonts, out of 8000000 for 9000
@@ -441,9 +446,9 @@ jfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
 ts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\AppData\Local\MiK
 TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Steven\AppData\Lo
 cal\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on Rapport_UGEGreed.pdf (6 pages, 126423 bytes).
+Output written on Rapport_UGEGreed.pdf (6 pages, 126892 bytes).
 PDF statistics:
- 512 PDF objects out of 1000 (max. 8388607)
- 94 named destinations out of 1000 (max. 500000)
+ 513 PDF objects out of 1000 (max. 8388607)
+ 95 named destinations out of 1000 (max. 500000)
  161 words of extra memory for PDF output out of 10000 (max. 10000000)
 

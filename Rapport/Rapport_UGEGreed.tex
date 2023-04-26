@@ -151,6 +151,10 @@ Un autre problème que nous avons rencontré mais que nous nous y attendions dé
 Nous avons décidé de changer un peu par rapport a la rfc et d'ajouter l'adresse qui a envoyé la trame et en regardant la table de routage on regardais de quel valeur venait l'adresse.
 \paragraph{}
 La table de routage aussi a fait partis des difficulté de ce projet, en effet lorsque l'on supprimais les connexions la table de routage ne se mettais pas à jour. elle ne se mettais à jour uniquement si on ajoutais des éléments, on a cependant réussi, au début on pensait utiliser des trames et envoyer pour mettre a jour la table de routage pour les applications à proximité mais nous avons trouvé une méthode pour le faire sans, cependant la table de routage des autres applications doivent être modifier pour supprimer l'application qui s'est déconnecté.
+\paragraph{}
+Après la soutenance Beta nous avons rencontré un problème majeur qui provenait des trames envoyé mais que nous avons essayé de régler, cependant lorsque nous avons soit disant réglé le problème des trames, nous avons eu un problème d'envoi des paquets, en effet les paquet s'envoyaient parfois mais parfois ne s'envoyaient pas.
+\linebreak
+Nous pensons avoir réglé ce problème mais maintenant à par intermittence le terminal qui est sensé recevoir la trame boucle sans rien récupérer et est en mode write.
 \section{Division du travail}
 \paragraph{}
 Pour ce qui est du partage du travail nous avons partagé assez équitablement, on a essayé de faire un maximum pour éviter que la charge de travail repose plus sur une personne qu'une autre. Aussi on essayais de travailler environ 3h par jours sur le projet weekend compris.
