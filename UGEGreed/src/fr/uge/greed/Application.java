@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 import fr.uge.greed.data.DataOneAddress;
@@ -41,8 +42,8 @@ public class Application {
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
 		private final Application server;
 		private boolean closed = false;
-		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
-		private final IntReader intread = new IntReader();
+//		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
+//		private final IntReader intread = new IntReader();
 		private Trame tramez;
 
 		private final TrameReader trameReader = new TrameReader();
@@ -81,20 +82,22 @@ public class Application {
 
 		private void updateInterestOps() {
 			var ops = 0;
-			System.out.println("DO OPS");
 			if (!closed && bufferIn.hasRemaining()) {
 				ops |= SelectionKey.OP_READ;
+				//System.out.println("OP : " + ops);
 			}
 			if (bufferOut.position() != 0) {
 				System.out.println("Il y a dans la partie read du buffer : " + bufferOut.flip().remaining());
 				bufferOut.flip();
-				System.out.println("OPWRIIIIITE");
+				System.out.println("OPWRITE");
 				ops |= SelectionKey.OP_WRITE;
+				//System.out.println("OP : " + ops);
 			}
 			if (ops == 0 && closed) {
 
 				return;
 			}
+			System.out.println("OP : " + ops);
 			key.interestOps(ops);
 		}
 
@@ -142,7 +145,7 @@ public class Application {
 				return; // ______DUMP
 			case 3:// dataDoubleAddress
 				if (bufferOut.remaining() < Integer.BYTES + 32) {
-					System.out.println("buffer doesn't have backroom");
+					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp = (TrameAnnonceIntentionDeco) tramez;
@@ -152,7 +155,7 @@ public class Application {
 
 			case 4:// dataDoubleAddress
 				if (bufferOut.remaining() < Integer.BYTES + 32) {
-					System.out.println("buffer doesn't have backroom");
+					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp2 = (TramePingConfirmationChangementCo) tramez;
@@ -161,7 +164,7 @@ public class Application {
 				bufferOut.put(addressTrame(tmp2.dda().AddressDst()));
 			case 5:// dataOneAddress
 				if (bufferOut.remaining() < Integer.BYTES + 16) {
-					System.out.println("buffer doesn't have backroom");
+					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp3 = (TrameSuppression) tramez;
@@ -175,7 +178,7 @@ public class Application {
 
 			case 9:// dataOneAddress
 				if (bufferOut.remaining() < Integer.BYTES + 16) {
-					System.out.println("buffer doesn't have backroom");
+					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp4 = (TrameSuppression) tramez;
@@ -183,26 +186,29 @@ public class Application {
 				bufferOut.put(addressTrame(tmp4.doa().Address()));
 
 			case 10:// dataOneAddress
-				System.out.println(" REMAIN"+ bufferOut.remaining());
+				//System.out.println(" REMAIN"+ bufferOut.remaining());
 				if (bufferOut.remaining() < Integer.BYTES + 17) {
-					System.out.println("buffer doesn't have backroom" + bufferOut.remaining());
+					//System.out.println("buffer doesn't have backroom" + bufferOut.remaining());
 					return;
 				}
 				var tmp10 = (TramePingEnvoi) tramez;
 				bufferOut.putInt(tramez.getOp());
+				//System.out.println("bufferOut après put op " + bufferOut.remaining());
 				if(tmp10.doa().Address().getAddress().getClass() == Inet4Address.class){
-					System.out.println("is ipv4");
+					//System.out.println("is ipv4");
 					byte aaa = 4;
 					bufferOut.put(aaa);
+					//System.out.println("bufferOut après put ip4 " + bufferOut.remaining());
 				}
 				if(tmp10.doa().Address().getAddress().getClass() == Inet6Address.class){
-					System.out.println("ipv6");
+					//System.out.println("ipv6");
 					byte aaa = 6;
 					bufferOut.put(aaa);
+					//System.out.println("bufferOut après put ip 6" + bufferOut.remaining());
 				}
-				//bufferOut.put(tmp10.doa().Address().getAddress().getAddress());
 				bufferOut.put(addressTrame(tmp10.doa().Address()));
-				updateInterestOps();
+				System.out.println("bufferOut après put address " + bufferOut.remaining());
+				//updateInterestOps();
 			case 11:// dataResponse
 
 			case 12:
@@ -264,24 +270,7 @@ public class Application {
 			updateInterestOps();
 		}
 
-//		public void queueMessage(ByteBuffer buffer) {
-//			System.out.println("Si je vais la je suis unchien");
-//			buffer.flip();
-//			queue.add(buffer);
-//			buffer.flip();
-//			if (bufferOut.hasRemaining()) {
-//				// processOut();
-//			}
-//			updateInterestOps();
-//		}
 
-		public void processOutTest(InetSocketAddress address) {
-			if (bufferOut.remaining() < BUFFER_SIZE) {
-				return;
-			}
-			// ceci est un test
-			bufferOut.put(envoiFirstLEAF());
-		}
 
 	}
 
@@ -369,7 +358,7 @@ public class Application {
 
 	private void treatKey(SelectionKey key) {
 		Helpers.printSelectedKey(key); // for debug
-		System.out.println("Im over here");
+		System.out.println("treat key");
 		try {
 			if (key.isValid() && key.isAcceptable()) {
 				doAccept(key);
@@ -381,13 +370,12 @@ public class Application {
 		try {
 			System.out.println("HERE");
 			if (key.isValid() && key.isConnectable()) {
+				System.out.println("do connect");
 				doConnect(key);
 			}
 			if (key.isValid() && key.isWritable()) {
-				System.out.println("A modi");
+				System.out.println("do Write");
 				((Context) key.attachment()).doWrite();
-				
-				// TODO
 			}
 			if (key.isValid() && key.isReadable()) {
 				((Context) key.attachment()).doRead();
@@ -453,12 +441,12 @@ public class Application {
 		daronContext = new Application.Context(key, this);
 		key.attach(daronContext);
 		connexions.add(daronContext);
-		consoleTest(key);
 		var con = (Context) key.attachment();
-		if (con.closed) {
-			Thread.currentThread().interrupt();
-		}
+//		if (con.closed) {
+//			Thread.currentThread().interrupt();
+//		}
 		key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		consoleTest(key);
 	}
 
 	/**
@@ -494,6 +482,7 @@ public class Application {
 //					Thread.currentThread().interrupt();
 //					System.exit(0);
 //				}
+//			}
 //				if (msg.equals("TEST")) {
 					System.out.println("---------------------\nTesting Trame Ping Envoi");
 					/*
@@ -501,7 +490,6 @@ public class Application {
 					 * null; Iterator<Context> it = connexions.iterator(); while(it.hasNext() && who
 					 * != 0){ element = it.next(); System.out.println("trux"); who--; }
 					 */
-					Context tmp = (Context) key.attachment();
 					DataOneAddress machin = new DataOneAddress(10, localInet);
 					TramePingEnvoi truc = new TramePingEnvoi(machin);
 					daronContext.processOut(truc);
@@ -518,7 +506,7 @@ public class Application {
 //						}
 
 //			}
-			logger.info("Console thread stopping ");
+			//logger.info("Console thread stopping ");
 		});
 
 	}
