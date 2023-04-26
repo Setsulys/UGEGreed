@@ -61,6 +61,19 @@ public class Application {
 			this.server = server;
 
 		}
+		
+		
+		public Context getContextFromSocket(SocketChannel sc) {
+			for(SelectionKey key : server.selector.keys()) {
+				Context context = (Context) key.attachment();
+				if(context.scContext == sc) {
+					return context;
+				}
+			}
+			return null;
+			
+		}
+		
 
 		public SocketChannel getChannel() {
 			return scContext;
@@ -69,11 +82,12 @@ public class Application {
 		private void updateInterestOps() {
 			var ops = 0;
 			System.out.println("DO OPS");
-			if (!closed && bufferOut.hasRemaining()) {
-				System.out.println("SIUUUU");
+			if (!closed && bufferIn.hasRemaining()) {
 				ops |= SelectionKey.OP_READ;
 			}
 			if (bufferOut.position() != 0) {
+				System.out.println("Il y a dans la partie read du buffer : " + bufferOut.flip().remaining());
+				bufferOut.flip();
 				System.out.println("OPWRIIIIITE");
 				ops |= SelectionKey.OP_WRITE;
 			}
@@ -170,14 +184,12 @@ public class Application {
 
 			case 10:// dataOneAddress
 				System.out.println(" REMAIN"+ bufferOut.remaining());
-				if (bufferOut.remaining() < Integer.BYTES + 16) {
+				if (bufferOut.remaining() < Integer.BYTES + 17) {
 					System.out.println("buffer doesn't have backroom" + bufferOut.remaining());
 					return;
 				}
 				var tmp10 = (TramePingEnvoi) tramez;
 				bufferOut.putInt(tramez.getOp());
-				var str = localInet.toString();
-				System.out.println("test str : " + str);
 				if(tmp10.doa().Address().getAddress().getClass() == Inet4Address.class){
 					System.out.println("is ipv4");
 					byte aaa = 4;
@@ -190,6 +202,7 @@ public class Application {
 				}
 				//bufferOut.put(tmp10.doa().Address().getAddress().getAddress());
 				bufferOut.put(addressTrame(tmp10.doa().Address()));
+				updateInterestOps();
 			case 11:// dataResponse
 
 			case 12:
@@ -277,6 +290,7 @@ public class Application {
 	private final ServerSocketChannel ssc;
 	private static InetSocketAddress localInet;
 	private final SocketChannel scDaron;
+	private Context daronContext = null;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
 	private boolean isroot;
@@ -390,6 +404,11 @@ public class Application {
 			logger.info("Connection closed with client due to IOException");
 			silentlyClose(key);
 			removeIfClosed();
+			try {
+				removeIfClosedTable((InetSocketAddress)((Context) key.attachment()).getChannel().getRemoteAddress());
+			} catch (IOException e1) {
+				
+			}
 			printConnexions();
 		}
 	}
@@ -431,9 +450,9 @@ public class Application {
 		} catch (IOException e) {
 			e.getCause();
 		}
-		var context = new Application.Context(key, this);
-		key.attach(context);
-		connexions.add(context);
+		daronContext = new Application.Context(key, this);
+		key.attach(daronContext);
+		connexions.add(daronContext);
 		consoleTest(key);
 		var con = (Context) key.attachment();
 		if (con.closed) {
@@ -485,8 +504,8 @@ public class Application {
 					Context tmp = (Context) key.attachment();
 					DataOneAddress machin = new DataOneAddress(10, localInet);
 					TramePingEnvoi truc = new TramePingEnvoi(machin);
-					tmp.processOut(truc);
-					tmp.updateInterestOps();
+					daronContext.processOut(truc);
+					daronContext.updateInterestOps();
 
 //				}
 
@@ -907,15 +926,16 @@ public class Application {
 
 	void renvoiePingEnvoi(TramePingEnvoi tramez) {
 		var addressEnvoi = tramez.doa();
-		Context element = null;
+		
 		Iterator<Context> it = connexions.iterator();
-		while (it.hasNext()/* && it!= addressEnvoi */) {
+		/*while (it.hasNext()/* && it!= addressEnvoi ) {
 			element = it.next();
 			element.processOut(tramez);
 			element.updateInterestOps();
-		}
+		}*/
+		
 
-		// processOut(add)
+		daronContext.processOut(tramez);
 
 	}
 
