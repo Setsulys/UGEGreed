@@ -140,7 +140,7 @@ public class TrameReader implements Reader<Trame> {
 							addReader.reset();
 						}
 						else{
-							System.out.println("loooooooool");
+							System.out.println("ERROR");
 							return addReaderStatePE;
 						}
 					}
@@ -177,46 +177,62 @@ public class TrameReader implements Reader<Trame> {
 			System.out.println("here i am");
 			return readerState;
 		}
-		state = state.DONE;
+		state = State.DONE;
 		return ProcessStatus.DONE;
 	}
 
-	@Override
-	public Trame get() {
-		if (state == State.DONE) {
+	public Trame get(int op) {
+		if (state != State.DONE) {
 			return null;
 		}
+		System.out.println("op" + op);
 		switch (op) {
-		case 0:
+		case 0->{
 			return null; // ______DUMP
-		case 1:
+		}
+		case 1 -> {
 			return null; // ______DUMP
-		case 2:
+		}
+		case 2 -> {
 			return null; // ______DUMP
-		case 3:
+		}
+		case 3 -> {
 			return new TrameAnnonceIntentionDeco(dataDoubleAddress);
-		case 4:
+		}
+		case 4 -> {
 			return new TramePingConfirmationChangementCo(dataDoubleAddress);
-		case 5:
+		}
+		case 5 -> {
 			return new TrameSuppression(dataOneAddress);
-		case 6:
+		}
+		case 6 -> {
 			return new TrameFirstRoot(op);
-		case 7:
+		}
+		case 7 -> {
 			return new TrameFirstLeaf(dataALotAddress);
-		case 8:
+		}
+		case 8->{
 			return new TrameFullTree(dataALotAddress);
-		case 9:
+		}
+		case 9 -> {
 			return new TrameNewLeaf(dataOneAddress);
-		case 10:
+		}
+		case 10 -> {
+			System.out.println("get 10");
 			return new TramePingEnvoi(dataOneAddress);
-		case 11:
+		}
+		case 11 -> {
 			return new TramePingReponse(dataResponse);
-		case 12:
+		}
+		case 12 -> {
 			return null; // TODO
-		case 13:
+		}	
+		case 13 -> {
 			return null; // TODO
-		case 14:
+		}
+		case 14 -> {
 			return null; // TODO
+		}
 		}
 
 		return null;

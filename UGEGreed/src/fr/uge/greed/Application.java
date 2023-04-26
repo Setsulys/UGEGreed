@@ -111,8 +111,9 @@ public class Application {
 				case DONE -> {
 					System.out.println("DONE");
 					tramez = trameReader.get();
+					trameReader.reset();
 					try {
-						System.out.println("av analyseur");
+						System.out.println("av analyseur"+tramez);
 						analyseur(tramez);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block

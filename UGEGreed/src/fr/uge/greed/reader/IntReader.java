@@ -17,8 +17,6 @@ public class IntReader implements Reader<Integer> {
         if (state == State.DONE || state == State.ERROR) {
             throw new IllegalStateException();
         }
-        System.out.println(buffer.remaining());
-        //buffer.flip();
         try {
             if (buffer.remaining() <= internalBuffer.remaining()) {
                 internalBuffer.put(buffer);
