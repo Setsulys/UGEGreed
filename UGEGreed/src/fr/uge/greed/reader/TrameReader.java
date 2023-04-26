@@ -40,7 +40,6 @@ public class TrameReader implements Reader<Trame> {
 	public ProcessStatus process(ByteBuffer bb) {
 		System.out.println("PROCESS TRAMEREADER" + bb.remaining());
 		var readerState = intReader.process(bb);
-		System.out.println("APRES INTREADER");
 		if(readerState == ProcessStatus.DONE){
 			System.out.println("DONE INT READER TRAMEREADER");
 			var op = intReader.get();
