@@ -42,8 +42,8 @@ public class Application {
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
 		private final Application server;
 		private boolean closed = false;
-//		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
-//		private final IntReader intread = new IntReader();
+		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
+		private final IntReader intread = new IntReader();
 		private Trame tramez;
 
 		private final TrameReader trameReader = new TrameReader();
@@ -84,20 +84,21 @@ public class Application {
 			var ops = 0;
 			if (!closed && bufferIn.hasRemaining()) {
 				ops |= SelectionKey.OP_READ;
-				//System.out.println("OP : " + ops);
+				System.out.println("OP : " + ops);
 			}
 			if (bufferOut.position() != 0) {
 				System.out.println("Il y a dans la partie read du buffer : " + bufferOut.flip().remaining());
 				bufferOut.flip();
 				System.out.println("OPWRITE");
 				ops |= SelectionKey.OP_WRITE;
-				//System.out.println("OP : " + ops);
+				System.out.println("OP : " + ops);
 			}
 			if (ops == 0 && closed) {
-
+				silentlyClose();
 				return;
 			}
 			System.out.println("OP : " + ops);
+			System.out.println("OP SELEC " + SelectionKey.OP_WRITE );
 			key.interestOps(ops);
 		}
 
@@ -105,10 +106,10 @@ public class Application {
 			System.out.println("PROCESSIN");
 			for (;;) {
 				Reader.ProcessStatus status = trameReader.process(bufferIn);
-				System.out.println("CACA&"+status);
+				System.out.println("ProcessStatus"+status);
 				switch (status) {
 				case DONE -> {
-					System.out.println("CACA");
+					System.out.println("DONE");
 					tramez = trameReader.get();
 					try {
 						System.out.println("av analyseur");
@@ -267,10 +268,27 @@ public class Application {
 //			bufferOut.flip();
 			System.out.println("BYTES SEND : " + scContext.write(bufferOut));
 			bufferOut.compact();
-			updateInterestOps();
+			//updateInterestOps();
 		}
 
+//		public void queueMessage(ByteBuffer buffer) {
+//			System.out.println("Si je vais la je suis unchien");
+//			buffer.flip();
+//			queue.add(buffer);
+//			buffer.flip();
+//			if (bufferOut.hasRemaining()) {
+//				// processOut();
+//			}
+//			updateInterestOps();
+//		}
 
+		public void processOutTest(InetSocketAddress address) {
+			if (bufferOut.remaining() < BUFFER_SIZE) {
+				return;
+			}
+			// ceci est un test
+			bufferOut.put(envoiFirstLEAF());
+		}
 
 	}
 
@@ -368,13 +386,12 @@ public class Application {
 			throw new UncheckedIOException(ioe);
 		}
 		try {
-			System.out.println("HERE");
 			if (key.isValid() && key.isConnectable()) {
-				System.out.println("do connect");
 				doConnect(key);
 			}
 			if (key.isValid() && key.isWritable()) {
 				System.out.println("do Write");
+				
 				((Context) key.attachment()).doWrite();
 			}
 			if (key.isValid() && key.isReadable()) {
@@ -442,9 +459,9 @@ public class Application {
 		key.attach(daronContext);
 		connexions.add(daronContext);
 		var con = (Context) key.attachment();
-//		if (con.closed) {
-//			Thread.currentThread().interrupt();
-//		}
+		if (con.closed) {
+			Thread.currentThread().interrupt();
+		}
 		key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		consoleTest(key);
 	}
@@ -506,7 +523,7 @@ public class Application {
 //						}
 
 //			}
-			//logger.info("Console thread stopping ");
+			logger.info("Console thread stopping ");
 		});
 
 	}
