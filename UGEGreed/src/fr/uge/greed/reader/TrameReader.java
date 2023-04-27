@@ -35,14 +35,16 @@ public class TrameReader implements Reader<Trame> {
 	private final AddressReader addReader = new AddressReader();
 	private final ResponseReader responseReader = new ResponseReader();
 	private int op = -1;
+	private int cpt = 0;
 
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
 		System.out.println("PROCESS TRAMEREADER" + bb.remaining());
 		var readerState = intReader.process(bb);
+		System.out.println("CPT++ : " + cpt);
 		if(readerState == ProcessStatus.DONE){
 			System.out.println("DONE INT READER TRAMEREADER");
-			var op = intReader.get();
+			op = intReader.get();
 			intReader.reset();
 			switch(op){
 				case 0 ->{//Demande de connexion_________DUMP
@@ -58,7 +60,7 @@ public class TrameReader implements Reader<Trame> {
 						var doubleAddReaderState = doubleAddReader.process(bb);
 						if(doubleAddReaderState == ProcessStatus.DONE){
 							var doubleadd = doubleAddReader.get();
-							dataDoubleAddress = new DataDoubleAddress(op.intValue(),doubleadd.addressSource(),doubleadd.addressDestination());
+							dataDoubleAddress = new DataDoubleAddress(op,doubleadd.addressSource(),doubleadd.addressDestination());
 							
 						}
 						
@@ -70,7 +72,7 @@ public class TrameReader implements Reader<Trame> {
 						var doubleAddReaderStatePC = doubleAddReader.process(bb);
 						if(doubleAddReaderStatePC == ProcessStatus.DONE){
 							var doubleadd = doubleAddReader.get();
-							dataDoubleAddress = new DataDoubleAddress(op.intValue(),doubleadd.addressSource(),doubleadd.addressDestination());
+							dataDoubleAddress = new DataDoubleAddress(op,doubleadd.addressSource(),doubleadd.addressDestination());
 							
 						}
 						else{
@@ -134,10 +136,13 @@ public class TrameReader implements Reader<Trame> {
 						System.out.println(addReaderStatePE);
 						if(addReaderStatePE == ProcessStatus.DONE){
 							System.out.println("Case 10 trameReader DONE");
+							System.out.println("Test de lop neg :" + op);
 							var address = addReader.get();
 							dataOneAddress = new DataOneAddress(op,address);
+							System.out.println("Test2 de lop nefsdsdg :" + dataOneAddress.opCode());
 							//reset addReader
 							addReader.reset();
+							System.out.println("Test3 de lop nefsdefzefzesdg :" + dataOneAddress.opCode());
 						}
 						else{
 							System.out.println("ERROR");
