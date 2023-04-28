@@ -35,15 +35,11 @@ public class TrameReader implements Reader<Trame> {
 	private final AddressReader addReader = new AddressReader();
 	private final ResponseReader responseReader = new ResponseReader();
 	private int op = -1;
-	private int cpt = 0;
 
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
-		System.out.println("PROCESS TRAMEREADER" + bb.remaining());
 		var readerState = intReader.process(bb);
-		System.out.println("CPT++ : " + cpt);
 		if(readerState == ProcessStatus.DONE){
-			System.out.println("DONE INT READER TRAMEREADER");
 			op = intReader.get();
 			intReader.reset();
 			switch(op){
@@ -131,18 +127,12 @@ public class TrameReader implements Reader<Trame> {
 				
 
 				case 10 -> {//Trame ping d'envoie'
-						System.out.println("Case 10 trameReader");
 						var addReaderStatePE = addReader.process(bb);
 						System.out.println(addReaderStatePE);
 						if(addReaderStatePE == ProcessStatus.DONE){
-							System.out.println("Case 10 trameReader DONE");
-							System.out.println("Test de lop neg :" + op);
 							var address = addReader.get();
 							dataOneAddress = new DataOneAddress(op,address);
-							System.out.println("Test2 de lop nefsdsdg :" + dataOneAddress.opCode());
-							//reset addReader
 							addReader.reset();
-							System.out.println("Test3 de lop nefsdefzefzesdg :" + dataOneAddress.opCode());
 						}
 						else{
 							System.out.println("ERROR");
@@ -179,7 +169,6 @@ public class TrameReader implements Reader<Trame> {
 			
 		} 
 		else{
-			System.out.println("here i am");
 			return readerState;
 		}
 		state = State.DONE;
@@ -191,7 +180,6 @@ public class TrameReader implements Reader<Trame> {
 		if (state != State.DONE) {
 			return null;
 		}
-		System.out.println("op" + op);
 		switch (op) {
 		case 0->{
 			return null; // ______DUMP
@@ -224,7 +212,6 @@ public class TrameReader implements Reader<Trame> {
 			return new TrameNewLeaf(dataOneAddress);
 		}
 		case 10 -> {
-			System.out.println("get 10");
 			return new TramePingEnvoi(dataOneAddress);
 		}
 		case 11 -> {

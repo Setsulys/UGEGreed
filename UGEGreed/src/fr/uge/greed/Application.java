@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 import fr.uge.greed.data.DataOneAddress;
@@ -41,13 +42,12 @@ public class Application {
 		private final ByteBuffer bufferOut = ByteBuffer.allocate(BUFFER_SIZE);
 		private final Application server;
 		private boolean closed = false;
-		private final ArrayDeque<ByteBuffer> queue = new ArrayDeque<>();
+		private final ArrayDeque<Trame> queue = new ArrayDeque<>();
 		private final IntReader intread = new IntReader();
-		private Trame tramez;
 		private int cpt = 0;
 
 		private final TrameReader trameReader = new TrameReader();
-
+		private final Logger loggerC = Logger.getLogger(Application.class.getName());
 		private InetSocketAddress disconnectedAddress;
 
 		/**
@@ -79,50 +79,35 @@ public class Application {
 		}
 
 		private void updateInterestOps() {
-			System.out.println("____ENTER");
 			var ops = 0;
 			if (!closed && bufferIn.hasRemaining()) {
-				System.out.println("____READ");
 				ops |= SelectionKey.OP_READ;
-				System.out.println("OP : " + ops);
 			}
 			if (bufferOut.position() != 0) {
-				System.out.println("____WRITE");
 				ops |= SelectionKey.OP_WRITE;
 			}
 			if (ops == 0 && closed) {
-				System.out.println("____CLOSED");
 				silentlyClose();
 				return;
 			}
-			System.out.println("____END");
 			key.interestOps(ops);
 		}
 
 		private void processIn() {
-			System.out.println("PROCESSIN");
-			System.out.println("cpt : " + cpt);
 			for (;;) {
-				System.out.println("cpt ++" + ++cpt);
 				Reader.ProcessStatus status = trameReader.process(bufferIn);
-				System.out.println("ProcessStatus" + status);
 				switch (status) {
 				case DONE -> {
-					System.out.println("DONE HEHEHEHE");
 					var op = trameReader.getOp();
-					tramez = trameReader.get();
-					System.out.println("__________1 : " + op);
-
-					System.out.println("__________2 rst" + tramez);
+					var tramez = trameReader.get();
 					// trameReader.reset();
 					try {
-						System.out.println("__________3 av analys");
-						System.out.println("av analyseur" + tramez);
 						analyseur(tramez);
 						break;
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						// e.printStackTrace();
+						loggerC.info("ProcessIn IOE");
 					}
 					trameReader.reset();
 					break;
@@ -142,8 +127,13 @@ public class Application {
 			}
 		}
 
-		private void processOut(Trame tramez) {
+		private void processOut() {
 			// System.out.println("PROCESSOUT " + tramez.getOp());
+			var tramez = queue.poll();
+			if(tramez == null){
+				loggerC.info("nothing to poll");
+				return;
+			}
 			switch (tramez.getOp()) {
 			case 0 -> {
 				return;
@@ -207,29 +197,21 @@ public class Application {
 			}
 
 			case 10 -> { // dataOneAddress
-				// System.out.println(" REMAIN"+ bufferOut.remaining());
 				if (bufferOut.remaining() < Integer.BYTES + 17) {
-					// System.out.println("buffer doesn't have backroom" + bufferOut.remaining());
 					return;
 				}
 				var tmp10 = (TramePingEnvoi) tramez;
 				bufferOut.putInt(tramez.getOp());
-				// System.out.println("bufferOut après put op " + bufferOut.remaining());
 				if (tmp10.doa().Address().getAddress().getClass() == Inet4Address.class) {
-					// System.out.println("is ipv4");
 					byte aaa = 4;
 					bufferOut.put(aaa);
-					// System.out.println("bufferOut après put ip4 " + bufferOut.remaining());
 				}
 				if (tmp10.doa().Address().getAddress().getClass() == Inet6Address.class) {
-					// System.out.println("ipv6");
 					byte aaa = 6;
 					bufferOut.put(aaa);
-					// System.out.println("bufferOut après put ip 6" + bufferOut.remaining());
 				}
 				bufferOut.put(addressTrame(tmp10.doa().Address()));
 				System.out.println("bufferOut après put address " + bufferOut.remaining());
-				// updateInterestOps();
 			}
 			case 11 -> {
 				// dataResponse
@@ -301,16 +283,13 @@ public class Application {
 			updateInterestOps();
 		}
 
-//		public void queueMessage(ByteBuffer buffer) {
-//			System.out.println("Si je vais la je suis unchien");
-//			buffer.flip();
-//			queue.add(buffer);
-//			buffer.flip();
-//			if (bufferOut.hasRemaining()) {
-//				// processOut();
-//			}
-//			updateInterestOps();
-//		}
+		public void queueTrame(Trame tramez) {
+			queue.add(tramez);
+			if (bufferOut.hasRemaining()) {
+				processOut();
+			}
+			updateInterestOps();
+		}
 
 		public void processOutTest(InetSocketAddress address) {
 			if (bufferOut.remaining() < BUFFER_SIZE) {
@@ -406,8 +385,6 @@ public class Application {
 
 	private void treatKey(SelectionKey key) {
 		Helpers.printSelectedKey(key); // for debug
-		System.out.println("treat key");
-		printKey();
 		try {
 			if (key.isValid() && key.isAcceptable()) {
 				doAccept(key);
@@ -421,8 +398,6 @@ public class Application {
 				doConnect(key);
 			}
 			if (key.isValid() && key.isWritable()) {
-				System.out.println("do Write");
-
 				((Context) key.attachment()).doWrite();
 			}
 			if (key.isValid() && key.isReadable()) {
@@ -446,12 +421,6 @@ public class Application {
 
 			}
 			printConnexions();
-		}
-	}
-
-	public void printKey() {
-		for (var e : selector.keys()) {
-			System.out.println("CLEF : " + e.interestOps());
 		}
 	}
 
@@ -502,7 +471,7 @@ public class Application {
 		}
 		key.interestOps(SelectionKey.OP_READ);
 		consoleTest(key);
-		//daronContext.updateInterestOps();
+		// daronContext.updateInterestOps();
 		try {
 			Thread.sleep(100);
 			daronContext.updateInterestOps();
@@ -510,7 +479,7 @@ public class Application {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//daronContext.updateInterestOps();
+		// daronContext.updateInterestOps();
 	}
 
 	/**
@@ -537,49 +506,36 @@ public class Application {
 	private void consoleTest(SelectionKey key) {
 		Thread.ofPlatform().daemon().start(() -> {
 //			try (var scanner = new Scanner(System.in)) {
-//				var msg = scanner.nextLine();
-//				if (msg.equals("DISCONNECT")) {
-//					System.out.println("---------------------\nDisconnecting the node ...");
-//					var con = (Context) key.attachment();
-//					con.closed = true;
-//					silentlyClose(key);
-//					Thread.currentThread().interrupt();
-//					System.exit(0);
+//				while (scanner.hasNextLine()) {
+//					var msg = scanner.nextLine();
+//					if (msg.equals("DISCONNECT")) {
+//						System.out.println("---------------------\nDisconnecting the node ...");
+//						var con = (Context) key.attachment();
+//						con.closed = true;
+//						silentlyClose(key);
+//						Thread.currentThread().interrupt();
+//						System.exit(0);
+				//	}
+
+					//if (msg.equals("TEST")) {
+						System.out.println("---------------------\nTesting Trame Ping Envoi");
+						/*
+						 * msg = scanner.nextLine(); var who = Integer.parseInt(msg); Context element =
+						 * null; Iterator<Context> it = connexions.iterator(); while(it.hasNext() && who
+						 * != 0){ element = it.next(); System.out.println("trux"); who--; }
+						 */
+						DataOneAddress machin = new DataOneAddress(10, localInet);
+						TramePingEnvoi truc = new TramePingEnvoi(machin);
+						daronContext.queueTrame(truc);
+						
+						//var tmp = (Context) key.attachment();
+						//tmp.processOut(truc);
+						//tmp.updateInterestOps();
+
+						logger.info("Console thread stopping ");
+					//}
 //				}
 //			}
-//				if (msg.equals("TEST")) {
-			System.out.println("---------------------\nTesting Trzefnvoi");
-			//printKey();
-			System.out.println("---------------------\nTesting Trame Ping Envoi");
-			/*
-			 * msg = scanner.nextLine(); var who = Integer.parseInt(msg); Context element =
-			 * null; Iterator<Context> it = connexions.iterator(); while(it.hasNext() && who
-			 * != 0){ element = it.next(); System.out.println("trux"); who--; }
-			 */
-			DataOneAddress machin = new DataOneAddress(10, localInet);
-			TramePingEnvoi truc = new TramePingEnvoi(machin);
-			
-			var tmp = (Context) key.attachment();
-			printKey();
-			tmp.processOut(truc);
-			printKey();
-			tmp.updateInterestOps();
-			System.out.println("AAAAAAAAAAAAAA " + tmp.bufferOut.remaining());
-			System.out.println("pos : " + tmp.bufferOut.position());
-			printKey();
-
-//				}
-
-//						for (var e : connexions) {
-//							if (e.scContext.equals(scDaron)) {
-//								System.out.println("Connected To : " + e.scContext);
-//							} else {
-//								System.out.println("Conneted from : " + e.scContext);
-//							}
-//						}
-
-//			}
-			logger.info("Console thread stopping ");
 		});
 
 	}
@@ -650,6 +606,18 @@ public class Application {
 		Objects.requireNonNull(tramez);
 		System.out.println("analyseur");
 		switch (tramez.getOp()) {
+		case 0 -> {
+			//DUMP
+		}
+		case 1 -> {
+			//DUMP
+		}
+		case 2 -> {
+			//DUMP
+		}
+		case 3 -> {
+			
+		}
 
 		/* Une fonction pour chaque trame */
 		case 10 -> {
@@ -666,6 +634,7 @@ public class Application {
 
 			// receivePingEnvoiAndSendPingReponse(buf);
 		}
+		
 		default -> {
 			return;
 		}
@@ -767,7 +736,7 @@ public class Application {
 		var address = getAddressFromBuffer(buf);
 		// table.deleteRouteTable(address);
 		buf.position(0);
-		broadCast(dataFrom, buf);
+		//broadCast(dataFrom, buf);
 	}
 
 	/**
@@ -897,7 +866,7 @@ public class Application {
 		var address = getAddressFromBuffer(buf);
 		if (address != localInet) {
 			buf.position(0);
-			broadCast(dataFrom, buf);
+			//broadCast(dataFrom, buf);
 			return;
 		}
 		workers.add(address1);
@@ -994,7 +963,7 @@ public class Application {
 		 * element.processOut(tramez); element.updateInterestOps(); }
 		 */
 
-		daronContext.processOut(tramez);
+		//daronContext.processOut(tramez);
 
 	}
 
@@ -1006,15 +975,35 @@ public class Application {
 	 * @param buf
 	 * @throws IOException
 	 */
-	void broadCast(InetSocketAddress address, ByteBuffer buf) throws IOException {
+	void broadCastWithoutFrom(InetSocketAddress address, Trame tramez) throws IOException {
 		for (var key : selector.keys()) {
 			var context = (Context) key.attachment();
 			if (context != null && address != (InetSocketAddress) context.scContext.getRemoteAddress()) {
-				// TODO
+				// TODO PROBABLY WRONG
+				context.queueTrame(tramez);
+			}
+		}
+		
+	}
 
+	
+	/**
+	 * BroadCast the buffer to all connexions apart the address that the frame come
+	 * from
+	 * 
+	 * @param address the guy who send it to us
+	 * @param buf
+	 * @throws IOException
+	 */
+	void broadCast(Trame tramez) throws IOException {
+		for (var key : selector.keys()) {
+			var context = (Context) key.attachment();
+			if (context != null) {
+				context.queueTrame(tramez);
 			}
 		}
 	}
+
 
 	/**
 	 * Main part of the application
@@ -1039,6 +1028,7 @@ public class Application {
 				new Application(host, port).launch();// root
 			}
 		}
+		
 
 	}
 }
