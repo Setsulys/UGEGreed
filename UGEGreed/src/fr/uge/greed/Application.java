@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 import fr.uge.greed.data.DataOneAddress;
@@ -103,7 +105,7 @@ public class Application {
 					var tramez = trameReader.get();
 					// trameReader.reset();
 					try {
-						analyseur(tramez);
+						server.analyseur(tramez);
 						break;
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -399,7 +401,7 @@ public class Application {
 
 	private final ServerSocketChannel ssc;
 	private static InetSocketAddress localInet;
-	private final SocketChannel scDaron;
+	private SocketChannel scDaron;
 	private Context daronContext = null;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
@@ -599,19 +601,35 @@ public class Application {
 	@SuppressWarnings("preview")
 	private void consoleTest(SelectionKey key) {
 		Thread.ofPlatform().daemon().start(() -> {
-//			try (var scanner = new Scanner(System.in)) {
-//				while (scanner.hasNextLine()) {
-//					var msg = scanner.nextLine();
-//					if (msg.equals("DISCONNECT")) {
-//						System.out.println("---------------------\nDisconnecting the node ...");
-//						var con = (Context) key.attachment();
-//						con.closed = true;
-//						silentlyClose(key);
-//						Thread.currentThread().interrupt();
-//						System.exit(0);
-				//	}
+			try (var scanner = new Scanner(System.in)) {
+				while (scanner.hasNextLine()) {
+					var msg = scanner.nextLine();
+					if (msg.equals("DISCONNECT")) {
+						InetSocketAddress truc = new InetSocketAddress("localhost",7777);
+						
+						
+						daronContext.closed=true;
+						silentlyClose(daronContext.key);
+						System.out.println("Silently close");
+						
+					
+						try {
+							scDaron = SocketChannel.open();
+							scDaron.configureBlocking(false);
+							scDaron.register(selector, SelectionKey.OP_CONNECT);
+							scDaron.connect(truc);
+							System.out.println("connexion");
+						} catch (ClosedChannelException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+					}
 
-					//if (msg.equals("TEST")) {
+					if (msg.equals("TEST")) {
 						System.out.println("---------------------\nTesting Trame Ping Envoi");
 						/*
 						 * msg = scanner.nextLine(); var who = Integer.parseInt(msg); Context element =
@@ -627,11 +645,11 @@ public class Application {
 						//tmp.updateInterestOps();
 
 						logger.info("Console thread stopping ");
-					//}
-//				}
-//			}
+					}
+			}
+			}
 		});
-
+			
 	}
 
 	/**
@@ -717,8 +735,16 @@ public class Application {
 				logger.warning("ERROR NOT THE GOOD DARON");
 				return;
 			}
+			
 			daronContext.closed=true;
 			silentlyClose(daronContext.key);
+		
+			scDaron = SocketChannel.open();
+			scDaron.configureBlocking(false);
+			scDaron.register(selector, SelectionKey.OP_CONNECT);
+			scDaron.connect(nouvDaron);
+			
+			
 			
 			
 			//reco père
@@ -1144,19 +1170,34 @@ public class Application {
 			usage();
 			return;
 		}
-
+		Application appli;
 		if (args.length >= 2) {
 			String host = args[0];
 			int port = Integer.valueOf(args[1]);
 			if (args.length == 4) {
 				String fatherHost = args[2];
 				int fatherPort = Integer.valueOf(args[3]);
-				new Application(host, port, new InetSocketAddress(fatherHost, fatherPort)).launch(); // normal
+				appli = new Application(host, port, new InetSocketAddress(fatherHost, fatherPort));// normal
 			} else {
-				new Application(host, port).launch();// root
+				appli = new Application(host, port);// root
 			}
+			appli.launch();
 		}
-		
-
+//		Thread.ofPlatform().start(()->{
+//			try (var scanner = new Scanner(System.in)) {
+//				while (scanner.hasNextLine()) {
+//					var msg = scanner.nextLine();
+//					if (msg.equals("DISCONNECT")) {
+//						System.out.println("---------------------\nDisconnecting the node ...");
+//						appli.k
+//						var con = (Context) key.attachment();
+//						con.closed = true;
+//						silentlyClose(key);
+//						Thread.currentThread().interrupt();
+//						System.exit(0);
+//					}
+//				}
+//			}
+//		});		
 	}
 }
