@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 import fr.uge.greed.data.DataOneAddress;
@@ -28,6 +27,8 @@ import fr.uge.greed.reader.Reader;
 import fr.uge.greed.reader.TrameReader;
 import fr.uge.greed.trame.Trame;
 import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
+import fr.uge.greed.trame.TrameFirstLeaf;
+import fr.uge.greed.trame.TrameFullTree;
 import fr.uge.greed.trame.TramePingConfirmationChangementCo;
 import fr.uge.greed.trame.TramePingEnvoi;
 import fr.uge.greed.trame.TrameSuppression;
@@ -126,7 +127,7 @@ public class Application {
 				return;
 			}
 		}
-
+		
 		private void processOut() {
 			// System.out.println("PROCESSOUT " + tramez.getOp());
 			var tramez = queue.poll();
@@ -145,45 +146,135 @@ public class Application {
 				return;
 			} // ______DUMP
 			case 3 -> {// dataDoubleAddress
-				if (bufferOut.remaining() < Integer.BYTES + 32) {
+				if (bufferOut.remaining() < Integer.BYTES + 34) {
 					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp = (TrameAnnonceIntentionDeco) tramez;
 				bufferOut.putInt(tramez.getOp());
-				bufferOut.put(addressTrame(tmp.dda().AddressSrc()));
-				bufferOut.put(addressTrame(tmp.dda().AddressDst()));
+				if (tmp.dda().AddressSrc().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+					bufferOut.put(addressTrame(tmp.dda().AddressSrc()));
+				}
+				if (tmp.dda().AddressSrc().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+					bufferOut.put(addressTrame(tmp.dda().AddressSrc()));
+				}
+				
+				if (tmp.dda().AddressDst().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+					bufferOut.put(addressTrame(tmp.dda().AddressDst()));
+				}
+				if (tmp.dda().AddressDst().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+					bufferOut.put(addressTrame(tmp.dda().AddressDst()));
+				}
+				
 			}
 
 			case 4 -> {// dataDoubleAddress
-				if (bufferOut.remaining() < Integer.BYTES + 32) {
+				if (bufferOut.remaining() < Integer.BYTES + 34) {
 					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp2 = (TramePingConfirmationChangementCo) tramez;
-				bufferOut.putInt(tramez.getOp());
+				if (tmp2.dda().AddressSrc().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+				}
+				if (tmp2.dda().AddressSrc().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+				}
+				
 				bufferOut.put(addressTrame(tmp2.dda().AddressSrc()));
+				
+				if (tmp2.dda().AddressDst().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+				}
+				if (tmp2.dda().AddressDst().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+				}
+				
 				bufferOut.put(addressTrame(tmp2.dda().AddressDst()));
 			}
 			case 5 -> {// dataOneAddress
-				if (bufferOut.remaining() < Integer.BYTES + 16) {
+				if (bufferOut.remaining() < Integer.BYTES + 17) {
 					System.out.println("buffer doesn't have room");
 					return;
 				}
 				var tmp3 = (TrameSuppression) tramez;
 				bufferOut.putInt(tramez.getOp());
+				if (tmp3.doa().Address().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+				}
+				if (tmp3.doa().Address().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+				}
+				
 				bufferOut.put(addressTrame(tmp3.doa().Address()));
 			}
-			case 6 -> {
-				// op
+			case 6 -> {// op
+				if (bufferOut.remaining() < Integer.BYTES ) {
+					System.out.println("buffer doesn't have room");
+					return;
+				}
+				bufferOut.putInt(tramez.getOp());
+				
 			}
 
 			case 7 -> {
 				// dataALotAddress
+				var tmp99 = (TrameFirstLeaf) tramez;
+				if (bufferOut.remaining() < Integer.BYTES * 2 + 17 * tmp99.getSize()) {
+					System.out.println("buffer doesn't have room");
+					return;
+				}
+				bufferOut.putInt(tramez.getOp());
+				bufferOut.putInt(tmp99.getSize());
+				for(int i = 0;i<tmp99.getSize();i++) {
+					
+					if (tmp99.dla().list().get(i).getAddress().getClass() == Inet6Address.class) {
+						byte aaa = 6;
+						bufferOut.put(aaa);
+					}
+					else {
+						byte aaa = 4;
+						bufferOut.put(aaa);
+					}
+					bufferOut.put(addressTrame(tmp99.dla().list().get(i)));
+				}
 			}
 
 			case 8 -> {
 				// dataALotAddress
+				var tmp999 = (TrameFullTree) tramez;
+				if (bufferOut.remaining() < Integer.BYTES * 2 + 17 * tmp999.getSize()) {
+					System.out.println("buffer doesn't have room");
+					return;
+				}
+				bufferOut.putInt(tramez.getOp());
+				bufferOut.putInt(tmp999.getSize());
+				for(int i = 0;i<tmp999.getSize();i++) {
+					
+					if (tmp999.dla().list().get(i).getAddress().getClass() == Inet6Address.class) {
+						byte aaa = 6;
+						bufferOut.put(aaa);
+					}
+					else {
+						byte aaa = 4;
+						bufferOut.put(aaa);
+					}
+					bufferOut.put(addressTrame(tmp999.dla().list().get(i)));
+				}
 			}
 
 			case 9 -> {// dataOneAddress
@@ -193,6 +284,15 @@ public class Application {
 				}
 				var tmp4 = (TrameSuppression) tramez;
 				bufferOut.putInt(tramez.getOp());
+				if (tmp4.doa().Address().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+				}
+				if (tmp4.doa().Address().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+				}
+				
 				bufferOut.put(addressTrame(tmp4.doa().Address()));
 			}
 
@@ -291,13 +391,7 @@ public class Application {
 			updateInterestOps();
 		}
 
-		public void processOutTest(InetSocketAddress address) {
-			if (bufferOut.remaining() < BUFFER_SIZE) {
-				return;
-			}
-			// ceci est un test
-			bufferOut.put(envoiFirstLEAF());
-		}
+		
 
 	}
 
@@ -602,7 +696,7 @@ public class Application {
 	 * @param buf
 	 * @throws IOException
 	 */
-	static void analyseur(Trame tramez) throws IOException {
+	void analyseur(Trame tramez) throws IOException {
 		Objects.requireNonNull(tramez);
 		System.out.println("analyseur");
 		switch (tramez.getOp()) {
@@ -616,7 +710,38 @@ public class Application {
 			//DUMP
 		}
 		case 3 -> {
+			var tmp3 = (TrameAnnonceIntentionDeco) tramez;
+			var ancienDaron = tmp3.dda().AddressSrc();
+			var nouvDaron = tmp3.dda().AddressDst();
+			if(ancienDaron != scDaron.getRemoteAddress()) {
+				logger.warning("ERROR NOT THE GOOD DARON");
+				return;
+			}
+			daronContext.closed=true;
+			silentlyClose(daronContext.key);
 			
+			
+			//reco père
+			//envoie confirmation
+		}
+		case 4 -> {
+			//verif si tout les confirmation sont la
+			//deco
+		}
+		case 5 -> {
+			//enlever l'app dans la table de routage
+		}
+		case 6 -> {
+			//faire passer la FR à ses gosses ou l'envoyer au daron si feuille
+		}
+		case 7 -> {
+			//incrémenter l'int et ajouter à la list soit ou faire la table si root
+		}
+		case 8 -> {
+			//update table de rootage
+		}
+		case 9 -> {
+			//ajouter l'application via la connexion dont on la reçu a la table de rootage
 		}
 
 		/* Une fonction pour chaque trame */
@@ -633,6 +758,9 @@ public class Application {
 			// write
 
 			// receivePingEnvoiAndSendPingReponse(buf);
+		}
+		case 11 -> {
+			//mettre si l'application est dispo ou pas
 		}
 		
 		default -> {
