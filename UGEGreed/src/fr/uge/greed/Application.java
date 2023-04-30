@@ -9,7 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -19,11 +18,17 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+
+
+import fr.uge.greed.data.DataALotAddress;
+import fr.uge.greed.data.DataDoubleAddress;
 import fr.uge.greed.data.DataOneAddress;
+import fr.uge.greed.data.DataResponse;
 import fr.uge.greed.reader.IntReader;
 import fr.uge.greed.reader.Reader;
 import fr.uge.greed.reader.TrameReader;
@@ -31,8 +36,10 @@ import fr.uge.greed.trame.Trame;
 import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
 import fr.uge.greed.trame.TrameFirstLeaf;
 import fr.uge.greed.trame.TrameFullTree;
+import fr.uge.greed.trame.TrameNewLeaf;
 import fr.uge.greed.trame.TramePingConfirmationChangementCo;
 import fr.uge.greed.trame.TramePingEnvoi;
+import fr.uge.greed.trame.TramePingReponse;
 import fr.uge.greed.trame.TrameSuppression;
 
 public class Application {
@@ -48,7 +55,6 @@ public class Application {
 		private final ArrayDeque<Trame> queue = new ArrayDeque<>();
 		private final IntReader intread = new IntReader();
 		private int cpt = 0;
-
 		private final TrameReader trameReader = new TrameReader();
 		private final Logger loggerC = Logger.getLogger(Application.class.getName());
 		private InetSocketAddress disconnectedAddress;
@@ -66,16 +72,7 @@ public class Application {
 
 		}
 
-		public Context getContextFromSocket(SocketChannel sc) {
-			for (SelectionKey key : server.selector.keys()) {
-				Context context = (Context) key.attachment();
-				if (context.scContext == sc) {
-					return context;
-				}
-			}
-			return null;
-
-		}
+		
 
 		public SocketChannel getChannel() {
 			return scContext;
@@ -105,6 +102,7 @@ public class Application {
 					var tramez = trameReader.get();
 					// trameReader.reset();
 					try {
+						server.recu = this.scContext;
 						server.analyseur(tramez);
 						break;
 					} catch (IOException e) {
@@ -401,12 +399,14 @@ public class Application {
 
 	private final ServerSocketChannel ssc;
 	private static InetSocketAddress localInet;
+	private SocketChannel recu = null;
 	private SocketChannel scDaron;
 	private Context daronContext = null;
 	private final Logger logger = Logger.getLogger(Application.class.getName());
 	private final Selector selector;
 	private boolean isroot;
 	private final HashSet<Context> connexions = new HashSet<>();
+	private final ArrayList<InetSocketAddress> listChangementCo = new ArrayList<InetSocketAddress>();
 	private RouteTable table = new RouteTable();
 	private ByteBuffer bufferDonnee = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(BUFFER_SIZE);
@@ -415,6 +415,8 @@ public class Application {
 	private InetSocketAddress dataFrom = null;
 	private ArrayList<InetSocketAddress> workers = new ArrayList<>();
 	private InetSocketAddress beauDaron = null;
+	private InetSocketAddress dispo = null;
+	private LinkedHashMap<InetSocketAddress,Boolean> commande = new LinkedHashMap<>();
 
 	static private final int BUFFER_SIZE = 4096;
 
@@ -461,7 +463,7 @@ public class Application {
 //				table.updateRouteTable((Context) key.attachment(), (Context) key.attachment());
 //			}
 //		}
-		table.updateRouteTable(fatherAddress, fatherAddress);
+		table.addToRouteTable(fatherAddress, fatherAddress);
 	}
 
 	public void launch() throws IOException {
@@ -504,7 +506,6 @@ public class Application {
 					// removeIfClosedTable(c);
 				}
 				removeIfClosed();
-
 				printConnexions();
 			}
 		} catch (IOException e) {
@@ -539,7 +540,7 @@ public class Application {
 		newKey.attach(context);
 
 		connexions.add(context);
-		table.updateRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(),
+		table.addToRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(),
 				(InetSocketAddress) context.getChannel().getRemoteAddress());
 		// table.updateRouteTable(context, context);
 		printConnexions();
@@ -619,12 +620,8 @@ public class Application {
 							scDaron.register(selector, SelectionKey.OP_CONNECT);
 							scDaron.connect(truc);
 							System.out.println("connexion");
-						} catch (ClosedChannelException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							logger.info("Cannot connect to The new Father" + e);
 						}
 						
 					}
@@ -649,6 +646,22 @@ public class Application {
 			}
 			}
 		});
+		//		Thread.ofPlatform().start(()->{
+//			try (var scanner = new Scanner(System.in)) {
+//				while (scanner.hasNextLine()) {
+//					var msg = scanner.nextLine();
+//					if (msg.equals("DISCONNECT")) {
+//						System.out.println("---------------------\nDisconnecting the node ...");
+//						appli.k
+//						var con = (Context) key.attachment();
+//						con.closed = true;
+//						silentlyClose(key);
+//						Thread.currentThread().interrupt();
+//						System.exit(0);
+//					}
+//				}
+//			}
+//		});
 			
 	}
 
@@ -706,6 +719,16 @@ public class Application {
 		op.process(this.bufferDonnee);
 		return op.get();
 	}
+	
+	public Context getContextFromSocket(SocketChannel sc) {
+		for (SelectionKey key : selector.keys()) {
+			Context context = (Context) key.attachment();
+			if (context.scContext == sc) {
+				return context;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Check and work on the frame from what op code we got
@@ -735,15 +758,25 @@ public class Application {
 				logger.warning("ERROR NOT THE GOOD DARON");
 				return;
 			}
-			
-			daronContext.closed=true;
-			silentlyClose(daronContext.key);
-		
-			scDaron = SocketChannel.open();
-			scDaron.configureBlocking(false);
-			scDaron.register(selector, SelectionKey.OP_CONNECT);
-			scDaron.connect(nouvDaron);
-			
+			try{ //Si on se connecte pas 
+				
+				daronContext.closed=true;
+				silentlyClose(daronContext.key);
+				
+				scDaron = SocketChannel.open();
+				scDaron.configureBlocking(false);
+				daronContext.closed = false;
+				scDaron.register(selector, SelectionKey.OP_CONNECT);
+				scDaron.connect(nouvDaron);
+				//Delete from route Table apres la suppression
+				//updateRouteTable
+				table.addToRouteTable((InetSocketAddress) scDaron.getRemoteAddress(),(InetSocketAddress) scDaron.getRemoteAddress());
+				//TODO envoyer full tree au daron
+			}finally{ // On envoi pas le ping de confirmation
+				var dda = new DataDoubleAddress(4,localInet,ancienDaron);
+				var trameConfirmation = new TramePingConfirmationChangementCo(dda);
+				daronContext.queueTrame(trameConfirmation);
+			}
 			
 			
 			
@@ -751,42 +784,125 @@ public class Application {
 			//envoie confirmation
 		}
 		case 4 -> {
+			var tmp4 = (TramePingConfirmationChangementCo) tramez;
+			var addressDeco = tmp4.dda().AddressDst();
+			var addressChangement = tmp4.dda().AddressSrc();
+			if(addressDeco == localInet) { //c'est nous qui se barrons
+				if(!listChangementCo.contains(addressChangement)) {
+					logger.warning("WTF ERROR ENFANT PERDU");
+					return;
+				}
+				listChangementCo.remove(addressChangement);
+				if(listChangementCo.isEmpty()) {
+					var doa = new DataOneAddress(5,localInet);
+					TrameSuppression supp = new TrameSuppression(doa);
+					daronContext.queueTrame(supp);
+					daronContext.closed=true;
+					silentlyClose(daronContext.key);
+					
+				}
+			}
 			//verif si tout les confirmation sont la
 			//deco
 		}
 		case 5 -> {
+			var tmp5 = (TrameSuppression) tramez;
+			var addressDeco = tmp5.doa().Address();
+			table.deleteRouteTable(addressDeco);
 			//enlever l'app dans la table de routage
 		}
 		case 6 -> {
+			if(connexions.size()!=1) {
+				broadCastWithoutFrom((InetSocketAddress) scDaron.getRemoteAddress(),tramez);
+			}
+			else {
+				var listo = new ArrayList<InetSocketAddress>();
+				listo.add(localInet);
+				var truc = new DataALotAddress(7,listo);
+				TrameFirstLeaf FL = new TrameFirstLeaf(truc);
+				daronContext.queueTrame(FL);
+			}
 			//faire passer la FR à ses gosses ou l'envoyer au daron si feuille
 		}
 		case 7 -> {
+			var tmp7 = (TrameFirstLeaf) tramez;
+			var listo = tmp7.dla().list();
+			var fils = listo.get(listo.size()-1);
+			for(int i = 0; i != listo.size();i++) {
+				table.addToRouteTable(fils, listo.get(i));
+			}
+			if(!isroot) {
+				listo.add(localInet);
+				var ndla = new DataALotAddress(7,listo);
+				var trm = new TrameFirstLeaf(ndla);
+				daronContext.queueTrame(trm);
+			}
+			
+			
 			//incrémenter l'int et ajouter à la list soit ou faire la table si root
 		}
 		case 8 -> {
+			var tmp8 = (TrameFullTree) tramez;
+			var listo = tmp8.dla().list();
+			var pere = listo.get(listo.size()-1);
+			for(int i = 0; i != listo.size(); i++){
+				table.addToRouteTable(pere, listo.get(i));
+			}
+			if(!isroot){
+				listo.add(localInet);
+				var ndla = new DataALotAddress(8, listo);
+				var trm = new TrameFullTree(ndla);
+				broadCastWithoutFrom(pere, trm); //A verifier avec le broadcast
+			}
+			
 			//update table de rootage
 		}
 		case 9 -> {
+			var tmp9 = (TrameNewLeaf) tramez;
+			var nouvAddress = tmp9.doa().Address();
+			
+			table.addToRouteTable(nouvAddress,(InetSocketAddress) recu.getRemoteAddress());
+			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
 			//ajouter l'application via la connexion dont on la reçu a la table de rootage
 		}
 
 		/* Une fonction pour chaque trame */
 		case 10 -> {
-			// getAddressFromBuffer(buf);
-			System.out.println("av analyseur");
 			TramePingEnvoi tmp = (TramePingEnvoi) tramez; // A verif
-			System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI");
-			// renvoiePingEnvoi(tmp);
-			// InetSocketAddress -> Context dans la table de routage
-			// context dans champ
-			// processout tu tout mettre dans le bufferOut
-			// doWrite le champs context sc
-			// write
-
-			// receivePingEnvoiAndSendPingReponse(buf);
+			//System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI");
+			var address = tmp.doa().Address();
+			broadCastWithoutFrom((InetSocketAddress) recu.getLocalAddress(),tramez);
+			DataResponse dr;
+			if(bufferDonnee.position() != 0 || dispo!=null) {
+				dr = new DataResponse(11,localInet,address,false);
+			} else {
+				dr = new DataResponse(11,localInet,address,true);
+			}
+			
+			var trm = new TramePingReponse(dr);
+			var con = getContextFromSocket(recu);
+			con.queueTrame(trm);
+			dispo = address;
+			
 		}
 		case 11 -> {
-			//mettre si l'application est dispo ou pas
+			var tmp11 = (TramePingReponse) tramez;
+			var addressSrc = tmp11.dr().addressSrc();
+			var addressDest = tmp11.dr().addressDst();
+			var resp = tmp11.dr().boolByte();
+			
+			if(addressDest != localInet) {
+				broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+				
+			}else {
+				if(resp ==false) {
+					commande.computeIfPresent(addressSrc, (k,v) -> v = false);
+				}
+				if(resp == true) {
+					commande.computeIfPresent(addressSrc, (k,v) -> v = true);
+				}
+			}
+			
 		}
 		
 		default -> {
@@ -1182,22 +1298,6 @@ public class Application {
 				appli = new Application(host, port);// root
 			}
 			appli.launch();
-		}
-//		Thread.ofPlatform().start(()->{
-//			try (var scanner = new Scanner(System.in)) {
-//				while (scanner.hasNextLine()) {
-//					var msg = scanner.nextLine();
-//					if (msg.equals("DISCONNECT")) {
-//						System.out.println("---------------------\nDisconnecting the node ...");
-//						appli.k
-//						var con = (Context) key.attachment();
-//						con.closed = true;
-//						silentlyClose(key);
-//						Thread.currentThread().interrupt();
-//						System.exit(0);
-//					}
-//				}
-//			}
-//		});		
+		}		
 	}
 }

@@ -97,22 +97,28 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 	 * @param newAdress
 	 * @param route
 	 */
-	public void updateRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
+	public void addToRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
 		//newAdress l'adresse de la node que l'on veut,route l'adresse de la node par laquelle on passe pour aller a newAdress
 		Objects.requireNonNull(newAdress);
 		Objects.requireNonNull(route);
 		routeTable.put(newAdress, route);
 	} 
 	
-	
+	public void removeKeyIf(){
+		
+	}
 	/**
-	 * Suppress the application and it channel from the route table when an application is disconnecting
+	 * Suppress the application Address and the other applications address that use this application address as a route 
 	 * @param unlinked
 	 */
 	public void deleteRouteTable(InetSocketAddress unlinked) {
 		Objects.requireNonNull(unlinked);
 		routeTable.remove(unlinked);
+		ArrayList<InetSocketAddress> toRemove = routeTable.entrySet().stream().filter(entry -> unlinked.equals(entry.getValue())).map(e->e.getKey()).collect(Collectors.toCollection(ArrayList::new));
+		toRemove.removeIf(routeTable::containsKey);
+		toRemove.forEach(routeTable::remove);
 	}
+	
 	
 	/**
 	 * Get the (neighbore) channel that the frame need to pass to the destination
@@ -130,6 +136,7 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 	public ArrayList<InetSocketAddress> getAllAddress(){
 		return new ArrayList<>(routeTable.keySet().stream().collect(Collectors.toList()));
 	}
+	
 	
 	/**
 	 * Print the route table
