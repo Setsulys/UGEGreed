@@ -132,7 +132,10 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 		return routeTable.get(destination);
 	}
 	
-	
+	/**
+	 *  Get all the key of InetSocketAddres in the hashmap and put it in an ArrayList
+	 * @return
+	 */
 	public ArrayList<InetSocketAddress> getAllAddress(){
 		return new ArrayList<>(routeTable.keySet().stream().collect(Collectors.toList()));
 	}

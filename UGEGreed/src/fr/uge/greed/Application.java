@@ -73,7 +73,10 @@ public class Application {
 		}
 
 		
-
+		/**
+		 *  Get the socketchannel from of the context
+		 * @return
+		 */
 		public SocketChannel getChannel() {
 			return scContext;
 		}
@@ -93,6 +96,9 @@ public class Application {
 			key.interestOps(ops);
 		}
 
+		/**
+		 * Process the buffer in the Application
+		 */
 		private void processIn() {
 			for (;;) {
 				Reader.ProcessStatus status = trameReader.process(bufferIn);
@@ -128,6 +134,9 @@ public class Application {
 			}
 		}
 		
+		/**
+		 * Prepare BufferOut with the good frame
+		 */
 		private void processOut() {
 			// System.out.println("PROCESSOUT " + tramez.getOp());
 			var tramez = queue.poll();
@@ -368,6 +377,10 @@ public class Application {
 
 		}
 
+		/**
+		 * Return the disconected Application Address;
+		 * @return
+		 */
 		public InetSocketAddress disconnectedAddress() {
 			return disconnectedAddress;
 		}
@@ -383,6 +396,10 @@ public class Application {
 			updateInterestOps();
 		}
 
+		/**
+		 * Queue All the messages that will be send by bufferOut
+		 * @param tramez
+		 */
 		public void queueTrame(Trame tramez) {
 			queue.add(tramez);
 			if (bufferOut.hasRemaining()) {
@@ -466,6 +483,10 @@ public class Application {
 		table.addToRouteTable(fatherAddress, fatherAddress);
 	}
 
+	/**
+	 * Launch the application
+	 * @throws IOException
+	 */
 	public void launch() throws IOException {
 		ssc.configureBlocking(false);
 		ssc.register(selector, SelectionKey.OP_ACCEPT);
@@ -481,6 +502,10 @@ public class Application {
 		}
 	}
 
+	/**
+	 * The selector check what to do
+	 * @param key
+	 */
 	private void treatKey(SelectionKey key) {
 		Helpers.printSelectedKey(key); // for debug
 		try {

@@ -61,7 +61,13 @@ public class JarTreatment {
 		return false;
 	}
 	
-	
+	/**
+	 *  Make the checker on the values and put result in the specified file
+	 * @param checker
+	 * @param startValue
+	 * @param endValue
+	 * @param path
+	 */
 	public static void checkOnValues(Checker checker,Long startValue,Long endValue,Path path) {
 		if(!Files.exists(path)) {
 			try {
@@ -83,12 +89,28 @@ public class JarTreatment {
 		}
 	}
 	
+	/**
+	 * Create the checker and get the JAR from url
+	 * @param urlJar
+	 * @param qualfiedName
+	 * @param startValue
+	 * @param endValue
+	 * @param path
+	 */
 	public static void loopOnCheckerURL(String urlJar,String qualfiedName,Long startValue,Long endValue, Path path) {
 		logger.info("Inputed an URL");
 		Checker checker = Client.checkerFromHTTP(urlJar, qualfiedName).orElseThrow();
 		checkOnValues(checker, startValue, endValue, path);
 	}
 	
+	/**
+	 *  Create the checker and get the JAR from disk space
+	 * @param urlJar
+	 * @param qualfiedName
+	 * @param startValue
+	 * @param endValue
+	 * @param path
+	 */
 	public static void loopOnCheckerFile(String urlJar,String qualfiedName,Long startValue,Long endValue, Path path) {
 		logger.info("Inputed a File");
 		Checker checker = Client.checkerFromDisk(Path.of(urlJar), qualfiedName).orElseThrow();
