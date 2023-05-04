@@ -81,7 +81,7 @@ public class Application {
 		}
 
 		private void updateInterestOps() {
-			System.out.println();
+			System.out.println("AAAAAAAAAAh");
 			var ops = 0;
 			if (!closed && bufferIn.hasRemaining()) {
 				ops |= SelectionKey.OP_READ;
@@ -92,7 +92,8 @@ public class Application {
 			if (ops == 0 && closed) {
 				silentlyClose();
 				return;
-			}
+			} 
+			System.out.println(ops);
 			key.interestOps(ops);
 		}
 
@@ -510,7 +511,6 @@ public class Application {
 	 */
 	private void treatKey(SelectionKey key) {
 		Helpers.printSelectedKey(key); // for debug
-		System.out.println("viens");
 		try {
 			if (key.isValid() && key.isAcceptable()) {
 				doAccept(key);
@@ -597,6 +597,7 @@ public class Application {
 		}
 		key.interestOps(SelectionKey.OP_READ);
 		consoleTest(key);
+		System.out.println(key.interestOps());
 		// daronContext.updateInterestOps();
 		try {
 			Thread.sleep(100);
@@ -662,19 +663,35 @@ public class Application {
 						 * null; Iterator<Context> it = connexions.iterator(); while(it.hasNext() && who
 						 * != 0){ element = it.next(); System.out.println("trux"); who--; }
 						 */
-						if(!isroot){
-							DataOneAddress machin = new DataOneAddress(10, localInet);
-							TramePingEnvoi truc = new TramePingEnvoi(machin);
-							daronContext.queueTrame(truc);
+						if(isroot){
+							try {
+								
+								Thread.currentThread().sleep(10000);
+								System.out.println("PENIS");
+								var truc = new TrameFirstRoot(6);
+								for(var e : connexions){
+									System.out.println(e.scContext);
+									e.queueTrame(truc);
+									System.out.println("ok");
+								}
+								selector.wakeup();
+								
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								System.out.println("Attrapez les tous");
+							}
+							
 						}
 						
 //						var truc = new TrameFirstRoot(6);
 //						
 						
-//						 for(var e : connexions){
-//							System.out.println(e.scContext);
-//							e.queueTrame(truc);
-//						}
+//						
+//						DataOneAddress machin = new DataOneAddress(10, localInet);
+//						TramePingEnvoi truc = new TramePingEnvoi(machin);
+//						daronContext.queueTrame(truc);
+						 
 //						
 						
 						//var tmp = (Context) key.attachment();
@@ -765,7 +782,7 @@ public class Application {
 			System.out.println("\n\nkeys" + key);
 			Context context = (Context) key.attachment();
 			System.out.println("\n\n context" + context);
-			if (context.scContext == sc) {
+			if (context != null && context.scContext == sc) {
 				return context;
 			}
 		}
