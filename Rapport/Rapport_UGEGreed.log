@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  26 APR 2023 15:15
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  4 MAY 2023 17:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -132,11 +132,31 @@ File: lstmisc.sty 2023/02/27 1.9 (Carsten Heinz)
 File: listings.cfg 2023/02/27 1.9 listings configuration
 ))
 Package: listings 2023/02/27 1.9 (Carsten Heinz)
+ (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/sectsty\sectsty.sty
+Package: sectsty 2002/02/25 v2.0.2 Commands to change all sectional heading sty
+les
 
-(C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
-File: lstlang1.sty 2023/02/27 1.9 listings language file
-) (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.sty
-File: lstmisc.sty 2023/02/27 1.9 (Carsten Heinz)
+
+LaTeX Warning: Command \underbar  has changed.
+               Check if current package is valid.
+
+
+LaTeX Warning: Command \underline  has changed.
+               Check if current package is valid.
+
+)
+(C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyhdr.sty
+Package: fancyhdr 2022/11/09 v4.1 Extensive control of page headers and footers
+
+\f@nch@headwidth=\skip50
+\f@nch@O@elh=\skip51
+\f@nch@O@erh=\skip52
+\f@nch@O@olh=\skip53
+\f@nch@O@orh=\skip54
+\f@nch@O@elf=\skip55
+\f@nch@O@erf=\skip56
+\f@nch@O@olf=\skip57
+\f@nch@O@orf=\skip58
 ) (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.st
 y
 Package: hyperref 2023-02-07 v7.00v Hypertext links for LaTeX
@@ -282,7 +302,18 @@ Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 85.
 )
-\Hy@SectionHShift=\skip50
+\Hy@SectionHShift=\skip59
+)
+
+Package fancyhdr Warning: \fancyfoot's `E' option without twoside option is use
+less.
+(fancyhdr)                Please consider using the `twoside' option on input l
+ine 16.
+
+(C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
+File: lstlang1.sty 2023/02/27 1.9 listings language file
+) (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.sty
+File: lstmisc.sty 2023/02/27 1.9 (Carsten Heinz)
 )
 (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pd
 ftex.def
@@ -292,24 +323,24 @@ File: l3backend-pdftex.def 2023-01-16 L3 backend support: PDF output (pdfTeX)
 ) (Rapport_UGEGreed.aux)
 \openout1 = `Rapport_UGEGreed.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 24.
-LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 33.
+LaTeX Font Info:    ... okay on input line 33.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -372,17 +403,17 @@ cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
 \c@lstlisting=\count289
-Package hyperref Info: Link coloring ON on input line 24.
+Package hyperref Info: Link coloring ON on input line 33.
  (Rapport_UGEGreed.out) (Rapport_UGEGreed.out)
 \@outlinefile=\write3
 \openout3 = `Rapport_UGEGreed.out'.
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 26.
+(Font)              <12> on input line 35.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 26.
+(Font)              <8> on input line 35.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 26.
+(Font)              <6> on input line 35.
  [1
 
 {C:/Users/Steven/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] (Rapport_UG
@@ -400,55 +431,60 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.28 \section
+l.37 \section
              {Introduction} [1
 
-] [2]
-LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 6
-9.
+] [2] [3]
+LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 1
+17.
 
 (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
 )
-Underfull \hbox (badness 10000) in paragraph at lines 105--110
-\T1/cmr/m/n/10 (Ceci est un ex-em-ple lorsque l'on con-necte deux ap-pli-ca-tio
-n à une autre)
- []
+[4] [5]
 
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 12.1638pt, for example:
+(fancyhdr)                \setlength{\headheight}{12.1638pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
 
-Underfull \hbox (badness 10000) in paragraph at lines 105--110
-\T1/cmr/m/n/10 tion
- []
+(fancyhdr)                \addtolength{\topmargin}{-0.1638pt}.
 
-[3] [4]
-Underfull \hbox (badness 10000) in paragraph at lines 155--158
-\T1/cmr/m/n/10 s'envoyaient par-fois mais par-fois ne s'envoyaient pas.
- []
+[6]
 
-[5] (Rapport_UGEGreed.aux)
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 12.1638pt, for example:
+(fancyhdr)                \setlength{\headheight}{12.1638pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-0.1638pt}.
+
+[7] [8] (Rapport_UGEGreed.aux)
 Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
-(rerunfilecheck)             Checksum: AD95A80FC0522FD4947E2286CE04BBE8;2628.
+(rerunfilecheck)             Checksum: 3773E2BCF9C7126725EBFC2E31071A82;3772.
  ) 
 Here is how much of TeX's memory you used:
- 11308 strings out of 476334
- 175255 string characters out of 5787499
+ 11638 strings out of 476334
+ 180329 string characters out of 5787499
  1953382 words of memory out of 5000000
- 31513 multiletter control sequences out of 15000+600000
- 522272 words of font info for 51 fonts, out of 8000000 for 9000
+ 31815 multiletter control sequences out of 15000+600000
+ 523431 words of font info for 53 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,6n,76p,633b,1095s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecb
+ 75i,11n,76p,633b,1095s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcb
 x1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi
 600\ectt1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen
-/ec/dpi600\ecbx1200.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/j
-knappen/ec/dpi600\ecbx1440.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/l
-jfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
-ts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\AppData\Local\MiK
-TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Steven\AppData\Lo
-cal\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on Rapport_UGEGreed.pdf (6 pages, 126892 bytes).
+/ec/dpi600\ecbx1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/j
+knappen/ec/dpi600\ecbx1200.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/l
+jfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
+ts/pk/ljfour/jknappen/ec/dpi600\ecsl1000.pk> <C:\Users\Steven\AppData\Local\MiK
+TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Lo
+cal\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\App
+Data\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Ste
+ven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
+Output written on Rapport_UGEGreed.pdf (9 pages, 157599 bytes).
 PDF statistics:
- 513 PDF objects out of 1000 (max. 8388607)
- 95 named destinations out of 1000 (max. 500000)
- 161 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 636 PDF objects out of 1000 (max. 8388607)
+ 113 named destinations out of 1000 (max. 500000)
+ 225 words of extra memory for PDF output out of 10000 (max. 10000000)
 

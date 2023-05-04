@@ -6,6 +6,14 @@
 \usepackage{verbatim}
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{sectsty}
+\usepackage{fancyhdr}
+\usepackage[colorlinks]{hyperref}
+
+\sectionfont{\color{blue}}
+\subsectionfont{\color{cyan}}
+\pagestyle{fancy}
+\fancyfoot[RE,LO]{LY-IENG Steven}
 \lstset{%
 	language={c},
 	breaklines=true,
@@ -15,8 +23,9 @@
 	keywordstyle=\bfseries\color{blue},
 	commentstyle=\itshape\color{green}
 	}
-\usepackage[colorlinks]{hyperref}
+
 \renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\contentsname}{UgeGreed}
 \title{Rapport sur le projet UGEGreed}
 \date{}
 \author{DEBATS Julien - LY-IENG Steven}
@@ -49,6 +58,39 @@ De plus votre protocole doit permettre à une application qui n'a pas été dém
 \paragraph{}
 Sauf en cas de déconnexion d'une autre application du réseau, les applications ne doivent pas initier d'autres connexions que la connexion qu'elles établissent au démarrage
 \pagebreak
+
+
+
+
+
+
+
+\section{Architecture}
+Notre architecture se résume surtout a l'envoi de plusieurs types de trames pour pouvoir tout faire.
+\subsection{Transmissions des données}
+Pour nous la transmission des données se fait par plusieurs types de trames 
+\subsubsection{Connexion}
+\paragraph{}
+Lors de la connexion d'une application au réseau, l'application parente a cette dernière (celle a qui elle s'est connecté) transmet une trame NEW LEAF qui stocke l'adresse de l'application Z et son adresse, et on fait remonter cette trame jusqu'à la ROOT tout en ajoutant les applications par lesquels la trame est passé, en plus de cela, chaque application devra en même temps mettre à jour sa table de routage en conséquence. 
+\paragraph{}
+La ROOT transmettra aussi cette trame vers ses applications enfants qui ne lui ont pas envoyé cette trame pour pouvoir mettre à jour leurs table de routage tout en ajoutant aussi à leurs tours leurs adresse à la fin de la trame.
+
+\subsubsection{Déconnexion}
+Lors d'une demande de déconnexion l'application va envoyer une trame signalant à toutes les applications du réseau sa mise en déconnexion pour qu'elles suppriment cette application de leurs table de routage mais aussi pour que les applications connexes se connectent entre eux pour délaisser l'application qui se déconnecte. 
+\subsubsection{Lancement de la tache}
+L'application sur laquelle on initie la tâche va pinger toute les applications du réseau pour savoir lesquels sont libre, celles qui seront libres enverrons un ping réponse disant si elles sont libre ou non. Celle qui seront libre se feront attribuer une partie de la tache.
+\paragraph{}
+Lorsque l'on reçoit une tâche, via une trame, on regarde l'URL ou bien le chemin par lequel on doit passer pour accéder au jar  et aussi on prend en compte le fichier dans lequel doit être sauvegardé les données. 
+\paragraph{}
+A chaque fois que l'on doit fait une conjecture, le résultat sera directement mis dans le fichier. Une fois la tache fini l'application se met en attente d'une nouvelle tache
+\pagebreak
+
+
+
+
+
+
+
 \section{UGEGreed}
 \subsection{RFC}
 \paragraph{}
@@ -56,15 +98,21 @@ Vous pouvez consulter notre RFC à tout moment
 \href {https://gitlab.com/Setsulys/ugegreed-debats-ly-ieng/-/blob/main/GreedRfc.md}{ici}
 \subsection{Code}
 \paragraph{}
-Nous avons en majorité utilisé la RFC pour faire la partie code même si il y a certains moment ou nous avons décidé de dévier légèrement de la RFC. Mais globalement cela reste la même chose
-\linebreak
-TOADD?
+Nous avons en majorité utilisé la RFC pour faire la partie code même si il y a certains moment ou nous avons décidé de dévier légèrement de la RFC. Mais globalement cela reste la même chose que ce qu'on avait prévu au départ. Il y a des choses que nous avons ajouté ou supprimé selon le besoin.
+
+
+
+
+
+
+
 \section{Utilisation}
 \subsection{Connexion}
 TODO
 \paragraph{}
 Pour pouvoir lancer le code, il faudra se rendre au niveau du //jar// et lancer la commande 
 \paragraph{}
+
 Pour la root
 \begin{lstlisting}
 java -jar UGEGreed.jar <Host> <Port>
@@ -92,8 +140,6 @@ Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 
 /127.0.0.1:51609 : /127.0.0.1:51609
 
 
-
-
 -------------Table of connexions--------------
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
@@ -103,14 +149,14 @@ Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 
 /127.0.0.1:51612 : /127.0.0.1:51612
 \end{lstlisting}
 (Ceci est un exemple lorsque l'on connecte deux application à une autre)
-\linebreak
+\paragraph{•}
 le "connected from" s'affiche pour présenter les applications qui se sont connecté à cette application
-\linebreak
+\paragraph{•}
 le "connected to" s'affiche lorsqu'on se connecte à une autre application, il ne peut y avoir que un ou 0 "connected to"
 \subsection{Déconnexion}
 Pour pouvoir se déconnecter "correctement sans "ctrl+c" il y aura un scanner sur chaque applications qui lorsqu'il lira 
 \begin{lstlisting}
-"Disconnect" 
+"DISCONNECT" 
 \end{lstlisting}
 déconnectera l'application 
 \subsubsection{Sur le terminal qui se déconnecte on aura}
@@ -133,7 +179,40 @@ Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 
 /127.0.0.1:51612 : /127.0.0.1:51612
 \end{lstlisting}
 \subsection{Lancement}
-TODO
+Le lancement d'une tache se fera 
+
+
+
+
+
+
+
+
+\pagebreak
+\section{Évolutions depuis la Beta}
+Lors de la soutenance Beta notre code contenait pas encore les tout les reader, nous et nous partions sans le savoir sur un serveur bloquant.
+Nous n'avions non plus pas le lanceur de tâches 
+\subsection{Maniere de traiter}
+
+
+
+
+
+
+\section{Fonctionnalités}
+\subsection{Actives}
+La connexion des applications entre elles est active
+\subsection{Active Partiellement}
+La table de routage n'est pas encore a 100% active, il faut encore qu'elle se mette à jours pour toutes les applications.
+\subsection{Non Active}
+La gestion des JAR n'est pas encore réellement lié au projet.
+
+
+
+
+
+
+\pagebreak
 \section{Difficulté rencontré}
 \subsection{Difficulté sur la RFC}
 \paragraph{}
@@ -153,8 +232,14 @@ Nous avons décidé de changer un peu par rapport a la rfc et d'ajouter l'adress
 La table de routage aussi a fait partis des difficulté de ce projet, en effet lorsque l'on supprimais les connexions la table de routage ne se mettais pas à jour. elle ne se mettais à jour uniquement si on ajoutais des éléments, on a cependant réussi, au début on pensait utiliser des trames et envoyer pour mettre a jour la table de routage pour les applications à proximité mais nous avons trouvé une méthode pour le faire sans, cependant la table de routage des autres applications doivent être modifier pour supprimer l'application qui s'est déconnecté.
 \paragraph{}
 Après la soutenance Beta nous avons rencontré un problème majeur qui provenait des trames envoyé mais que nous avons essayé de régler, cependant lorsque nous avons soit disant réglé le problème des trames, nous avons eu un problème d'envoi des paquets, en effet les paquet s'envoyaient parfois mais parfois ne s'envoyaient pas.
-\linebreak
 Nous pensons avoir réglé ce problème mais maintenant à par intermittence le terminal qui est sensé recevoir la trame boucle sans rien récupérer et est en mode write.
+
+
+
+
+
+
+\pagebreak
 \section{Division du travail}
 \paragraph{}
 Pour ce qui est du partage du travail nous avons partagé assez équitablement, on a essayé de faire un maximum pour éviter que la charge de travail repose plus sur une personne qu'une autre. Aussi on essayais de travailler environ 3h par jours sur le projet weekend compris.
@@ -164,6 +249,12 @@ Pour la RFC, on a beaucoup travaillé de notre coté, mais on faisait des points
 \subsection{Code}
 \paragraph{}
 À ce niveau, on essayait d'avancer chacun de notre côté lorsque l'on pouvait, mais surtout, on a essayé un maximum de coder ensemble sur Eclipse à l'aide de l'extension CodeTogether comme ça, il était assez simple de savoir assez rapidement d'où venais l'erreur et on pouvait intervenir plus rapidement, lorsque l'on travaillait ensemble sur CodeTogether, on essayait d'envoyer un peu prêt le même nombre de commit chacun sur le git
+
+
+
+
+
+
 \section{Annexe}
 \subsection{Commentaires}
 \paragraph{}
