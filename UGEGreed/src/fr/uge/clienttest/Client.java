@@ -71,14 +71,12 @@ public class Client {
         }
     }
 
-//    public static void main(String[] args) throws InterruptedException {
-//        var checker = checkerFromHTTP("http://www-igm.univ-mlv.fr/~carayol/Factorizer.jar","fr.uge.factors.Factorizer").orElseThrow();
-//        System.out.println(checker.check(12L));
-//        checker = checkerFromHTTP("http://www-igm.univ-mlv.fr/~carayol/Collatz.jar","fr.uge.collatz.Collatz").orElseThrow();
-//        System.out.println(checker.check(12L));
-//        checker = checkerFromHTTP("http://www-igm.univ-mlv.fr/~carayol/SlowChecker.jar","fr.uge.slow.SlowChecker").orElseThrow();
-//        System.out.println(checker.check(12L));
-//    	checker = checkerFromDisk(Path.of("/cours/S2/Reseau test/TestJar/Factorize.jar"),"fr.uge.factors.Factorizer").orElseThrow();
-//    	System.out.print(checker.check(12L));
-//    }
+    public static void main(String[] args) throws InterruptedException {
+        var checker = checkerFromHTTP("http://www-igm.univ-mlv.fr/~carayol/Factorizer.jar","fr.uge.factors.Factorizer").orElseThrow();
+        System.out.println(checker.check(12L));
+        checker = checkerFromHTTP("http://www-igm.univ-mlv.fr/~carayol/Collatz.jar","fr.uge.collatz.Collatz").orElseThrow();
+        System.out.println(checker.check(12L));
+        checker = checkerFromHTTP("http://www-igm.univ-mlv.fr/~carayol/SlowChecker.jar","fr.uge.slow.SlowChecker").orElseThrow();
+        System.out.println(checker.check(12L));
+    }
 }
