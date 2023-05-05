@@ -9,9 +9,9 @@
 \usepackage{sectsty}
 \usepackage{fancyhdr}
 \usepackage[colorlinks]{hyperref}
-
 \sectionfont{\color{blue}}
 \subsectionfont{\color{cyan}}
+\lstset{escapeinside={<@}{@>}}
 \pagestyle{fancy}
 \fancyfoot[RE,LO]{LY-IENG Steven}
 \lstset{%
@@ -23,6 +23,10 @@
 	keywordstyle=\bfseries\color{blue},
 	commentstyle=\itshape\color{green}
 	}
+
+\lstset{
+  basicstyle=\fontsize{9}{9}\selectfont\ttfamily
+}
 
 \renewcommand{\thesection}{\arabic{section}}
 \renewcommand{\contentsname}{UgeGreed}
@@ -71,13 +75,15 @@ Notre architecture se résume surtout a l'envoi de plusieurs types de trames pou
 Pour nous la transmission des données se fait par plusieurs types de trames 
 \subsubsection{Connexion}
 \paragraph{}
-Lors de la connexion d'une application au réseau, l'application parente a cette dernière (celle a qui elle s'est connecté) transmet une trame NEW LEAF qui stocke l'adresse de l'application Z et son adresse, et on fait remonter cette trame jusqu'à la ROOT tout en ajoutant les applications par lesquels la trame est passé, en plus de cela, chaque application devra en même temps mettre à jour sa table de routage en conséquence. 
+Lors de la connexion d'une application au réseau, l'application parente a cette dernière (celle a qui elle s'est connecté) transmet une trame NEW LEAF qui stocke l'adresse de l'application et son adresse, et on fait remonter cette trame jusqu'à la ROOT tout en ajoutant les applications par lesquels la trame est passé, en plus de cela, chaque application devra en même temps mettre à jour sa table de routage en conséquence. 
 \paragraph{}
 La ROOT transmettra aussi cette trame vers ses applications enfants qui ne lui ont pas envoyé cette trame pour pouvoir mettre à jour leurs table de routage tout en ajoutant aussi à leurs tours leurs adresse à la fin de la trame.
 
 \subsubsection{Déconnexion}
+\paragraph{}
 Lors d'une demande de déconnexion l'application va envoyer une trame signalant à toutes les applications du réseau sa mise en déconnexion pour qu'elles suppriment cette application de leurs table de routage mais aussi pour que les applications connexes se connectent entre eux pour délaisser l'application qui se déconnecte. 
 \subsubsection{Lancement de la tache}
+\paragraph{}
 L'application sur laquelle on initie la tâche va pinger toute les applications du réseau pour savoir lesquels sont libre, celles qui seront libres enverrons un ping réponse disant si elles sont libre ou non. Celle qui seront libre se feront attribuer une partie de la tache.
 \paragraph{}
 Lorsque l'on reçoit une tâche, via une trame, on regarde l'URL ou bien le chemin par lequel on doit passer pour accéder au jar  et aussi on prend en compte le fichier dans lequel doit être sauvegardé les données. 
@@ -138,8 +144,9 @@ Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 
 
 -----RouteTable------
 /127.0.0.1:51609 : /127.0.0.1:51609
-
-
+\end{lstlisting}
+Apres une nouvelle connexion d'une application à l'application qui se trouve a l'adresse 4444
+\begin{lstlisting}
 -------------Table of connexions--------------
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
@@ -156,7 +163,7 @@ le "connected to" s'affiche lorsqu'on se connecte à une autre application, il n
 \subsection{Déconnexion}
 Pour pouvoir se déconnecter "correctement sans "ctrl+c" il y aura un scanner sur chaque applications qui lorsqu'il lira 
 \begin{lstlisting}
-"DISCONNECT" 
+DISCONNECT 
 \end{lstlisting}
 déconnectera l'application 
 \subsubsection{Sur le terminal qui se déconnecte on aura}
@@ -179,7 +186,11 @@ Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 
 /127.0.0.1:51612 : /127.0.0.1:51612
 \end{lstlisting}
 \subsection{Lancement}
-Le lancement d'une tache se fera 
+Le lancement d'une tache se fera en utilisant la commande:
+
+\begin{lstlisting}
+START <URL/JAR> <Nom classe> <Debut> <Fin> <Fichier resultat>
+\end{lstlisting}
 
 
 
@@ -190,6 +201,7 @@ Le lancement d'une tache se fera
 
 \pagebreak
 \section{Évolutions depuis la Beta}
+\paragraph{}
 Lors de la soutenance Beta notre code contenait pas encore les tout les reader, nous et nous partions sans le savoir sur un serveur bloquant.
 Nous n'avions non plus pas le lanceur de tâches 
 \subsection{Maniere de traiter}
@@ -201,12 +213,14 @@ Nous n'avions non plus pas le lanceur de tâches
 
 \section{Fonctionnalités}
 \subsection{Actives}
-La connexion des applications entre elles est active
-\subsection{Active Partiellement}
-La table de routage n'est pas encore a 100% active, il faut encore qu'elle se mette à jours pour toutes les applications.
+\paragraph{•} La connexion des applications entre elles.
+\paragraph{•} Reconnexion d'une application vers une autre avec mise à jour partielle de la table de routage.
+\subsection{Active Partiellement ou pas implémenté}
+\paragraph{•} La transmission des données est fonctionnel mais pas correctement implémenté.
+\paragraph{•} La table de routage n'est pas encore complètement implementé, il nous faut verifier que via les trames transmises, la table de routage de toutes les applications sont mis a jours correctement, cependant la table de routage de l'application avec les applications connexe est bonne.
+\paragraph{•} Nous avons fait la partie traitement du JAR et lancement des fonctions, cependant ce n'est pas encore connecté au reste de l'application
 \subsection{Non Active}
-La gestion des JAR n'est pas encore réellement lié au projet.
-
+\paragraph{•} De souvenir rien
 
 
 
@@ -234,7 +248,8 @@ La table de routage aussi a fait partis des difficulté de ce projet, en effet l
 Après la soutenance Beta nous avons rencontré un problème majeur qui provenait des trames envoyé mais que nous avons essayé de régler, cependant lorsque nous avons soit disant réglé le problème des trames, nous avons eu un problème d'envoi des paquets, en effet les paquet s'envoyaient parfois mais parfois ne s'envoyaient pas.
 Nous pensons avoir réglé ce problème mais maintenant à par intermittence le terminal qui est sensé recevoir la trame boucle sans rien récupérer et est en mode write.
 
-
+\paragraph{}
+Malgré beaucoup de commits sur le git et de test, nous avons passé beaucoup de temps a débugger le code, une erreur pouvait en entrainer une autre et une erreur pouvait aussi quand elle était résolue en cacher une autre. Pour pouvoir débugger nous regardions a chaque fois les problème qu'affichait le terminal mais quand on ne trouvait vraiment pas, Monsieur Carayol nous a bien prêté main forte. 
 
 
 
@@ -242,14 +257,16 @@ Nous pensons avoir réglé ce problème mais maintenant à par intermittence le 
 \pagebreak
 \section{Division du travail}
 \paragraph{}
-Pour ce qui est du partage du travail nous avons partagé assez équitablement, on a essayé de faire un maximum pour éviter que la charge de travail repose plus sur une personne qu'une autre. Aussi on essayais de travailler environ 3h par jours sur le projet weekend compris.
+A propos de la division du travail entre binôme, cela à été assez équitable. On a fait le maximum pour éviter de trop charger une personne par rapport a l'autre. On essayait de travailler environ 3h par jours si ce n'est plus sur le projet weekend compris.
 \subsection{RFC}
 \paragraph{}
 Pour la RFC, on a beaucoup travaillé de notre coté, mais on faisait des points pour assez vite comprendre la situation et échanger les idées entre nous et nous mettre d'accord dessus ou non.
 \subsection{Code}
 \paragraph{}
-À ce niveau, on essayait d'avancer chacun de notre côté lorsque l'on pouvait, mais surtout, on a essayé un maximum de coder ensemble sur Eclipse à l'aide de l'extension CodeTogether comme ça, il était assez simple de savoir assez rapidement d'où venais l'erreur et on pouvait intervenir plus rapidement, lorsque l'on travaillait ensemble sur CodeTogether, on essayait d'envoyer un peu prêt le même nombre de commit chacun sur le git
-
+À ce niveau, on essayait d'avancer chacun de notre côté lorsque l'on pouvait, mais surtout, on a essayé un maximum de coder ensemble sur Eclipse à l'aide de l'extension CodeTogether comme ça, il était assez simple de savoir assez rapidement d'où venais l'erreur et on pouvait intervenir plus rapidement, lorsque l'on travaillait ensemble sur CodeTogether, on essayait d'envoyer un peu prêt le même nombre de commit chacun sur le git. Cependant lorsque les stages ont commencé il nous à été un peu plus compliqué de nous voir en après-midi, l'un n'était pas encore en stage tandis que l'autre si, on ne pouvait donc se voir que le soir ou le dernier weekend du rendu de projet. ce qui à amener a ce que celui qui n'etait pas en stage de travailler légèrement plus que l'autre.
+\subsection{Rapport}
+\paragraph{}
+Le rapport à été mis à jours par une seule personne, cependant l'autre binôme donnait des points qu'il fallait changer ou qu'il fallait ajouter.
 
 
 
@@ -260,5 +277,6 @@ Pour la RFC, on a beaucoup travaillé de notre coté, mais on faisait des points
 \paragraph{}
 On a trouvé le projet de réseau plutôt intéressant, un projet qui nous laissait beaucoup de liberté, où il fallait poser beaucoup de questions pour pouvoir se donner une ligne directrice, même si le projet était assez complexe et nous pensions que le projet serait très très long, nous avons pris du plaisir à travailler dessus.
 \subsection{Remerciement}
-Nous remercions l'équipe chargé de la matière Réseau pour tout le soutient mais aussi les idées que vous nous avez données tout le long du projet.
+\paragraph{}
+Nous remercions l'équipe chargé de la matière Réseau pour le projet intéressant qui nous à été fournis mais aussi pour tout le soutient et idées que vous nous avez données tout le long du projet.
 \end{document}

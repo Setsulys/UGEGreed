@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  4 MAY 2023 19:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  5 MAY 2023 19:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -323,24 +323,24 @@ File: l3backend-pdftex.def 2023-01-16 L3 backend support: PDF output (pdfTeX)
 ) (Rapport_UGEGreed.aux)
 \openout1 = `Rapport_UGEGreed.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -403,17 +403,17 @@ cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
 \c@lstlisting=\count289
-Package hyperref Info: Link coloring ON on input line 33.
+Package hyperref Info: Link coloring ON on input line 37.
  (Rapport_UGEGreed.out) (Rapport_UGEGreed.out)
 \@outlinefile=\write3
 \openout3 = `Rapport_UGEGreed.out'.
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 35.
+(Font)              <12> on input line 39.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 35.
+(Font)              <8> on input line 39.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 35.
+(Font)              <6> on input line 39.
  [1
 
 {C:/Users/Steven/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] (Rapport_UG
@@ -431,12 +431,12 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.37 \section
+l.41 \section
              {Introduction} [1
 
 ] [2] [3]
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 1
-17.
+23.
 
 (C:\Users\Steven\AppData\Local\Programs\MiKTeX\tex/latex/base\t1cmtt.fd
 File: t1cmtt.fd 2022/07/10 v2.5l Standard LaTeX font definitions
@@ -461,19 +461,19 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [7] [8] (Rapport_UGEGreed.aux)
 Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
-(rerunfilecheck)             Checksum: 3773E2BCF9C7126725EBFC2E31071A82;3772.
+(rerunfilecheck)             Checksum: E88394FF8BE5783299B5D28FC965152E;3974.
  ) 
 Here is how much of TeX's memory you used:
- 11638 strings out of 476334
- 180329 string characters out of 5787499
+ 11676 strings out of 476334
+ 180740 string characters out of 5787499
  1953382 words of memory out of 5000000
- 31815 multiletter control sequences out of 15000+600000
- 523431 words of font info for 53 fonts, out of 8000000 for 9000
+ 31838 multiletter control sequences out of 15000+600000
+ 524196 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,76p,633b,1095s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,76p,848b,1117s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcb
 x1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi
-600\ectt1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen
+600\ectt0900.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen
 /ec/dpi600\ecbx1000.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/j
 knappen/ec/dpi600\ecbx1200.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/l
 jfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Steven\AppData\Local\MiKTeX\fon
@@ -482,9 +482,9 @@ TeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Steven\AppData\Lo
 cal\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Steven\App
 Data\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Ste
 ven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on Rapport_UGEGreed.pdf (9 pages, 157599 bytes).
+Output written on Rapport_UGEGreed.pdf (9 pages, 160933 bytes).
 PDF statistics:
- 636 PDF objects out of 1000 (max. 8388607)
- 113 named destinations out of 1000 (max. 500000)
- 225 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 658 PDF objects out of 1000 (max. 8388607)
+ 127 named destinations out of 1000 (max. 500000)
+ 233 words of extra memory for PDF output out of 10000 (max. 10000000)
 
