@@ -1,6 +1,7 @@
 package fr.uge.greed.reader;
 
 import java.nio.ByteBuffer;
+import java.sql.DriverPropertyInfo;
 
 import fr.uge.greed.data.DataALotAddress;
 import fr.uge.greed.data.DataDoubleAddress;
@@ -39,6 +40,7 @@ public class TrameReader implements Reader<Trame> {
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
 		var readerState = intReader.process(bb);
+		System.out.println("procss " + readerState);
 		if(readerState == ProcessStatus.DONE){
 			op = intReader.get();
 			intReader.reset();
@@ -89,12 +91,12 @@ public class TrameReader implements Reader<Trame> {
 					
 					
 				case 6 ->{
-					
 				}//Trame First ROOT
 					//ONLY OP 
 					
 				case 7 ->{//Trame Firstt LEAF
 						var lotAddReaderState = lotAddReader.process(bb);
+						System.out.println(lotAddReaderState + "lotReaderState");
 						if(lotAddReaderState == ProcessStatus.DONE){
 							dataALotAddress = new DataALotAddress(op,lotAddReader.get());
 							
@@ -132,7 +134,6 @@ public class TrameReader implements Reader<Trame> {
 						if(addReaderStatePE == ProcessStatus.DONE){
 							var address = addReader.get();
 							dataOneAddress = new DataOneAddress(op,address);
-							addReader.reset();
 						}
 						else{
 							System.out.println("ERROR");
@@ -241,7 +242,9 @@ public class TrameReader implements Reader<Trame> {
 
 		intReader.reset();
 		addReader.reset();
-
+		responseReader.reset();
+		lotAddReader.reset();
+		doubleAddReader.reset();
 	}
 
 }

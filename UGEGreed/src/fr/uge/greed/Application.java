@@ -104,11 +104,13 @@ public class Application {
 			for (;;) {
 				System.out.println("OP");
 				Reader.ProcessStatus status = trameReader.process(bufferIn);
+				
+				System.out.println(status + "processInStatus");
 				switch (status) {
 				case DONE -> {
 					var op = trameReader.getOp();
 					var tramez = trameReader.get();
-					// trameReader.reset();
+					trameReader.reset();
 					try {
 						server.recu = this.scContext;
 						server.analyseur(tramez);
@@ -373,8 +375,11 @@ public class Application {
 
 			// scContext.read(bufferIn);
 			bufferIn.flip();
+			System.out.println(bufferIn + "before processin ");
 			processIn();
-			System.out.println(StandardCharsets.UTF_8.decode(bufferIn));
+			System.out.println(bufferIn +" after processIN");
+			System.out.println("je recois" + StandardCharsets.UTF_8.decode(bufferIn.flip()));
+			bufferIn.flip();
 			bufferIn.compact();
 			updateInterestOps();
 
@@ -674,7 +679,10 @@ public class Application {
 									e.queueTrame(truc);
 									System.out.println("ok");
 								}
+								System.out.println("table " + table);
 								selector.wakeup();
+								System.out.println("root -> " + table);
+								
 								
 							} catch (InterruptedException e) {
 								// TODO Auto-generated catch block
@@ -682,6 +690,14 @@ public class Application {
 								System.out.println("Attrapez les tous");
 							}
 							
+						}
+						else {
+							try{
+							Thread.currentThread().sleep(15000);
+							System.out.println("fu -> " + table);
+						}catch(InterruptedException e){
+							e.printStackTrace();
+						}
 						}
 						
 //						var truc = new TrameFirstRoot(6);
@@ -873,6 +889,7 @@ public class Application {
 		case 6 -> {
 			if(connexions.size()!=1) {
 				broadCastWithoutFrom((InetSocketAddress) scDaron.getRemoteAddress(),tramez);
+				System.out.println("broadcase");
 			}
 			else {
 				var listo = new ArrayList<InetSocketAddress>();
@@ -889,6 +906,7 @@ public class Application {
 			var fils = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size();i++) {
 				table.addToRouteTable(fils, listo.get(i));
+				System.out.println("UPDATE TABLE");
 			}
 			if(!isroot) {
 				listo.add(localInet);
@@ -906,6 +924,7 @@ public class Application {
 			var pere = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size(); i++){
 				table.addToRouteTable(pere, listo.get(i));
+				System.out.println("UPDATE TABLE FT");
 			}
 			if(!isroot){
 				listo.add(localInet);
