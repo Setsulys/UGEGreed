@@ -125,7 +125,7 @@ java -jar UGEGreed.jar <Host> <Port>
 \end{lstlisting}
 ou bien
 \begin{lstlisting}
-java bin.fr.uge.greed.Application <Host> <Port>
+java bin.fr.uge.greed.Main <Host> <Port>
 \end{lstlisting}
 \paragraph{}
 Pour la une autre application
@@ -134,7 +134,7 @@ java -jar UGEGreed.jar <Host> <Port> <ServerHost> <ServerPort>
 \end{lstlisting}
 ou bien
 \begin{lstlisting}
-java bin.fr.uge.greed.Application <Host> <Port> <ServerHost> <ServerPort>
+java bin.fr.uge.greed.Main <Host> <Port> <ServerHost> <ServerPort>
 \end{lstlisting}
 \subsubsection{Connexion établis}
 Lorsqu'une connexion s'etablis la table de routage et la table de connexion se met a jour et nous affiche
@@ -143,7 +143,7 @@ Lorsqu'une connexion s'etablis la table de routage et la table de connexion se m
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
 
 -----RouteTable------
-/127.0.0.1:51609 : /127.0.0.1:51609
+/127.0.0.1:5555 : /127.0.0.1:5555
 \end{lstlisting}
 Apres une nouvelle connexion d'une application à l'application qui se trouve a l'adresse 4444
 \begin{lstlisting}
@@ -152,8 +152,8 @@ Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
 
 -----RouteTable------
-/127.0.0.1:51609 : /127.0.0.1:51609,
-/127.0.0.1:51612 : /127.0.0.1:51612
+/127.0.0.1:5555 : /127.0.0.1:5555,
+/127.0.0.1:6666 : /127.0.0.1:6666
 \end{lstlisting}
 (Ceci est un exemple lorsque l'on connecte deux application à une autre)
 \paragraph{•}
@@ -183,7 +183,7 @@ Connexion closed >>>>>>>>>>>>>>>>>>>>>>>>>>> /127.0.0.1:51609
 Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
 
 -----RouteTable------
-/127.0.0.1:51612 : /127.0.0.1:51612
+/127.0.0.1:5555 : /127.0.0.1:5555
 \end{lstlisting}
 \subsection{Lancement}
 Le lancement d'une tache se fera en utilisant la commande:
