@@ -190,34 +190,31 @@ RFC Ly-Ieng-Debats
             Application initiant une tache ayant une application déjà déconnecté : L,M
             URL de l'application sera l'URL Z
 
-            Buffer d'element déja traités (que l'application Z va envoyer avant de se déconnecter à l'application qui a initié le traitement de données)
-             -------------------------------------------------------------
-            | Adresse Source K |Taille URL Z (long) | URL Z | 1 | ... | 3 |
-             -------------------------------------------------------------
+            Des que les elements seront traités, ils seront stocké dans un fichier réponses instantanément
 
             Buffer Contenant les element non traités (que l'application Z va séparer et envoyé à A et B)
-             ---------------------------------------------------------
-            | Adresse Source K | Taille URL Z (long) | URL Z | 4 | 10 |
-             ---------------------------------------------------------
+             ---------------------------------------------------------------
+            | Taille URL Z (long) | URL Z | taille nom | fichier Z | 4 | 10 |
+             ---------------------------------------------------------------
 
             Buffer de stockage d'element d'application déja déconnecté (que l'application Z va séparer et envoyé à A et B)
-             ------------------------------------------------------------------------------------------------------------------------
-            | Adresse Source L | Taille URL L (long) | URL L | 5 | 10 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 5 | 20 |
-             ------------------------------------------------------------------------------------------------------------------------
+             -----------------------------------------------------------------------------------------------------------------------------------
+            |Taille URL L (long) | URL L | taille nom | fichier L | 5 | 10 | 0000 0000 | Taille URL M | URL M | taille nom | fichier M | 5 | 20 |
+             ------------------------------------------------------------------------------------------------------------------------------------
 
              ______________________________________________________
 
             Lors de la déconnexion
 
             Données envoyés a A
-             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            | OPCODE | Adresse Source K | Taille URL Z (long) | URL Z | 4 | 7 | 0000 0000 | Adresse Source L | Taille URL L (long) | URL L | 5 | 7 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 5 | 12 |
-             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            | OPCODE | Taille URL Z (long) | URL Z | taille nom | fichier Z | 4 | 7 | 0000 0000 | Taille URL L (long) | URL L | taille nom | fichier L | 5 | 7 | 0000 0000 | Taille URL M | URL M | taille nom | fichier M | 5 | 12 |
+             -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             Données envoyés a B
-             --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            | OPCODE | Adresse Source K | Taille URL Z (long) | URL Z | 8 | 10 | 0000 0000 | Adresse Source L | Taille URL L (long) | URL L | 8 | 10 | 0000 0000 | Adresse Source M | Taille URL M | URL M | 12 | 20 |
-             --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+             -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            | OPCODE | Taille URL Z (long) | URL Z | taille nom | fichier Z | 8 | 10 | 0000 0000 | Taille URL L (long) | URL L | taille nom | fichier L |8 | 10 | 0000 0000 | Taille URL M | URL M | taille nom | fichier M | 12 | 20 |
+             -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
              Intention de déconnexion envoyé à A et B
              -------------------------------------------------------------
@@ -275,12 +272,12 @@ RFC Ly-Ieng-Debats
 
     On lie F et G au pere de C qui est donc A
                         A 
-                    /     \ \
-                  B        \ \ 
-                /   \      /  \
+                    /      |\
+                  B        | \ 
+                /   \      |  \
                D     E     F    G 
-              /\     /\    /\   /
-             H  I   J  K  L  M  N  
+              /\     /\    /\    \
+             H  I   J  K  L  M    N  
     
 
 5. Definition des trames transmis
@@ -288,94 +285,94 @@ RFC Ly-Ieng-Debats
     (comment definir un type, structure de données, opcode pour voir si c'est une réception ou un aquitement etc...)
 
     Definition des données
-     -------------------------------------------------------------------------
-    |Taille URL (long) | URL (Ascii) |Val range min (int)| Val range max(int) |
-     -------------------------------------------------------------------------
+     ----------------------------------------------------------------------------------------------------------------------
+    |Taille URL (long) | URL (Ascii) | taille nom fichier (int)| fichier reponse | Val range min (int)| Val range max(int) |
+     ----------------------------------------------------------------------------------------------------------------------
     
      /////Connexion
 
     Demande de connexion
      -------------------------------
-    | Opcode | Adresse du demandeur |                                               Op code : 0
+    | Opcode | Adresse du demandeur |                                                                                   Op code : 0
      -------------------------------
 
     acceptation connexion
      --------
-    | Opcode |                                                                      Op code : 1
+    | Opcode |                                                                                                          Op code : 1
      --------
 
      /////Déconnexion
 
      Demande de reconnexion
      -------------------------------
-    | Opcode | Adresse du demandeur |                                               Op code : 2
+    | Opcode | Adresse du demandeur |                                                                                   Op code : 2
      -------------------------------
 
     Annonce d'intention de déconnexion de l'application (donc de reconnexion des fils au père)
      -------------------------------------------------------------
-    | opcode | Adresse application déco | Adresse application pere|                 Op code : 3
+    | opcode | Adresse application déco | Adresse application pere|                                                     Op code : 3
      -------------------------------------------------------------
 
     Ping de confirmation de changement de connexion
      ---------------------------------------------------------------
-    | Opcode | Adresse Application source | Adresse Application déco |              Op code : 4
+    | Opcode | Adresse Application source | Adresse Application déco |                                                  Op code : 4
      ---------------------------------------------------------------
     
      Trame suppression d'application 
      -------------------------------------
-    | Opcode | Adresse Application déco |                                           Op code : 5
+    | Opcode | Adresse Application déco |                                                                               Op code : 5
      -------------------------------------
 
      /////Rootage
 
      Trame First ROOT 
      --------
-    | Opcode |                                                                      Op code : 6
+    | Opcode |                                                                                                          Op code : 6
      --------
 
      Trame First LEAF (La première trame First LEAF aura un int égal à 1 et une seul adresse, celle de la feuille qui l'a envoyé)
-     ----------------------------------------------------------
-    | Opcode | Nombre Applications (int) | Adresse Application | ... |              Op code : 7
-     ----------------------------------------------------------
+     ----------------------------------------------------------------
+    | Opcode | Nombre Applications (int) | Adresse Application | ... |                                                  Op code : 7
+     ----------------------------------------------------------------
 
      Trame FULL TREE 
-     ----------------------------------------------------------
-    | Opcode | Nombre Applications (int) | Adresse Application | ... |              Op code : 8 
-     ----------------------------------------------------------
+     ----------------------------------------------------------------
+    | Opcode | Nombre Applications (int) | Adresse Application | ... |                                                  Op code : 8 
+     ----------------------------------------------------------------
 
      Trame New LEAF
 
      ---------------------------------------
-    | Opcode | Adresse Nouvelle Application |                                       Op code : 9
+    | Opcode | Adresse Nouvelle Application |                                                                           Op code : 9
      ---------------------------------------
 
      /////ping
 
     Trame ping d'envoie
-     -------------------------------------
-    | Opcode | Adresse Application source |                                         Op code : 10
-     -------------------------------------
+     ----------------------------------------------
+    | Opcode | Adresse Application source qui ping |                                                                    Op code : 10
+     ----------------------------------------------
 
     Trame ping reponse
-     ----------------------------------------------------------------------------------------
-    | Opcode | Adresse Application source | Adresse Application qui a ping | Byte true/false |       Op code : 11
-     ----------------------------------------------------------------------------------------
+     -----------------------------------------------------------------------------------------------------------
+    | Opcode | Adresse Application source de la réponse | Adresse Application source qui ping | Byte true/false |       Op code : 11
+     -----------------------------------------------------------------------------------------------------------
 
      /////données
 
     Envoi de données à traiter aux applications en attente<br>
      -----------------------------------------
-    | OPcode | Adresse destinataire | Données |                                     Op code : 12
+    | OPcode | Adresse destinataire | Données |                                                                         Op code : 12
      -----------------------------------------
 
     Envoi de données de deconnexion à traiter aux applications connexes
      -----------------------------------
-    | OPcode | Adresse source | Données |                                           Op code : 13
+    | OPcode | Adresse source | Données |                                                                               Op code : 13
      -----------------------------------
      
     Envoi de données traitées
      -----------------------------------------------------
-    | Opcode | Adresse application source | donnee traite |                         Op code : 14
+    | Opcode | Adresse application source | donnee traite |                                                             Op code : 14
      -----------------------------------------------------
 
 

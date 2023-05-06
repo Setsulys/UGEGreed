@@ -713,6 +713,7 @@ public class Application {
 	}
 
 	/**
+	 * 
 	 * Remove the closed connexion from the hashTable that is the routeTable
 	 */
 	private void removeIfClosedTable(InetSocketAddress address) {
@@ -922,7 +923,13 @@ public class Application {
 			TramePingEnvoi tmp = (TramePingEnvoi) tramez; // A verif
 			
 			var address = tmp.doa().Address();
-			System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI" + address);
+			System.out.println(InetSocketAddress.createUnresolved("localhost", address.getPort()));
+			System.out.println(scDaron.getRemoteAddress());
+
+			if(address == scDaron.getRemoteAddress()){
+				System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI" + address);
+			}
+			
 			if(connexions.size() > 1) {
 				broadCastWithoutFrom((InetSocketAddress) recu.getLocalAddress(),tramez);
 			}
@@ -937,7 +944,8 @@ public class Application {
 			System.out.println("recu :" + recu);
 			var con = getContextFromSocket(recu);
 			con.queueTrame(trm);
-			dispo = address;
+			selector.wakeup();
+			//dispo = address;
 			
 		}
 		case 11 -> {
