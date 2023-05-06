@@ -91,6 +91,11 @@ import java.util.stream.Collectors;;
 public class RouteTable implements Iterable<InetSocketAddress> {
 
 	private final LinkedHashMap<InetSocketAddress, InetSocketAddress> routeTable = new LinkedHashMap<>();
+	private final InetSocketAddress me;
+	
+	public RouteTable(InetSocketAddress me){
+		this.me = me;
+	}
 	
 	/**
 	 * Update The Route Table
@@ -99,9 +104,14 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 	 */
 	public void addToRouteTable(InetSocketAddress newAdress,InetSocketAddress route) {
 		//newAdress l'adresse de la node que l'on veut,route l'adresse de la node par laquelle on passe pour aller a newAdress
-		Objects.requireNonNull(newAdress);
-		Objects.requireNonNull(route);
-		routeTable.put(newAdress, route);
+		//System.out.println(me +" lolololololol");
+		if(newAdress != me){
+			Objects.requireNonNull(newAdress);
+			Objects.requireNonNull(route);
+			routeTable.putIfAbsent(newAdress, route);
+		}
+
+		
 	} 
 	
 	public void removeKeyIf(){

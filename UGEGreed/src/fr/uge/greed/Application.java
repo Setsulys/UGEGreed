@@ -13,14 +13,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 import fr.uge.greed.data.DataALotAddress;
@@ -421,13 +419,12 @@ public class Application {
 	private boolean isroot;
 	private final HashSet<Context> connexions = new HashSet<>();
 	private final ArrayList<InetSocketAddress> listChangementCo = new ArrayList<InetSocketAddress>();
-	private RouteTable table = new RouteTable();
+	private RouteTable table;
 	private ByteBuffer bufferDonnee = ByteBuffer.allocate(BUFFER_SIZE);
-	private ByteBuffer bufferDonneeTraitee = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(BUFFER_SIZE);
-	private InetSocketAddress dataFrom = null;
 	private ArrayList<InetSocketAddress> workers = new ArrayList<>();
+	private HashSet<InetSocketAddress> reseau = new HashSet<>();
 	private InetSocketAddress beauDaron = null;
 	private InetSocketAddress dispo = null;
 	private LinkedHashMap<InetSocketAddress,Boolean> commande = new LinkedHashMap<>();
@@ -448,7 +445,8 @@ public class Application {
 		localInet = new InetSocketAddress(host, port);
 		ssc.bind(localInet);
 		selector = Selector.open();
-
+		table = new RouteTable((InetSocketAddress)ssc.getLocalAddress());
+		
 	}
 
 	/**
@@ -471,6 +469,7 @@ public class Application {
 		scDaron.configureBlocking(false);
 		scDaron.register(selector, SelectionKey.OP_CONNECT);
 		scDaron.connect(fatherAddress);
+		table = new RouteTable((InetSocketAddress)ssc.getLocalAddress());
 //		for (var key : selector.keys()) {
 //			var sc = (SocketChannel) key.channel();
 //			if (sc.getRemoteAddress() == fatherAddress) {
@@ -668,8 +667,19 @@ public class Application {
 								}
 								System.out.println("table " + table);
 								selector.wakeup();
-								System.out.println("root -> " + table);
 								
+								
+								
+								System.out.println("root -> " + table);
+								Thread.currentThread().sleep(5000);
+								var doa = new DataOneAddress(10,localInet);
+								var trme = new TramePingEnvoi(doa);
+								for(var e : connexions){
+									System.out.println(e.scContext);
+									e.queueTrame(trme);
+									System.out.println("ok");
+								}
+								selector.wakeup();
 								
 							} catch (InterruptedException e) {
 								// TODO Auto-generated catch block
@@ -890,16 +900,26 @@ public class Application {
 			var listo = tmp7.dla().list();
 			var route = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size();i++) {
-				table.addToRouteTable( listo.get(i),route);
+				//table.addToRouteTable( listo.get(i),(InetSocketAddress)recu.getRemoteAddress());
+				table.addToRouteTable(listo.get(i), route);
+				reseau.add(listo.get(i));
 			}
-			if(!isroot) {
-				listo.add(localInet);
-				var ndla = new DataALotAddress(7,listo);
-				var trm = new TrameFirstLeaf(ndla);
-				daronContext.queueTrame(trm);
-			}
-			else {
+			if(!isroot) {//pas root
+				if(connexions.size()!=1){
+					listo.add(localInet);
+					var ndla = new DataALotAddress(7,listo);
+					var trm = new TrameFirstLeaf(ndla);
+					daronContext.queueTrame(trm);
+					broadCastWithoutFrom((InetSocketAddress)recu.getRemoteAddress(),trm);
+				}
 				
+			}
+			else {//root
+				
+				reseau.add(localInet);
+				var ndla = new DataALotAddress(8, new ArrayList<>(reseau));
+				var trm = new TrameFullTree(ndla);
+				broadCast(trm);
 			}
 			
 			
@@ -910,14 +930,20 @@ public class Application {
 			var listo = tmp8.dla().list();
 			var pere = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size(); i++){
-				table.addToRouteTable(pere, listo.get(i));
-				System.out.println("UPDATE TABLE FT");
+				table.addToRouteTable(listo.get(i),(InetSocketAddress) recu.getRemoteAddress());
 			}
+//			if(isroot){
+//				System.out.println("GREZOIGJZEPORIGJPZEIOJGPZEIORJGPZEAIOJGPZEOIJGPËZOIRJGPOEZIRGJPZEOIRGJ");
+//				listo.add(localInet);
+//				var ndla = new DataALotAddress(8, listo);
+//				var trm = new TrameFullTree(ndla);
+//				broadCast(trm); //A verifier avec le broadcast
+//			}
 			if(!isroot){
 				listo.add(localInet);
 				var ndla = new DataALotAddress(8, listo);
 				var trm = new TrameFullTree(ndla);
-				broadCastWithoutFrom(pere, trm); //A verifier avec le broadcast
+				broadCastWithoutFrom(pere,trm); //A verifier avec le broadcast
 			}
 			
 			//update table de rootage
@@ -933,9 +959,11 @@ public class Application {
 
 		/* Une fonction pour chaque trame */
 		case 10 -> {
+			System.out.println("SOIIIIIIIIIIIIIIIIUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");
 			TramePingEnvoi tmp = (TramePingEnvoi) tramez; // A verif
-			//System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI");
+			
 			var address = tmp.doa().Address();
+			System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI" + address);
 			if(connexions.size() > 1) {
 				broadCastWithoutFrom((InetSocketAddress) recu.getLocalAddress(),tramez);
 			}
@@ -954,6 +982,7 @@ public class Application {
 			
 		}
 		case 11 -> {
+			System.out.println("YOLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 			var tmp11 = (TramePingReponse) tramez;
 			var addressSrc = tmp11.dr().addressSrc();
 			var addressDest = tmp11.dr().addressDst();
@@ -1217,9 +1246,9 @@ public class Application {
 	/////////////////////////////////////////////////////////////////////////////// a
 	/////////////////////////////////////////////////////////////////////////////// ligne
 	/////////////////////////////////////////////////////////////////////////////// 382
-	void dataFromGetAddress(ByteBuffer internBuffer) {
-		this.dataFrom = getAddressFromBuffer(internBuffer);
-	}
+//	void dataFromGetAddress(ByteBuffer internBuffer) {
+//		this.dataFrom = getAddressFromBuffer(internBuffer);
+//	}
 
 	/**
 	 * Get The address Of Source for the broadCast ATTENTION THIS METHOD HAVE THE
