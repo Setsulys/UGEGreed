@@ -28,7 +28,6 @@ public class TrameReader implements Reader<Trame> {
 	private DataOneAddress dataOneAddress = null;
 	private DataResponse dataResponse = null;
 	private DataALotAddress dataALotAddress = null;
-	private int ipType;
 	private State state = State.WAITING;
 	private LotAddressReader lotAddReader = new LotAddressReader();
 	private DoubleAddressReader doubleAddReader = new DoubleAddressReader();

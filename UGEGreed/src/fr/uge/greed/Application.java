@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
@@ -16,28 +14,14 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import fr.uge.greed.data.DataALotAddress;
-import fr.uge.greed.data.DataDoubleAddress;
-import fr.uge.greed.data.DataOneAddress;
-import fr.uge.greed.data.DataResponse;
-import fr.uge.greed.reader.IntReader;
-import fr.uge.greed.reader.Reader;
-import fr.uge.greed.reader.TrameReader;
-import fr.uge.greed.trame.Trame;
-import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
-import fr.uge.greed.trame.TrameFirstLeaf;
-import fr.uge.greed.trame.TrameFirstRoot;
-import fr.uge.greed.trame.TrameFullTree;
-import fr.uge.greed.trame.TrameNewLeaf;
-import fr.uge.greed.trame.TramePingConfirmationChangementCo;
-import fr.uge.greed.trame.TramePingEnvoi;
-import fr.uge.greed.trame.TramePingReponse;
-import fr.uge.greed.trame.TrameSuppression;
+
+import fr.uge.greed.reader.*;
+import fr.uge.greed.trame.*;
+import fr.uge.greed.data.*;
 
 public class Application {
 
@@ -50,8 +34,6 @@ public class Application {
 		private final Application server;
 		private boolean closed = false;
 		private final ArrayDeque<Trame> queue = new ArrayDeque<>();
-		private final IntReader intread = new IntReader();
-		private int cpt = 0;
 		private final TrameReader trameReader = new TrameReader();
 		private final Logger loggerC = Logger.getLogger(Application.class.getName());
 		private InetSocketAddress disconnectedAddress;
@@ -71,7 +53,7 @@ public class Application {
 
 		
 		/**
-		 *  Get the socketchannel from of the context
+		 *  Get the socketChannel from of the context
 		 * @return
 		 */
 		public SocketChannel getChannel() {
@@ -110,8 +92,6 @@ public class Application {
 						server.analyseur(tramez);
 						break;
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						// e.printStackTrace();
 						loggerC.info("ProcessIn IOE");
 					}
 					trameReader.reset();
@@ -154,7 +134,7 @@ public class Application {
 			} // ______DUMP
 			case 3 -> {// dataDoubleAddress
 				if (bufferOut.remaining() < Integer.BYTES + 34) {
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				var tmp = (TrameAnnonceIntentionDeco) tramez;
@@ -185,7 +165,7 @@ public class Application {
 
 			case 4 -> {// dataDoubleAddress
 				if (bufferOut.remaining() < Integer.BYTES + 34) {
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				var tmp2 = (TramePingConfirmationChangementCo) tramez;
@@ -213,7 +193,7 @@ public class Application {
 			}
 			case 5 -> {// dataOneAddress
 				if (bufferOut.remaining() < Integer.BYTES + 17) {
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				var tmp3 = (TrameSuppression) tramez;
@@ -231,7 +211,7 @@ public class Application {
 			}
 			case 6 -> {// op
 				if (bufferOut.remaining() < Integer.BYTES ) {	//first root
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				bufferOut.putInt(tramez.getOp());
@@ -242,7 +222,7 @@ public class Application {
 				// dataALotAddress
 				var tmp99 = (TrameFirstLeaf) tramez;
 				if (bufferOut.remaining() < Integer.BYTES * 2 + 17 * tmp99.getSize()) {
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				bufferOut.putInt(tramez.getOp());
@@ -264,7 +244,7 @@ public class Application {
 				// dataALotAddress
 				var tmp999 = (TrameFullTree) tramez;
 				if (bufferOut.remaining() < Integer.BYTES * 2 + 17 * tmp999.getSize()) {
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				bufferOut.putInt(tramez.getOp());
@@ -285,7 +265,7 @@ public class Application {
 
 			case 9 -> {// dataOneAddress
 				if (bufferOut.remaining() < Integer.BYTES + 16) {
-					System.out.println("buffer doesn't have room");
+					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
 				var tmp4 = (TrameSuppression) tramez;
@@ -349,8 +329,8 @@ public class Application {
 		}
 
 		/**
-		 * Read the buffer that get datas if we close the connexion read return -1 and
-		 * we shut down the connexion
+		 * Read the buffer that get Data if we close the connection read return -1 and
+		 * we shut down the connection
 		 * 
 		 * @throws IOException
 		 */
@@ -375,7 +355,7 @@ public class Application {
 		}
 
 		/**
-		 * Return the disconected Application Address;
+		 * Return the disconnected Application Address;
 		 * @return
 		 */
 		public InetSocketAddress disconnectedAddress() {
@@ -423,9 +403,9 @@ public class Application {
 	private ByteBuffer bufferDonnee = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(BUFFER_SIZE);
-	private ArrayList<InetSocketAddress> workers = new ArrayList<>();
+	//private ArrayList<InetSocketAddress> workers = new ArrayList<>();
 	private HashSet<InetSocketAddress> reseau = new HashSet<>();
-	private InetSocketAddress beauDaron = null;
+	//private InetSocketAddress beauDaron = null;
 	private InetSocketAddress dispo = null;
 	private LinkedHashMap<InetSocketAddress,Boolean> commande = new LinkedHashMap<>();
 
@@ -594,8 +574,7 @@ public class Application {
 			Thread.sleep(100);
 			daronContext.updateInterestOps();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.info("Interrupted at connexion");
 		}
 		// daronContext.updateInterestOps();
 	}
@@ -620,7 +599,7 @@ public class Application {
 	 * 
 	 * @param key
 	 */
-	@SuppressWarnings("preview")
+	@SuppressWarnings({ "preview", "static-access" })
 	private void consoleTest(SelectionKey key) {
 		Thread.ofPlatform().daemon().start(() -> {
 //			try (var scanner = new Scanner(System.in)) {
@@ -682,9 +661,7 @@ public class Application {
 								selector.wakeup();
 								
 							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-								System.out.println("Attrapez les tous");
+								logger.info("Interruption at Console Test");
 							}
 							
 						}
@@ -766,30 +743,12 @@ public class Application {
 		System.out.println(table + "\n\n\n\n");
 	}
 
-	/**
-	 * No need to tell you what is it about
-	 */
-	private static void usage() {
-		System.out.println("Usage :");
-		System.out.println("Application host port adress");
-		System.out.println(" - Root Mode - ");
-		System.out.println("Application host port");
-	}
 
-	// READ MODE
 	/**
-	 * Read the frame op to know what to do next
-	 * 
+	 * Get the context of a socketchannel
+	 * @param sc
 	 * @return
 	 */
-	int getOp() {
-		Objects.requireNonNull(this.bufferDonnee); // buffer altéré
-		bufferDonnee.flip();
-		var op = new IntReader();
-		op.process(this.bufferDonnee);
-		return op.get();
-	}
-	
 	public Context getContextFromSocket(SocketChannel sc) {
 		for (SelectionKey key : selector.keys()) {
 			System.out.println("\n\nkeys" + key);
@@ -826,7 +785,7 @@ public class Application {
 			var ancienDaron = tmp3.dda().AddressSrc();
 			var nouvDaron = tmp3.dda().AddressDst();
 			if(ancienDaron != scDaron.getRemoteAddress()) {
-				logger.warning("ERROR NOT THE GOOD DARON");
+				logger.warning("ERROR NOT THE GOOD CONNEXION");
 				return;
 			}
 			try{ //Si on se connecte pas 
@@ -860,7 +819,7 @@ public class Application {
 			var addressChangement = tmp4.dda().AddressSrc();
 			if(addressDeco == localInet) { //c'est nous qui se barrons
 				if(!listChangementCo.contains(addressChangement)) {
-					logger.warning("WTF ERROR ENFANT PERDU");
+					logger.warning("ERROR LOST CHILDREN");
 					return;
 				}
 				listChangementCo.remove(addressChangement);
@@ -1025,69 +984,11 @@ public class Application {
 		return internBuffer.flip();
 	}
 
-	ByteBuffer recoitDonneeDeco(ByteBuffer buf) {
-		// TODO
-		return null;
-	}
-
 	/**
-	 * Receive the buffer that say a proximity connexion is starting to deconnect
-	 * After the frame received it check if it is connected to the to deconnect
-	 * application and send a frame to the connexion saying that it accept the
-	 * deconnexion
-	 * 
-	 * @param buf
-	 * @throws IOException
+	 * Deconnect the application
 	 */
-	/*
-	 * void recoitIntentionDeco(ByteBuffer buf) throws IOException { var address =
-	 * getAddressFromBuffer(buf); if(address == (InetSocketAddress)
-	 * scDaron.getLocalAddress()) { return; } address = getAddressFromBuffer(buf);
-	 * beauDaron = (InetSocketAddress) scDaron.getLocalAddress();
-	 * scDaron.connect(address); for (var e : table) { if(table.get(e) ==
-	 * beauDaron){ table.updateRouteTable((InetSocketAddress)
-	 * scDaron.getRemoteAddress(),address); } }
-	 * 
-	 * envoiConfirmationChangementConnexion(); }
-	 */
-
-	void envoiConfirmationChangementConnexion() {
-		var buf = ByteBuffer.allocate(BUFFER_SIZE);
-		buf.putInt(4);
-		buf.put(addressTrame(localInet));
-		buf.put(addressTrame(beauDaron));
-		buf.flip();
-		// TODO ENVOI DARON
-	}
-
-	void recoitConfirmationChangementConnexion(ByteBuffer buf) throws IOException {
-		var address = getAddressFromBuffer(buf);
-		var address2 = getAddressFromBuffer(buf);
-		if (address2 != localInet) {
-			// TODO ENVOI ADDRESS2
-			return;
-		}
-		for (var e : connexions) {
-			if (e.scContext.getRemoteAddress() == address) {
-				connexions.remove(e);
-			}
-		}
-		if (connexions.size() == 1) {
-			envoiSuppression();
-			deconnexion();
-		}
-
-	}
-
-	void envoiSuppression() {
-		var buf = ByteBuffer.allocate(BUFFER_SIZE);
-		buf.putInt(5);
-		buf.put(addressTrame(localInet));
-		// TODO ENVOI DARON
-	}
-
 	void deconnexion() {
-		System.out.println("---------------------\nDisconnecting the node ...");
+		logger.info("---------------------\nDisconnecting the node ...");
 		try {
 			ssc.close();
 			Thread.currentThread().interrupt();
@@ -1095,247 +996,13 @@ public class Application {
 			logger.info("Disconnected Succesfully\n---------------------");
 			System.exit(0);
 		}
+		logger.info("Disconnected Succesfully\n---------------------");
 
 	}
 
-	void recoitSuppression(ByteBuffer buf) throws IOException {
-
-		var address = getAddressFromBuffer(buf);
-		// table.deleteRouteTable(address);
-		buf.position(0);
-		//broadCast(dataFrom, buf);
-	}
 
 	/**
-	 * Create a frame that contain only an integer
-	 * 
-	 * @param op
-	 * @return
-	 */
-	ByteBuffer TrameOp(int op) {
-		var buf = ByteBuffer.allocate(BUFFER_SIZE);
-		buf.putInt(op);
-		return buf;
-	}
-
-	/**
-	 * Redirect the frame to every node that are not his connexion father
-	 */
-	void envoiFirstROOT() {
-		for (var e : connexions) {
-			if (e.scContext == scDaron) {
-				continue;
-			}
-			var buf = TrameOp(6);
-			bufferEnvoie.put(buf);
-			// ENVOYER WAKEUP
-		}
-	}
-
-	/**
-	 * When we are on a leaf of the application it create a new Buffer with op code
-	 * 7 and put
-	 */
-	static ByteBuffer envoiFirstLEAF() {
-		ByteBuffer connex = ByteBuffer.allocate(BUFFER_SIZE);
-		connex.putInt(7);
-		connex.putInt(1);
-		connex.put(addressTrame(localInet));
-		return connex;
-	}
-
-	/**
-	 * Deconstruct the FirstLEAF frame to put all address in the RouteTable
-	 * 
-	 * @param buf
-	 */
-	/*
-	 * void decomposeFirstLEAF(ByteBuffer buf) { int nb = buf.getInt(); int
-	 * oldPosition = buf.position(); int lastAddress = nb-1 * (8+Short.BYTES);
-	 * buf.position(lastAddress); var routeAddress = getAddressFromBuffer(buf);
-	 * buf.position(oldPosition); for(int i = 1 ;i < nb;i++) { var address =
-	 * getAddressFromBuffer(buf); table.updateRouteTable(address,routeAddress); }
-	 * 
-	 * }
-	 */
-
-	/**
-	 * Fill a buffer with all the keys from the root RouteTable and send to every
-	 */
-	/*
-	 * void envoiFullTREE(){ ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE); var
-	 * ipByte = new byte[8]; var allAddress = table.getAllAddress(); int nbAddress =
-	 * allAddress.size();
-	 * 
-	 * buf.putInt(8); buf.putInt(nbAddress);
-	 * 
-	 * for(var address : allAddress){ ipByte = address.getAddress().getAddress();
-	 * buf.put(ipByte); buf.putShort((short) address.getPort()); } }
-	 */
-	/**
-	 * 
-	 * @param buf
-	 * @throws IOException
-	 */
-	/*
-	 * void recoiFullTREE(ByteBuffer buf) throws IOException { int nb =
-	 * buf.getInt(); for(int i = 1 ;i < nb;i++) { var address =
-	 * getAddressFromBuffer(buf); if(table.get(address)!=null) { continue; }
-	 * table.updateRouteTable(address,(InetSocketAddress)
-	 * scDaron.getLocalAddress()); //A voir } }
-	 */
-
-	/**
-	 * flip the buffer received to get the number of nodes and increment it at the
-	 * end we flip the buffer again
-	 * 
-	 * @param buf
-	 * @return ByteBuffer
-	 */
-	ByteBuffer incrementNbNodes(ByteBuffer buf) {
-		buf.flip();
-		buf.getInt();
-		var nb = buf.getInt() + 1;
-		buf.position(Integer.BYTES);
-		buf.putInt(nb);
-		buf.position(0);
-		buf.flip();
-		return buf;
-	}
-
-	/**
-	 * 
-	 * @param buf
-	 */
-	/*
-	 * void renvoiFirstLEAF(ByteBuffer buf) { var nouvBuffer =
-	 * ByteBuffer.allocate(BUFFER_SIZE); nouvBuffer.put(buf);
-	 * decomposeFirstLEAF(buf); buf = incrementNbNodes(buf);
-	 * 
-	 * //ENVOYER nouvBuffer DARON
-	 * 
-	 * }
-	 */
-	/**
-	 *
-	 * 
-	 * @param buf
-	 * @throws IOException
-	 */
-	/*
-	 * void recoitNewLEAF(ByteBuffer buf) throws IOException { buf.position(0);
-	 * broadCast(dataFrom,buf); buf.getInt(); var address =
-	 * getAddressFromBuffer(buf); table.updateRouteTable(address,dataFrom); }
-	 */
-
-	void recoitPingReponse(ByteBuffer buf) throws IOException {
-		var address1 = getAddressFromBuffer(buf);
-		var address = getAddressFromBuffer(buf);
-		if (address != localInet) {
-			buf.position(0);
-			//broadCast(dataFrom, buf);
-			return;
-		}
-		workers.add(address1);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////// REVOIR
-	/////////////////////////////////////////////////////////////////////////////// CETTE
-	/////////////////////////////////////////////////////////////////////////////// FONCTION
-	/////////////////////////////////////////////////////////////////////////////// aussi
-	/////////////////////////////////////////////////////////////////////////////// a
-	/////////////////////////////////////////////////////////////////////////////// ligne
-	/////////////////////////////////////////////////////////////////////////////// 382
-//	void dataFromGetAddress(ByteBuffer internBuffer) {
-//		this.dataFrom = getAddressFromBuffer(internBuffer);
-//	}
-
-	/**
-	 * Get The address Of Source for the broadCast ATTENTION THIS METHOD HAVE THE
-	 * BUFFER IN READMODE
-	 * 
-	 * @param internBuffer
-	 * @return
-	 */
-	InetSocketAddress getAddressFromBuffer(ByteBuffer internBuffer) {
-
-		try {
-			// internBuffer.flip();
-			if (internBuffer.remaining() < 8 * Byte.BYTES + Short.BYTES) {
-				logger.info("Not enought remaining");
-				return null;
-			}
-			byte[] ipByte = new byte[8]; // et le reste je suis pas sur de ce que ca fait mais ca a l'air de passer dans
-											// ma tete faudrait check
-			internBuffer.get(ipByte); // recupere l'op dans le vide
-			var ipAddress = InetAddress.getByAddress(ipByte); //
-			var port = internBuffer.getShort();
-			return new InetSocketAddress(ipAddress, port);
-		} catch (IOException e) {
-			return null;
-		}
-	}
-
-	/**
-	 * Construct the frame for Opcode :11 Trame ping reponse (see here
-	 * https://gitlab.com/Setsulys/ugegreed-debats-ly-ieng/-/blob/main/GreedRfc.md)
-	 * 
-	 * @param buf
-	 */
-	void receivePingEnvoiAndSendPingReponse(ByteBuffer buf) {
-		// var address = table.get(/*addresss*/);
-
-		// envoie paquet PINGENVOI a toute les autres connexions
-
-		/* ___________METHODE WAKE UP ENVOIE PAQUET_________ */
-
-		if (buf.remaining() < 10) {
-			return;
-		}
-		byte[] ipByte = new byte[8];
-		buf.get(ipByte);
-		short port = buf.getShort();
-		try {
-			InetAddress address = InetAddress.getByAddress(ipByte);
-			InetSocketAddress socketAddress = new InetSocketAddress(address, port);
-			// Partie envoi des donnée
-			byte bit = 11;// opcode
-			bufferEnvoie.clear();
-			bufferEnvoie.put(bit);
-			bufferEnvoie.put(addressTrame(localInet)); // Addresse Source
-			bufferEnvoie.put(addressTrame(socketAddress)); // Adresse ping
-
-			// mise de la reponse
-			if (bufferDonnee.hasRemaining()) {
-				bit = 0;// Not Avaliable
-			} else {
-				bit = 1;// Avaliable
-			}
-			bufferEnvoie.put(bit);
-
-			/* ___________METHODE WAKE UP ENVOIE PAQUET_________ */
-
-		} catch (UnknownHostException e) {
-			// e.getCause();
-		}
-
-	}
-
-	void renvoiePingEnvoi(TramePingEnvoi tramez) {
-		var addressEnvoi = tramez.doa();
-
-		Iterator<Context> it = connexions.iterator();
-		/*
-		 * while (it.hasNext()/* && it!= addressEnvoi ) { element = it.next();
-		 * element.processOut(tramez); element.updateInterestOps(); }
-		 */
-
-		//daronContext.processOut(tramez);
-
-	}
-
-	/**
-	 * BroadCast the buffer to all connexions apart the address that the frame come
+	 * BroadCast the buffer to all connections apart the address that the frame come
 	 * from
 	 * 
 	 * @param address the guy who send it to us
@@ -1346,8 +1013,6 @@ public class Application {
 		for (var key : selector.keys()) {
 			var context = (Context) key.attachment();
 			if (context != null && address != (InetSocketAddress) context.scContext.getRemoteAddress()) {
-				System.out.println("ICI : " + context.scContext);
-				// TODO PROBABLY WRONG
 				context.queueTrame(tramez);
 			}
 		}
@@ -1356,7 +1021,7 @@ public class Application {
 
 	
 	/**
-	 * BroadCast the buffer to all connexions apart the address that the frame come
+	 * BroadCast the buffer to all connections apart the address that the frame come
 	 * from
 	 * 
 	 * @param address the guy who send it to us
@@ -1371,31 +1036,5 @@ public class Application {
 			}
 		}
 	}
-
-
-	/**
-	 * Main part of the application
-	 * 
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main(String[] args) throws IOException {
-		if (args.length < 2 || args.length > 5) {
-			usage();
-			return;
-		}
-		Application appli;
-		if (args.length >= 2) {
-			String host = args[0];
-			int port = Integer.valueOf(args[1]);
-			if (args.length == 4) {
-				String fatherHost = args[2];
-				int fatherPort = Integer.valueOf(args[3]);
-				appli = new Application(host, port, new InetSocketAddress(fatherHost, fatherPort));// normal
-			} else {
-				appli = new Application(host, port);// root
-			}
-			appli.launch();
-		}		
-	}
+ 
 }

@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 
 public class AddressReader implements Reader<InetSocketAddress>{
-	
 	private enum State{
 		DONE,WAITING_IP,WAITING_TYPE,WAITING_HOST,ERROR
 	}
@@ -47,7 +46,6 @@ public class AddressReader implements Reader<InetSocketAddress>{
 				}
 				//If not getting all the integer
 				if(bufferType.remaining() != 0) {
-					System.out.println("remain");
 					return ProcessStatus.REFILL;
 				}
 				ipType = bufferType.flip().get();
@@ -62,7 +60,6 @@ public class AddressReader implements Reader<InetSocketAddress>{
 						bufferAddress.put(bb.get());
 					}
 					if(bufferAddress.position() < IPV4) {
-						System.out.println("ipv4refill");
 						return ProcessStatus.REFILL;
 					}
 				}
@@ -71,7 +68,6 @@ public class AddressReader implements Reader<InetSocketAddress>{
 						bufferAddress.put(bb.get());
 					}
 					if(bufferAddress.position() < IPV6) {
-						System.out.println("ipv6refill");
 						return ProcessStatus.REFILL;
 					}
 				}
@@ -90,7 +86,6 @@ public class AddressReader implements Reader<InetSocketAddress>{
 				}
 				//If not getting All the Short
 				if(bufferHost.remaining() != 0) {
-					System.out.println("Refill short");
 					return ProcessStatus.REFILL;
 				}
 				host = bufferHost.flip().getShort();
