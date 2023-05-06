@@ -20,11 +20,9 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 		if(state == State.DONE || state == State.ERROR) {
 			throw new IllegalStateException();
 		}
-		//On flip pas car on flip deja dans AddressReader et intReader
 
 		bb.flip();
 		var readerState = intReader.process(bb);
-		System.out.println(readerState);
 		if(readerState == ProcessStatus.DONE) { // On recupere le nombre d'addresse que la trame possede
 			nbAddress = intReader.get();
 			intReader.reset();
@@ -40,7 +38,9 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 					return readerState;
 				}
 				nb++;
+				
 			}
+			
 		}
 		else {
 			return readerState;

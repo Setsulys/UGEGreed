@@ -33,14 +33,14 @@ public class AddressReader implements Reader<InetSocketAddress>{
 			throw new IllegalStateException();
 		}
 		bb.flip();
-		System.out.println(bb + "addressREader");
 		try {
 			if(state == State.WAITING_TYPE) {
-				var oldLimit = bb.limit();
-				if(bufferType.remaining() > oldLimit) {
+				
+				if(bb.remaining() <= bufferType.remaining()) {
 					bufferType.put(bb);
 				}
 				else {
+					var oldLimit = bb.limit();
 					bb.limit(bufferType.remaining());
 					bufferType.put(bb);
 					bb.limit(oldLimit);
@@ -78,17 +78,15 @@ public class AddressReader implements Reader<InetSocketAddress>{
 				state = State.WAITING_HOST;
 			}
 			if(state == State.WAITING_HOST) {
-				
 				if(bb.remaining() <= bufferHost.remaining() ) {
 					bufferHost.put(bb);
+					
 				}
 				else {
 					var oldLimit = bb.limit();
-					bb.limit(bufferHost.remaining());
-					bufferHost.put(bb.flip());
-					bb.flip();
+					bb.limit(bufferHost.remaining()+bb.position());
+					bufferHost.put(bb);
 					bb.limit(oldLimit);
-					
 				}
 				//If not getting All the Short
 				if(bufferHost.remaining() != 0) {
@@ -97,8 +95,6 @@ public class AddressReader implements Reader<InetSocketAddress>{
 				}
 				host = bufferHost.flip().getShort();
 			}
-			
-			
 		}finally {
 			bb.compact();
 		}

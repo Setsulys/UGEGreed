@@ -81,7 +81,6 @@ public class Application {
 		}
 
 		private void updateInterestOps() {
-			System.out.println("AAAAAAAAAAh");
 			var ops = 0;
 			if (!closed && bufferIn.hasRemaining()) {
 				ops |= SelectionKey.OP_READ;
@@ -93,7 +92,6 @@ public class Application {
 				silentlyClose();
 				return;
 			} 
-			System.out.println(ops);
 			key.interestOps(ops);
 		}
 
@@ -102,10 +100,8 @@ public class Application {
 		 */
 		private void processIn() {
 			for (;;) {
-				System.out.println("OP");
+				System.out.println("GET IN PROCESSIN");
 				Reader.ProcessStatus status = trameReader.process(bufferIn);
-				
-				System.out.println(status + "processInStatus");
 				switch (status) {
 				case DONE -> {
 					var op = trameReader.getOp();
@@ -240,7 +236,6 @@ public class Application {
 					System.out.println("buffer doesn't have room");
 					return;
 				}
-				System.out.println("BITE");
 				bufferOut.putInt(tramez.getOp());
 				
 			}
@@ -255,7 +250,6 @@ public class Application {
 				bufferOut.putInt(tramez.getOp());
 				bufferOut.putInt(tmp99.getSize());
 				for(int i = 0;i<tmp99.getSize();i++) {
-					
 					if (tmp99.dla().list().get(i).getAddress().getClass() == Inet6Address.class) {
 						byte aaa = 6;
 						bufferOut.put(aaa);
@@ -325,7 +319,6 @@ public class Application {
 					bufferOut.put(aaa);
 				}
 				bufferOut.put(addressTrame(tmp10.doa().Address()));
-				System.out.println("bufferOut après put address " + bufferOut.remaining());
 			}
 			case 11 -> {
 				// dataResponse
@@ -365,8 +358,8 @@ public class Application {
 		 */
 		public void doRead() throws IOException {
 			System.out.println("READ");
-
-			if (scContext.read(bufferIn) == -1) {
+			var bytes = scContext.read(bufferIn);
+			if (bytes == -1) {
 				disconnectedAddress = (InetSocketAddress) scContext.getRemoteAddress();
 				System.out.println("Connexion closed >>>>>>>>>>>>>>>>>>>>>>>>>>> " + disconnectedAddress + "\n");
 				silentlyClose();
@@ -374,11 +367,9 @@ public class Application {
 			}
 
 			// scContext.read(bufferIn);
+			System.out.println(bytes  + "bytes recus");
 			bufferIn.flip();
-			System.out.println(bufferIn + "before processin ");
 			processIn();
-			System.out.println(bufferIn +" after processIN");
-			System.out.println("je recois" + StandardCharsets.UTF_8.decode(bufferIn.flip()));
 			bufferIn.flip();
 			bufferIn.compact();
 			updateInterestOps();
@@ -396,8 +387,6 @@ public class Application {
 		public void doWrite() throws IOException {
 
 			bufferOut.flip();
-			System.out.println("GIGABITE");
-//			bufferOut.flip();
 			System.out.println("BYTES SEND : " + scContext.write(bufferOut));
 			bufferOut.compact();
 			System.out.println("position : " + bufferOut.position());
@@ -573,8 +562,7 @@ public class Application {
 		newKey.attach(context);
 
 		connexions.add(context);
-		table.addToRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(),
-				(InetSocketAddress) context.getChannel().getRemoteAddress());
+		//table.addToRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(),(InetSocketAddress) context.getChannel().getRemoteAddress());
 		// table.updateRouteTable(context, context);
 		consoleTest(key);
 		printConnexions();
@@ -602,7 +590,6 @@ public class Application {
 		}
 		key.interestOps(SelectionKey.OP_READ);
 		consoleTest(key);
-		System.out.println(key.interestOps());
 		// daronContext.updateInterestOps();
 		try {
 			Thread.sleep(100);
@@ -671,7 +658,7 @@ public class Application {
 						if(isroot){
 							try {
 								
-								Thread.currentThread().sleep(10000);
+								Thread.currentThread().sleep(5000);
 								System.out.println("PENIS");
 								var truc = new TrameFirstRoot(6);
 								for(var e : connexions){
@@ -692,12 +679,12 @@ public class Application {
 							
 						}
 						else {
-							try{
-							Thread.currentThread().sleep(15000);
-							System.out.println("fu -> " + table);
-						}catch(InterruptedException e){
-							e.printStackTrace();
-						}
+//							try{
+//							Thread.currentThread().sleep(15000);
+//							System.out.println("fu -> " + table);
+//						}catch(InterruptedException e){
+//							e.printStackTrace();
+//						}
 						}
 						
 //						var truc = new TrameFirstRoot(6);
@@ -814,7 +801,6 @@ public class Application {
 	 */
 	void analyseur(Trame tramez) throws IOException {
 		Objects.requireNonNull(tramez);
-		System.out.println("analyseur");
 		switch (tramez.getOp()) {
 		case 0 -> {
 			//DUMP
@@ -889,7 +875,6 @@ public class Application {
 		case 6 -> {
 			if(connexions.size()!=1) {
 				broadCastWithoutFrom((InetSocketAddress) scDaron.getRemoteAddress(),tramez);
-				System.out.println("broadcase");
 			}
 			else {
 				var listo = new ArrayList<InetSocketAddress>();
@@ -903,16 +888,18 @@ public class Application {
 		case 7 -> {
 			var tmp7 = (TrameFirstLeaf) tramez;
 			var listo = tmp7.dla().list();
-			var fils = listo.get(listo.size()-1);
+			var route = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size();i++) {
-				table.addToRouteTable(fils, listo.get(i));
-				System.out.println("UPDATE TABLE");
+				table.addToRouteTable( listo.get(i),route);
 			}
 			if(!isroot) {
 				listo.add(localInet);
 				var ndla = new DataALotAddress(7,listo);
 				var trm = new TrameFirstLeaf(ndla);
 				daronContext.queueTrame(trm);
+			}
+			else {
+				
 			}
 			
 			

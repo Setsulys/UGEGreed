@@ -40,7 +40,6 @@ public class TrameReader implements Reader<Trame> {
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
 		var readerState = intReader.process(bb);
-		System.out.println("procss " + readerState);
 		if(readerState == ProcessStatus.DONE){
 			op = intReader.get();
 			intReader.reset();
@@ -96,7 +95,6 @@ public class TrameReader implements Reader<Trame> {
 					
 				case 7 ->{//Trame Firstt LEAF
 						var lotAddReaderState = lotAddReader.process(bb);
-						System.out.println(lotAddReaderState + "lotReaderState");
 						if(lotAddReaderState == ProcessStatus.DONE){
 							dataALotAddress = new DataALotAddress(op,lotAddReader.get());
 							
