@@ -1,10 +1,9 @@
 package fr.uge.greed.reader;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.net.InetSocketAddress;
-
-import fr.uge.greed.reader.*;
+import java.util.stream.Collectors;
 
 public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 	private enum State{
@@ -14,7 +13,7 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 	private final AddressReader reader = new AddressReader();
 	private final IntReader intReader = new IntReader();
 	private  int nbAddress;
-	private final ArrayList<InetSocketAddress> list = new ArrayList<>();
+	private ArrayList<InetSocketAddress> list = new ArrayList<>();
 	@Override
 	public ProcessStatus process(ByteBuffer bb) {
 		if(state == State.DONE || state == State.ERROR) {
@@ -45,7 +44,7 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 		else {
 			return readerState;
 		}
-		
+		list = list.stream().distinct().collect(Collectors.toCollection(ArrayList::new));
 		state = State.DONE;
 		return ProcessStatus.DONE;
 	}

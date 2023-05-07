@@ -29,6 +29,7 @@ public class ResponseReader implements Reader<Response>{
 			if(boolReadState == ProcessStatus.DONE) {
 				var bool = boolReader.get();
 				response = new Response(doubleAddress.addressSource(), doubleAddress.addressDestination(), bool);
+				boolReader.reset();
 			}
 			else {
 				return boolReadState;
@@ -51,7 +52,6 @@ public class ResponseReader implements Reader<Response>{
 
 	@Override
 	public void reset() {
-		// TODO Auto-generated method stub
 		state = State.WAITING;
 		dAddressReader.reset();
 		boolReader.reset();
