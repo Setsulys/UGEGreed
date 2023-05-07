@@ -2,12 +2,15 @@ package fr.uge.greed;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
-import java.net.*;
-import java.nio.channels.*;
-
+import java.nio.channels.Channel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,9 +18,22 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import fr.uge.greed.reader.*;
-import fr.uge.greed.trame.*;
-import fr.uge.greed.data.*;
+import fr.uge.greed.data.DataALotAddress;
+import fr.uge.greed.data.DataDoubleAddress;
+import fr.uge.greed.data.DataOneAddress;
+import fr.uge.greed.data.DataResponse;
+import fr.uge.greed.reader.Reader;
+import fr.uge.greed.reader.TrameReader;
+import fr.uge.greed.trame.Trame;
+import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
+import fr.uge.greed.trame.TrameFirstLeaf;
+import fr.uge.greed.trame.TrameFirstRoot;
+import fr.uge.greed.trame.TrameFullTree;
+import fr.uge.greed.trame.TrameNewLeaf;
+import fr.uge.greed.trame.TramePingConfirmationChangementCo;
+import fr.uge.greed.trame.TramePingEnvoi;
+import fr.uge.greed.trame.TramePingReponse;
+import fr.uge.greed.trame.TrameSuppression;
 
 public class Application {
 
@@ -33,6 +49,7 @@ public class Application {
 		private final TrameReader trameReader = new TrameReader();
 		private final Logger loggerC = Logger.getLogger(Application.class.getName());
 		private InetSocketAddress disconnectedAddress;
+		private int op = -1;
 
 		/**
 		 * For every socket channel we link a context with a key
@@ -76,12 +93,10 @@ public class Application {
 		 */
 		private void processIn() {
 			for (;;) {
-				System.out.println("GET IN PROCESSIN");
 				Reader.ProcessStatus status = trameReader.process(bufferIn);
 				switch (status) {
 				case DONE -> {
-					var op = trameReader.getOp();
-					System.out.println("This is america : "+op);
+					op = trameReader.getOp();
 					var tramez = trameReader.get();
 					trameReader.reset();
 					try {
@@ -119,7 +134,6 @@ public class Application {
 				loggerC.info("nothing to poll");
 				return;
 			}
-			System.out.println("OP DANS PROCESSOUT " + tramez.getOp());
 			switch (tramez.getOp()) {
 			case 0 -> {
 				return;
@@ -266,7 +280,7 @@ public class Application {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
-				var tmp4 = (TrameSuppression) tramez;
+				var tmp4 = (TrameNewLeaf) tramez;
 				bufferOut.putInt(tramez.getOp());
 				if (tmp4.doa().Address().getAddress().getClass() == Inet4Address.class) {
 					byte aaa = 4;
@@ -395,6 +409,7 @@ public class Application {
 
 			bufferOut.flip();
 			System.out.println("BYTES SEND : " + scContext.write(bufferOut));
+			System.out.println("OP send" + op);
 			bufferOut.compact();
 			System.out.println("position : " + bufferOut.position());
 			updateInterestOps();
@@ -432,9 +447,8 @@ public class Application {
 	private ByteBuffer bufferDonnee = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(BUFFER_SIZE);
-	//private ArrayList<InetSocketAddress> workers = new ArrayList<>();
 	private HashSet<InetSocketAddress> reseau = new HashSet<>();
-	//private InetSocketAddress beauDaron = null;
+
 	private InetSocketAddress dispo = null;
 	private LinkedHashMap<InetSocketAddress,Boolean> commande = new LinkedHashMap<>();
 
@@ -508,7 +522,7 @@ public class Application {
 	}
 
 	/**
-	 * The selector check what to do
+	 * The selector check what to do by looking at the SelectionKey
 	 * @param key
 	 */
 	private void treatKey(SelectionKey key) {
@@ -570,7 +584,6 @@ public class Application {
 		newKey.attach(context);
 
 		connexions.add(context);
-		//table.addToRouteTable((InetSocketAddress) context.getChannel().getRemoteAddress(),(InetSocketAddress) context.getChannel().getRemoteAddress());
 		// table.updateRouteTable(context, context);
 		consoleTest(key);
 		printConnexions();
@@ -666,12 +679,10 @@ public class Application {
 							try {
 								
 								Thread.currentThread().sleep(5000);
-								System.out.println("PENIS");
 								var truc = new TrameFirstRoot(6);
 								for(var e : connexions){
 									System.out.println(e.scContext);
 									e.queueTrame(truc);
-									System.out.println("ok");
 								}
 								System.out.println("table " + table);
 								selector.wakeup();
@@ -685,7 +696,6 @@ public class Application {
 								for(var e : connexions){
 									System.out.println(e.scContext);
 									e.queueTrame(trme);
-									System.out.println("ok");
 								}
 								selector.wakeup();
 								
@@ -695,6 +705,25 @@ public class Application {
 							
 						}
 						else {
+							InetSocketAddress truc = new InetSocketAddress("localhost",9999);
+//							System.out.println(truc);
+//							System.out.println(localInet);
+							if(localInet.equals(truc)) {
+								var doa = new DataOneAddress(9,localInet);
+								var trm = new TrameNewLeaf(doa);
+								
+								for(int i =0;i<3;i++) {
+									try {
+										daronContext.queueTrame(trm);
+										selector.wakeup();
+										System.out.println("ENVOI");
+										Thread.sleep(999);
+									} catch (InterruptedException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+							}
 //							try{
 //							Thread.currentThread().sleep(15000);
 //							System.out.println("fu -> " + table);
@@ -900,9 +929,10 @@ public class Application {
 		case 8 -> {
 			var tmp8 = (TrameFullTree) tramez;
 			var listo = tmp8.dla().list();
-			var pere = listo.get(listo.size()-1);
+//			var pere = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size(); i++){
 				table.addToRouteTable(listo.get(i),(InetSocketAddress) recu.getRemoteAddress());
+				reseau.add(listo.get(i));
 			}
 			if(!isroot && connexions.size() > 1){
 				listo.add(localInet);
@@ -917,6 +947,9 @@ public class Application {
 			
 			table.addToRouteTable(nouvAddress,(InetSocketAddress) recu.getRemoteAddress());
 			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+			System.out.println("MA TABLE" + table);
+			System.out.println("JE BROADCAST LA NEWLEAF à tout le monde sauf " + (InetSocketAddress) recu.getRemoteAddress());
+			sendFullTreeTo(recu);
 		}
 		case 10 -> {
 			TramePingEnvoi tmp = (TramePingEnvoi) tramez; // A verif
@@ -961,7 +994,7 @@ public class Application {
 						commande.put(addressSrc,true);
 					}
 				}
-				System.out.println("ICI -------------------------------> "+commande);
+				System.out.println("ICI -------------------------------> \n"+commande);
 			}
 			
 			
@@ -988,6 +1021,15 @@ public class Application {
 			}
 		}
 		return null;
+	}
+	
+	public void sendFullTreeTo(SocketChannel address) {
+		var list = new ArrayList<InetSocketAddress>(reseau);
+		var ndla = new DataALotAddress(8, list);
+		var trm = new TrameFullTree(ndla);
+		var fils = getContextFromSocket(address);
+		fils.queueTrame(trm);
+		selector.wakeup();
 	}
 
 	/**
@@ -1036,6 +1078,7 @@ public class Application {
 			var context = (Context) key.attachment();
 			if (context != null && address != (InetSocketAddress) context.scContext.getRemoteAddress()) {
 				context.queueTrame(tramez);
+				selector.wakeup();
 			}
 		}
 		

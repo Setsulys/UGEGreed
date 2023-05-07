@@ -1,22 +1,24 @@
 package fr.uge.greed.reader;
 
 import java.nio.ByteBuffer;
-import java.sql.DriverPropertyInfo;
 
-import fr.uge.greed.data.DataALotAddress;
-import fr.uge.greed.data.DataDoubleAddress;
-import fr.uge.greed.data.DataOneAddress;
-import fr.uge.greed.data.DataResponse;
-import fr.uge.greed.trame.Trame;
-import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
-import fr.uge.greed.trame.TrameFirstLeaf;
-import fr.uge.greed.trame.TrameFirstRoot;
-import fr.uge.greed.trame.TrameFullTree;
-import fr.uge.greed.trame.TrameNewLeaf;
-import fr.uge.greed.trame.TramePingConfirmationChangementCo;
-import fr.uge.greed.trame.TramePingEnvoi;
-import fr.uge.greed.trame.TramePingReponse;
-import fr.uge.greed.trame.TrameSuppression;
+//import fr.uge.greed.data.DataALotAddress;
+//import fr.uge.greed.data.DataDoubleAddress;
+//import fr.uge.greed.data.DataOneAddress;
+//import fr.uge.greed.data.DataResponse;
+//import fr.uge.greed.trame.Trame;
+//import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
+//import fr.uge.greed.trame.TrameFirstLeaf;
+//import fr.uge.greed.trame.TrameFirstRoot;
+//import fr.uge.greed.trame.TrameFullTree;
+//import fr.uge.greed.trame.TrameNewLeaf;
+//import fr.uge.greed.trame.TramePingConfirmationChangementCo;
+//import fr.uge.greed.trame.TramePingEnvoi;
+//import fr.uge.greed.trame.TramePingReponse;
+//import fr.uge.greed.trame.TrameSuppression;
+
+import fr.uge.greed.data.*;
+import fr.uge.greed.trame.*;
 
 public class TrameReader implements Reader<Trame> {
 
