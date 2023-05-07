@@ -114,8 +114,12 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 		
 	} 
 	
-	public void removeKeyIf(){
-		
+	public void removeKeyIf(ArrayList<InetSocketAddress> addresses){
+		for(var e : routeTable.entrySet()) {
+			if(!addresses.contains(e.getKey())) {
+				routeTable.remove(e.getKey());
+			}
+		}
 	}
 	/**
 	 * Suppress the application Address and the other applications address that use this application address as a route 

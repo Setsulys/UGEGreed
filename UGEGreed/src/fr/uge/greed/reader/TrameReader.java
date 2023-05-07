@@ -43,6 +43,7 @@ public class TrameReader implements Reader<Trame> {
 		var readerState = intReader.process(bb);
 		if(readerState == ProcessStatus.DONE){
 			op = intReader.get();
+			System.out.println("op reader : "+ op);
 			intReader.reset();
 			switch(op){
 				case 0 ->{//Demande de connexion_________DUMP
@@ -55,6 +56,7 @@ public class TrameReader implements Reader<Trame> {
 						System.out.println("hellow");
 					}
 				case 3 ->{//Annonce intention de deconnexion
+					System.out.println("JE PASSE PAR LA");
 						var doubleAddReaderState = doubleAddReader.process(bb);
 						if(doubleAddReaderState == ProcessStatus.DONE){
 							var doubleadd = doubleAddReader.get();
@@ -65,17 +67,21 @@ public class TrameReader implements Reader<Trame> {
 						else{
 							return doubleAddReaderState;
 						}
+						doubleAddReader.reset();
 					}
 				case 4 ->{//Ping de confirmation de changement de connexion
+						System.out.println("on passe ici");
 						var doubleAddReaderStatePC = doubleAddReader.process(bb);
+						System.out.println(doubleAddReaderStatePC+"la state");
 						if(doubleAddReaderStatePC == ProcessStatus.DONE){
 							var doubleadd = doubleAddReader.get();
 							dataDoubleAddress = new DataDoubleAddress(op,doubleadd.addressSource(),doubleadd.addressDestination());
-							
+							System.out.println(op +" " + dataDoubleAddress.AddressSrc() + " " + dataDoubleAddress.AddressDst());
 						}
 						else{
 							return doubleAddReaderStatePC;
 						}
+						doubleAddReader.reset();
 					}
 				case 5 ->{//Trame suppression d'application'
 						var addReaderState = addReader.process(bb);

@@ -40,7 +40,7 @@ public class AddressReader implements Reader<InetSocketAddress>{
 				}
 				else {
 					var oldLimit = bb.limit();
-					bb.limit(bufferType.remaining());
+					bb.limit(bufferType.remaining()+ bb.position());
 					bufferType.put(bb);
 					bb.limit(oldLimit);
 				}
@@ -50,6 +50,7 @@ public class AddressReader implements Reader<InetSocketAddress>{
 				}
 				ipType = bufferType.flip().get();
 				if(ipType != 4 && ipType != 6) {
+					System.out.println("ip error");
 					return ProcessStatus.ERROR;
 				}
 				state = State.WAITING_IP;

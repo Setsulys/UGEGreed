@@ -22,8 +22,9 @@ public class IntReader implements Reader<Integer> {
             if (buffer.remaining() <= internalBuffer.remaining()) {
                 internalBuffer.put(buffer);
             } else {
+
                 var oldLimit = buffer.limit();
-                buffer.limit(internalBuffer.remaining());
+                buffer.limit(internalBuffer.remaining()+buffer.position());
                 internalBuffer.put(buffer);
                 buffer.limit(oldLimit);
             }
