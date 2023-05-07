@@ -17,6 +17,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.Scanner;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
 //import fr.uge.greed.data.DataALotAddress;
@@ -469,6 +472,9 @@ public class Application {
 
 	static private final int BUFFER_SIZE = 4096;
 
+	
+	private final BlockingQueue<String> commandQueue = new ArrayBlockingQueue<>(10);
+	private final Thread console;
 	/**
 	 * Start the application in mode Root
 	 * 
@@ -484,6 +490,7 @@ public class Application {
 		ssc.bind(localInet);
 		selector = Selector.open();
 		table = new RouteTable((InetSocketAddress)ssc.getLocalAddress());
+		this.console = new Thread(this::consoleRun);
 		
 	}
 
@@ -515,6 +522,7 @@ public class Application {
 //			}
 //		}
 		table.addToRouteTable(fatherAddress, fatherAddress);
+		this.console = new Thread(this::consoleRun);
 	}
 
 	/**
@@ -524,10 +532,12 @@ public class Application {
 	public void launch() throws IOException {
 		ssc.configureBlocking(false);
 		ssc.register(selector, SelectionKey.OP_ACCEPT);
+		console.start();
 		while (!Thread.interrupted()) {
 			// Helpers.printKeys(selector); // for debug
 			// System.out.println("Starting select");
 			try {
+				processCommands();
 				selector.select(this::treatKey);
 			} catch (UncheckedIOException tunneled) {
 				throw tunneled.getCause();
@@ -751,25 +761,7 @@ public class Application {
 //										
 //									}finally {
 									if(localInet.equals(truc) || localInet.equals(truc2) ) {
-										try {
-											Thread.sleep(6000);
-										var ddl = new DataDoubleAddress(3,localInet,(InetSocketAddress) scDaron.getRemoteAddress());
-										var tame = new TrameAnnonceIntentionDeco(ddl);
-										logger.info("---------------------\nDisconnecting the node ...");
-										if(connexions.size()==1) {
-											System.out.println("ok");
-											//AJOUTER LA CONFIRMATION DE DECO
-											daronContext.queueTrame(tame);
-											selector.wakeup();
-										}else {
-											broadCast(tame);
-										}
-										
-//									}
-								} catch (InterruptedException | IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+									
 //							}
 //							if(localInet.equals(truc) || localInet.equals(truc2) ) {
 //								var doa = new DataALotAddress(7,new ArrayList<InetSocketAddress>(Arrays.asList(localInet)));
@@ -1237,6 +1229,59 @@ public class Application {
 				context.queueTrame(tramez);
 				selector.wakeup();
 			}
+		}
+	}
+	
+	
+	private void consoleRun() {
+		try {
+			try(var scanner = new Scanner(System.in)){
+				while(scanner.hasNextLine()){
+					var msg = scanner.nextLine();
+					sendCommands(msg);
+				}
+			}
+			logger.info("Console thread has stopped");
+		} catch(InterruptedException e){
+			logger.info("Console thread interrupted");
+		}
+	}
+	
+	private void sendCommands(String msg) throws InterruptedException{
+		if(msg == null) {
+			return;
+		}
+		commandQueue.add(msg);
+		selector.wakeup();
+	}
+	
+	private void processCommands() {
+		if(commandQueue.isEmpty()) {
+			return;
+		}
+		var commands = commandQueue.poll();
+		if(commands.equals("DISCONNECT")) {
+			System.out.println("DISCONNECTING");
+			try {
+				var ddl = new DataDoubleAddress(3,localInet,(InetSocketAddress) scDaron.getRemoteAddress());
+				var tame = new TrameAnnonceIntentionDeco(ddl);
+				logger.info("---------------------\nDisconnecting the node ...");
+				if(connexions.size()==1) {
+					System.out.println("ok");
+					daronContext.queueTrame(tame);
+					selector.wakeup();
+				}
+//				else {
+//					broadCast(tame);
+//				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		else if(commands.startsWith("START")) {
+			System.out.println("START");
 		}
 	}
  

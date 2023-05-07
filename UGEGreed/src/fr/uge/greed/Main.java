@@ -1,4 +1,4 @@
-package fr.uge.greed;
+	package fr.uge.greed;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -61,7 +61,7 @@ public class Main {
 					while(scanner.hasNextLine()){
 						var msg = scanner.nextLine();
 						if(msg.equals("DISCONNECT")){
-							System.out.println("DISCONNECTING");
+							System.out.println("---------------------\nDisconnecting the node ...");
 						}
 						else{
 							String str[] = msg.split(" ");
