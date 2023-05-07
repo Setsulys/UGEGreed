@@ -2,22 +2,18 @@ package fr.uge.greed;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetSocketAddress;
+
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+
+import java.net.*;
+import java.nio.channels.*;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.logging.Logger;
-
 
 import fr.uge.greed.reader.*;
 import fr.uge.greed.trame.*;
@@ -85,6 +81,7 @@ public class Application {
 				switch (status) {
 				case DONE -> {
 					var op = trameReader.getOp();
+					System.out.println("This is america : "+op);
 					var tramez = trameReader.get();
 					trameReader.reset();
 					try {
@@ -122,6 +119,7 @@ public class Application {
 				loggerC.info("nothing to poll");
 				return;
 			}
+			System.out.println("OP DANS PROCESSOUT " + tramez.getOp());
 			switch (tramez.getOp()) {
 			case 0 -> {
 				return;
@@ -133,7 +131,7 @@ public class Application {
 				return;
 			} // ______DUMP
 			case 3 -> {// dataDoubleAddress
-				if (bufferOut.remaining() < Integer.BYTES + 34) {
+				if (bufferOut.remaining() < Integer.BYTES + (34 * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
@@ -164,7 +162,7 @@ public class Application {
 			}
 
 			case 4 -> {// dataDoubleAddress
-				if (bufferOut.remaining() < Integer.BYTES + 34) {
+				if (bufferOut.remaining() < Integer.BYTES + (34 * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
@@ -192,7 +190,7 @@ public class Application {
 				bufferOut.put(addressTrame(tmp2.dda().AddressDst()));
 			}
 			case 5 -> {// dataOneAddress
-				if (bufferOut.remaining() < Integer.BYTES + 17) {
+				if (bufferOut.remaining() < Integer.BYTES + (17 * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
@@ -221,7 +219,7 @@ public class Application {
 			case 7 -> {
 				// dataALotAddress
 				var tmp99 = (TrameFirstLeaf) tramez;
-				if (bufferOut.remaining() < Integer.BYTES * 2 + 17 * tmp99.getSize()) {
+				if (bufferOut.remaining() < Integer.BYTES * 2 + (17 * tmp99.getSize() * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
@@ -243,7 +241,7 @@ public class Application {
 			case 8 -> {
 				// dataALotAddress
 				var tmp999 = (TrameFullTree) tramez;
-				if (bufferOut.remaining() < Integer.BYTES * 2 + 17 * tmp999.getSize()) {
+				if (bufferOut.remaining() < Integer.BYTES * 2 +  (17 * tmp999.getSize() * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
@@ -264,7 +262,7 @@ public class Application {
 			}
 
 			case 9 -> {// dataOneAddress
-				if (bufferOut.remaining() < Integer.BYTES + 16) {
+				if (bufferOut.remaining() < Integer.BYTES + (16 * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
 					return;
 				}
@@ -283,7 +281,7 @@ public class Application {
 			}
 
 			case 10 -> { // dataOneAddress
-				if (bufferOut.remaining() < Integer.BYTES + 17) {
+				if (bufferOut.remaining() < Integer.BYTES + (17 * Byte.BYTES)) {
 					return;
 				}
 				var tmp10 = (TramePingEnvoi) tramez;
@@ -299,7 +297,38 @@ public class Application {
 				bufferOut.put(addressTrame(tmp10.doa().Address()));
 			}
 			case 11 -> {
-				// dataResponse
+				if(bufferOut.remaining() < Integer.BYTES + (35 * Byte.BYTES)) {
+					System.out.println("WTF PLACE IN BUFFER ?");
+					return;
+				}
+				var tmp11 = (TramePingReponse) tramez;
+				bufferOut.putInt(tramez.getOp());
+				if (tmp11.dr().addressSrc().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+				}
+				if (tmp11.dr().addressSrc().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+				}
+				bufferOut.put(addressTrame(tmp11.dr().addressSrc()));
+				
+				if (tmp11.dr().addressDst().getAddress().getClass() == Inet4Address.class) {
+					byte aaa = 4;
+					bufferOut.put(aaa);
+				}
+				if (tmp11.dr().addressDst().getAddress().getClass() == Inet6Address.class) {
+					byte aaa = 6;
+					bufferOut.put(aaa);
+				}
+				bufferOut.put(addressTrame(tmp11.dr().addressDst()));
+				if(tmp11.dr().boolByte() == false) {
+					bufferOut.put((byte)0);
+				}
+				else{
+					bufferOut.put((byte)1);
+				}
+					
 			}
 
 			case 12 -> {
@@ -745,22 +774,7 @@ public class Application {
 	}
 
 
-	/**
-	 * Get the context of a socketchannel
-	 * @param sc
-	 * @return
-	 */
-	public Context getContextFromSocket(SocketChannel sc) {
-		for (SelectionKey key : selector.keys()) {
-			System.out.println("\n\nkeys" + key);
-			Context context = (Context) key.attachment();
-			System.out.println("\n\n context" + context);
-			if (context != null && context.scContext == sc) {
-				return context;
-			}
-		}
-		return null;
-	}
+
 
 	/**
 	 * Check and work on the frame from what op code we got
@@ -771,6 +785,7 @@ public class Application {
 	 */
 	void analyseur(Trame tramez) throws IOException {
 		Objects.requireNonNull(tramez);
+		System.out.println(tramez.getOp());
 		switch (tramez.getOp()) {
 		case 0 -> {
 			//DUMP
@@ -875,15 +890,12 @@ public class Application {
 				
 			}
 			else {//root
-				
-				reseau.add(localInet);
-				var ndla = new DataALotAddress(8, new ArrayList<>(reseau));
+				var list = new ArrayList<>(reseau);
+				list.add(localInet);
+				var ndla = new DataALotAddress(8, list);
 				var trm = new TrameFullTree(ndla);
 				broadCast(trm);
 			}
-			
-			
-			//incrémenter l'int et ajouter à la list soit ou faire la table si root
 		}
 		case 8 -> {
 			var tmp8 = (TrameFullTree) tramez;
@@ -892,21 +904,12 @@ public class Application {
 			for(int i = 0; i != listo.size(); i++){
 				table.addToRouteTable(listo.get(i),(InetSocketAddress) recu.getRemoteAddress());
 			}
-//			if(isroot){
-//				System.out.println("GREZOIGJZEPORIGJPZEIOJGPZEIORJGPZEAIOJGPZEOIJGPËZOIRJGPOEZIRGJPZEOIRGJ");
-//				listo.add(localInet);
-//				var ndla = new DataALotAddress(8, listo);
-//				var trm = new TrameFullTree(ndla);
-//				broadCast(trm); //A verifier avec le broadcast
-//			}
-			if(!isroot){
+			if(!isroot && connexions.size() > 1){
 				listo.add(localInet);
 				var ndla = new DataALotAddress(8, listo);
 				var trm = new TrameFullTree(ndla);
-				broadCastWithoutFrom(pere,trm); //A verifier avec le broadcast
+				broadCastWithoutFrom((InetSocketAddress)scDaron.getRemoteAddress(),trm); //A verifier avec le broadcast
 			}
-			
-			//update table de rootage
 		}
 		case 9 -> {
 			var tmp9 = (TrameNewLeaf) tramez;
@@ -914,58 +917,53 @@ public class Application {
 			
 			table.addToRouteTable(nouvAddress,(InetSocketAddress) recu.getRemoteAddress());
 			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
-			//ajouter l'application via la connexion dont on la reçu a la table de rootage
 		}
-
-		/* Une fonction pour chaque trame */
 		case 10 -> {
-			System.out.println("SOIIIIIIIIIIIIIIIIUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU");
 			TramePingEnvoi tmp = (TramePingEnvoi) tramez; // A verif
-			
 			var address = tmp.doa().Address();
-			System.out.println(InetSocketAddress.createUnresolved("localhost", address.getPort()));
-			System.out.println(scDaron.getRemoteAddress());
-
-			if(address == scDaron.getRemoteAddress()){
-				System.out.println("OMG CA MARCHE TU AS RECU UNE TRAME PING ENVOI" + address);
-			}
-			
 			if(connexions.size() > 1) {
-				broadCastWithoutFrom((InetSocketAddress) recu.getLocalAddress(),tramez);
+				broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+				selector.wakeup();
 			}
 			DataResponse dr;
+			
 			if(bufferDonnee.position() != 0 || dispo!=null) {
+				dispo = address;
 				dr = new DataResponse(11,localInet,address,false);
 			} else {
 				dr = new DataResponse(11,localInet,address,true);
 			}
 			
 			var trm = new TramePingReponse(dr);
-			System.out.println("recu :" + recu);
 			var con = getContextFromSocket(recu);
 			con.queueTrame(trm);
 			selector.wakeup();
-			//dispo = address;
+			
 			
 		}
 		case 11 -> {
-			System.out.println("YOLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 			var tmp11 = (TramePingReponse) tramez;
 			var addressSrc = tmp11.dr().addressSrc();
 			var addressDest = tmp11.dr().addressDst();
 			var resp = tmp11.dr().boolByte();
 			
-			if(addressDest != localInet) {
+			if(!addressDest.toString().equals(localInet.toString().replace("localhost", ""))) {
 				broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
 				
 			}else {
 				if(resp ==false) {
-					commande.computeIfPresent(addressSrc, (k,v) -> v = false);
+					if(commande.computeIfPresent(addressSrc, (k,v) -> v = false)==null){
+						commande.put(addressSrc,false);
+					}
 				}
 				if(resp == true) {
-					commande.computeIfPresent(addressSrc, (k,v) -> v = true);
+					if(commande.computeIfPresent(addressSrc, (k,v) -> v = true)==null){
+						commande.put(addressSrc,true);
+					}
 				}
+				System.out.println("ICI -------------------------------> "+commande);
 			}
+			
 			
 		}
 		
@@ -974,6 +972,22 @@ public class Application {
 		}
 
 		}
+	}
+	
+	
+		/**
+	 * Get the context of a socketchannel
+	 * @param sc
+	 * @return
+	 */
+	public Context getContextFromSocket(SocketChannel sc) {
+		for (SelectionKey key : selector.keys()) {
+			Context context = (Context) key.attachment();
+			if (context != null && context.scContext.equals(sc)) {
+				return context;
+			}
+		}
+		return null;
 	}
 
 	/**

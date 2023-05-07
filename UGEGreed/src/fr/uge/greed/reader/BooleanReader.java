@@ -25,7 +25,7 @@ public class BooleanReader implements Reader<Boolean>{
 			}
 			else {
 				var oldLimit = bb.limit();
-				bb.limit(internalBuffer.remaining());
+				bb.limit(internalBuffer.remaining() + bb.position());
 				internalBuffer.put(bb);
 				bb.limit(oldLimit);
 			}

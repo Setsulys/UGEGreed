@@ -127,7 +127,6 @@ public class TrameReader implements Reader<Trame> {
 
 				case 10 -> {//Trame ping d'envoie'
 						var addReaderStatePE = addReader.process(bb);
-						System.out.println(addReaderStatePE);
 						if(addReaderStatePE == ProcessStatus.DONE){
 							var address = addReader.get();
 							dataOneAddress = new DataOneAddress(op,address);

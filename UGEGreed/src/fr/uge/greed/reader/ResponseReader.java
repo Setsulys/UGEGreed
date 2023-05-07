@@ -52,7 +52,7 @@ public class ResponseReader implements Reader<Response>{
 	@Override
 	public void reset() {
 		// TODO Auto-generated method stub
-		state = State.DONE;
+		state = State.WAITING;
 		dAddressReader.reset();
 		boolReader.reset();
 	}
