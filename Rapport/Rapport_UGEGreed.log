@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  7 MAY 2023 21:29
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  8 MAY 2023 01:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -461,13 +461,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [7] [8] (Rapport_UGEGreed.aux)
 Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
-(rerunfilecheck)             Checksum: E88394FF8BE5783299B5D28FC965152E;3974.
+(rerunfilecheck)             Checksum: 3482E70DA838EB7DD8C4B859AD15F559;4071.
  ) 
 Here is how much of TeX's memory you used:
- 11680 strings out of 476334
- 180780 string characters out of 5787499
- 1953382 words of memory out of 5000000
- 31841 multiletter control sequences out of 15000+600000
+ 11695 strings out of 476334
+ 180997 string characters out of 5787499
+ 1957382 words of memory out of 5000000
+ 31850 multiletter control sequences out of 15000+600000
  524531 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,11n,76p,848b,1117s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -484,9 +484,9 @@ Data\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Users\Ste
 ven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Us
 ers\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
 
-Output written on Rapport_UGEGreed.pdf (9 pages, 162123 bytes).
+Output written on Rapport_UGEGreed.pdf (9 pages, 162681 bytes).
 PDF statistics:
- 663 PDF objects out of 1000 (max. 8388607)
- 127 named destinations out of 1000 (max. 500000)
- 233 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 671 PDF objects out of 1000 (max. 8388607)
+ 133 named destinations out of 1000 (max. 500000)
+ 241 words of extra memory for PDF output out of 10000 (max. 10000000)
 

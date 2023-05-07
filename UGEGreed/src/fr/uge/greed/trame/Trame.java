@@ -12,7 +12,8 @@ TrameFirstLeaf,
 TrameNewLeaf,
 TrameFullTree,
 TramePingEnvoi,
-TramePingReponse
+TramePingReponse,
+TrameFullDeco
 {
 	/*
 	0 1 2 DUMP

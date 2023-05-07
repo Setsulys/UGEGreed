@@ -169,6 +169,9 @@ public class TrameReader implements Reader<Trame> {
 				case 14->{//envoi de donnee traitee
 					System.out.println("hellow");
 				}
+				case 77 ->{
+					
+				}
 					
 			}
 			
@@ -230,6 +233,9 @@ public class TrameReader implements Reader<Trame> {
 		}
 		case 14 -> {
 			return null; // TODO
+		}
+		case 77 ->{
+			
 		}
 		}
 

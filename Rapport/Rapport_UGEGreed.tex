@@ -140,20 +140,20 @@ java bin.fr.uge.greed.Main <Host> <Port> <ServerHost> <ServerPort>
 Lorsqu'une connexion s'etablis la table de routage et la table de connexion se met a jour et nous affiche
 \begin{lstlisting}
 -------------Table of connexions--------------
-Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
+Connected To : java.nio.channels.SocketChannel[connected local=/127.0.0.1:60610 remote=localhost/127.0.0.1:1111]
 
 -----RouteTable------
-/127.0.0.1:5555 : /127.0.0.1:5555
+localhost/127.0.0.1:1111 : localhost/127.0.0.1:1111
 \end{lstlisting}
 Apres une nouvelle connexion d'une application à l'application qui se trouve a l'adresse 4444
 \begin{lstlisting}
 -------------Table of connexions--------------
-Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51609]
-Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
+Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:2222 remote=/127.0.0.1:60612]
+Connected To : java.nio.channels.SocketChannel[connected local=/127.0.0.1:60610 remote=localhost/127.0.0.1:1111]
 
 -----RouteTable------
-/127.0.0.1:5555 : /127.0.0.1:5555,
-/127.0.0.1:6666 : /127.0.0.1:6666
+localhost/127.0.0.1:1111 : localhost/127.0.0.1:1111,
+/127.0.0.1:3333 : /127.0.0.1:3333
 \end{lstlisting}
 (Ceci est un exemple lorsque l'on connecte deux application à une autre)
 \paragraph{•}
@@ -168,22 +168,27 @@ DISCONNECT
 déconnectera l'application 
 \subsubsection{Sur le terminal qui se déconnecte on aura}
 \begin{lstlisting}
----------------------
+DISCONNECT
+mai 07, 2023 11:57:21 PM fr.uge.greed.Application processCommands
+INFO: ---------------------
 Disconnecting the node ...
-avr. 10, 2023 4:10:24 PM fr.uge.greed.Application lambda$1
+.
+.
+.
+mai 07, 2023 11:57:21 PM fr.uge.greed.Application analyseur
 INFO: Disconnected Succesfully
 ---------------------
 \end{lstlisting}
 et ça nous renverra sur la ligne de commande
 \subsubsection{Pour les autres terminaux}
 \begin{lstlisting}
-Connexion closed >>>>>>>>>>>>>>>>>>>>>>>>>>> /127.0.0.1:51609
+Connexion closed >>>>>>>>>>>>>>>>>>>>>>>>>>> /127.0.0.1:60612
 
 -------------Table of connexions--------------
-Conneted from : java.nio.channels.SocketChannel[connected local=/127.0.0.1:4444 remote=/127.0.0.1:51612]
+Connected To : java.nio.channels.SocketChannel[connected local=/127.0.0.1:60610 remote=localhost/127.0.0.1:1111]
 
 -----RouteTable------
-/127.0.0.1:5555 : /127.0.0.1:5555
+localhost/127.0.0.1:1111 : localhost/127.0.0.1:1111
 \end{lstlisting}
 \subsection{Lancement}
 Le lancement d'une tache se fera en utilisant la commande:
@@ -191,6 +196,8 @@ Le lancement d'une tache se fera en utilisant la commande:
 \begin{lstlisting}
 START <URL/JAR> <Nom classe> <Debut> <Fin> <Fichier resultat>
 \end{lstlisting}
+\subsection{Default}
+Si dans le terminal il y est marqué autre chose que ces deux dernières commandes, il nous sera envoyé un message d'usage
 
 
 
