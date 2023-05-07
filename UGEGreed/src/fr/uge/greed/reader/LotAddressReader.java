@@ -58,6 +58,7 @@ public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
 	@Override
 	public void reset() {
 		state = State.WAITING;
+		list = new ArrayList<>();
 		reader.reset();
 		intReader.reset();
 	}

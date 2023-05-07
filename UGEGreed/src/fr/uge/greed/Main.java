@@ -94,3 +94,20 @@ public class Main {
 		}	
 	}
 }
+
+//		Thread.ofPlatform().start(()->{
+//try (var scanner = new Scanner(System.in)) {
+//	while (scanner.hasNextLine()) {
+//		var msg = scanner.nextLine();
+//		if (msg.equals("DISCONNECT")) {
+//			System.out.println("---------------------\nDisconnecting the node ...");
+//			appli.k
+//			var con = (Context) key.attachment();
+//			con.closed = true;
+//			silentlyClose(key);
+//			Thread.currentThread().interrupt();
+//			System.exit(0);
+//		}
+//	}
+//}
+//});

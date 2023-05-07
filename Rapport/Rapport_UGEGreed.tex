@@ -216,12 +216,23 @@ Nous n'avions non plus pas le lanceur de tâches
 \paragraph{•} La connexion des applications entre elles.
 \paragraph{•} Reconnexion d'une application vers une autre avec mise à jour partielle de la table de routage.
 \subsection{Active Partiellement ou pas implémenté}
-\paragraph{•} La transmission des données est fonctionnel mais pas correctement implémenté.
-\paragraph{•} La table de routage n'est pas encore complètement implementé, il nous faut verifier que via les trames transmises, la table de routage de toutes les applications sont mis a jours correctement, cependant la table de routage de l'application avec les applications connexe est bonne.
+\paragraph{•} Les trames
+\begin{itemize}
+\item Trame d'Annonce d'intention de déconnexion
+\item Trame de Confirmation de changement de connexion
+\item Trame FirstRoot : Que la Root envoi pour ping qui est dans le réseau
+\item Trame FirstLeaf : Que les feuilles renvoient vers la root pour mettre à jour les tables de routage par le bas
+\item Trame FullTree : Que la root renvoi à tout le monde pour mettre à jour les tables de routages par le haut
+\item Trame Ping Envoi : Qui permet de verifier si une application est disponible
+\item Trame Ping Réponse : En réponse à la trame ping Envoi répond si l'application actuelle est disponible( donc n'as pas de taches)
+\end{itemize}
+\paragraph{•} La table de routage n'est pas encore complètement implementé, il nous faut vérifier que via les trames transmises, la table de routage de toutes les applications sont mis a jours correctement, cependant la table de routage de l'application avec les applications connexe est bonne.
 \paragraph{•} Nous avons fait la partie traitement du JAR et lancement des fonctions, cependant ce n'est pas encore connecté au reste de l'application
 \subsection{Non Active}
-\paragraph{•} De souvenir rien
-
+\begin{itemize}
+\item Trame de suppression
+\end{itemize}
+\paragraph{•} Tansfert des données lors d'une déconnexion
 
 
 
