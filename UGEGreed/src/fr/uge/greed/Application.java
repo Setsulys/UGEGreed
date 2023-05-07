@@ -908,9 +908,11 @@ public class Application {
 				System.out.println(localInet +" "+ appDeco);
 					System.out.println("aefaefaefaefaef" + appDeco);
 					table.deleteRouteTable(appDeco);
+					
 					var doa = new DataOneAddress(5,appDeco);
 					TrameSuppression supp = new TrameSuppression(doa);
 					broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), supp);
+					
 					var trameConfirmation  = new TramePingConfirmationChangementCo(dda);
 					var context = getContextFromSocket(recu);
 					context.queueTrame(trameConfirmation);
