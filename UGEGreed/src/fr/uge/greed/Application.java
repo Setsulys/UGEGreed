@@ -77,7 +77,6 @@ public class Application {
 		}
 
 		private void updateInterestOps() {
-			System.out.println("update");
 			try {
 				var ops = 0;
 				if (!closed && bufferIn.hasRemaining()) {
@@ -90,10 +89,9 @@ public class Application {
 					silentlyClose();
 					return;
 				} 
-				System.out.println("update ICI "+ops);
 				key.interestOps(ops);
 			} catch (CancelledKeyException e) {
-				System.out.println("CATCHED");
+				loggerC.info("CancelledKeyEx");
 			}
 			
 		}
@@ -294,7 +292,7 @@ public class Application {
 			}
 			case 11 -> {
 				if(bufferOut.remaining() < Integer.BYTES + (35 * Byte.BYTES)) {
-					System.out.println("WTF PLACE IN BUFFER ?");
+					System.out.println("Buffer doesn't have  enough room");
 					return;
 				}
 				var tmp11 = (TramePingReponse) tramez;
@@ -548,14 +546,12 @@ public class Application {
 		console.start();
 		while (!Thread.interrupted()) {
 			 Helpers.printKeys(selector); // for debug
-			// System.out.println("Starting select");
 			try {
 				processCommands();
 				selector.select(this::treatKey);
 			} catch (UncheckedIOException tunneled) {
 				throw tunneled.getCause();
 			}
-			// System.out.println("Select finished");
 		}
 	}
 
@@ -571,7 +567,6 @@ public class Application {
 				doAccept(key);
 			}
 		} catch (IOException ioe) {
-			// lambda call in select requires to tunnel IOException
 			throw new UncheckedIOException(ioe);
 		}
 		try {
@@ -621,9 +616,7 @@ public class Application {
 		var newKey = nouvFils.register(selector, SelectionKey.OP_READ);
 		var context = new Application.Context(newKey, this);
 		newKey.attach(context);
-
 		connexions.add(context);
-		// table.updateRouteTable(context, context);
 		consoleTest(key);
 		printConnexions();
 	}
@@ -651,14 +644,12 @@ public class Application {
 		}
 		key.interestOps(SelectionKey.OP_READ);
 		consoleTest(key);
-		// daronContext.updateInterestOps();
 		try {
 			Thread.sleep(100);
 			daronContext.updateInterestOps();
 		} catch (InterruptedException e) {
 			logger.info("Interrupted at connexion");
 		}
-		// daronContext.updateInterestOps();
 	}
 
 	/**
@@ -684,119 +675,12 @@ public class Application {
 	@SuppressWarnings({ "preview", "static-access" })
 	private void consoleTest(SelectionKey key) {
 		Thread.ofPlatform().daemon().start(() -> {
-//			try (var scanner = new Scanner(System.in)) {
-//				while (scanner.hasNextLine()) {
-//					var msg = scanner.nextLine();
-//					if (msg.equals("DISCONNECT")) {
-//						InetSocketAddress truc = new InetSocketAddress("localhost",7777);
-//						
-//						
-//						daronContext.closed=true;
-//						silentlyClose(daronContext.key);
-//						System.out.println("Silently close");
-//						
-//					
-//						try {
-//							scDaron = SocketChannel.open();
-//							scDaron.configureBlocking(false);
-//							scDaron.register(selector, SelectionKey.OP_CONNECT);
-//							scDaron.connect(truc);
-//							System.out.println("connexion");
-//						} catch (IOException e) {
-//							logger.info("Cannot connect to The new Father" + e);
-//						}
-//						
-//					}
-//
-//					if (msg.equals("TEST")) {
-//						System.out.println("---------------------\nTesting Trame RT");
-						/*
-						 * msg = scanner.nextLine(); var who = Integer.parseInt(msg); Context element =
-						 * null; Iterator<Context> it = connexions.iterator(); while(it.hasNext() && who
-						 * != 0){ element = it.next(); System.out.println("trux"); who--; }
-						 */
-//						if(isroot){
-////							try {
-//								
-//								//Thread.currentThread().sleep(5000);
-//								var truc = new TrameFirstRoot(6);
-//								for(var e : connexions){
-//									//System.out.println(e.scContext);
-//									e.queueTrame(truc);
-//								}
-//								
-//								selector.wakeup();
-//								
-//								
-//								
-////								System.out.println("root -> " + table);
-////								Thread.currentThread().sleep(5000);
-////								var doa = new DataOneAddress(10,localInet);
-////								var trme = new TramePingEnvoi(doa);
-////								for(var e : connexions){
-////									System.out.println(e.scContext);
-////									e.queueTrame(trme);
-////								}
-////								selector.wakeup();
-////								Thread.currentThread().sleep(10000);
-////								selector.wakeup();
-//								
-////							} catch (InterruptedException e) {
-////								logger.info("Interruption at Console Test");
-////							}
-//							
-//						}
-//						else {
-						
-							
-							
 				var doa = new DataALotAddress(7,new ArrayList<InetSocketAddress>(Arrays.asList(localInet)));
 				var trm = new TrameFirstLeaf(doa);
 				if(!isroot) {
 					daronContext.queueTrame(trm);
 					selector.wakeup();
-					System.out.println("ENVOI");
-				}
-									
-//							try{
-//							Thread.currentThread().sleep(15000);
-//							System.out.println("fu -> " + table);
-//						}catch(InterruptedException e){
-//							e.printStackTrace();
-//						}
-//						}
-//						if(localInet.equals(truc3)) {
-//							try {
-//								Thread.sleep(15000);
-//								var dr = new DataResponse(11,localInet,localInet,false);
-//								var trm = new TramePingReponse(dr);
-//								daronContext.queueTrame(trm);
-//								selector.wakeup();
-//								
-//							} catch (InterruptedException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
-//							
-//							}
-//						
-//						var truc = new TrameFirstRoot(6);
-//						
-						
-//						
-//						DataOneAddress machin = new DataOneAddress(10, localInet);
-//						TramePingEnvoi truc = new TramePingEnvoi(machin);
-//						daronContext.queueTrame(truc);
-						 
-//						
-						
-						//var tmp = (Context) key.attachment();
-						//tmp.processOut(truc);
-						//tmp.updateInterestOps();
-
-//						logger.info("Console thread stopping ");
-//			}
-//			}
+				}					
 		});			
 	}
 
@@ -852,61 +736,46 @@ public class Application {
 			var tmp3 = (TrameAnnonceIntentionDeco) tramez;
 			var appDeco = tmp3.dda().AddressSrc();
 			var daronApp = tmp3.dda().AddressDst();
-			
+			table.deleteRouteTable(appDeco);
+			table.removeKeyFromValue(appDeco);
 			if(daronApp.equals(localInet)) {
-				System.out.println("JE SUIS TON PERE");
-				
-				System.out.println(localInet +" "+ appDeco);
-					System.out.println("aefaefaefaefaef" + appDeco);
 					//table.deleteRouteTable(appDeco);
 					
 					
 					var doa = new DataOneAddress(5,appDeco);
-//					TrameSuppression supp = new TrameSuppression(doa);
-//					broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), supp);
+					TrameSuppression supp = new TrameSuppression(doa);
+					broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), supp);
 					
 					var dda = new DataDoubleAddress(4,localInet,appDeco);
 					var trameConfirmation  = new TramePingConfirmationChangementCo(dda);
 					var context = getContextFromSocket(recu);
-					//context.queueTrame(trameConfirmation);
+					context.queueTrame(trameConfirmation);
 			}
 			else {
-				System.out.println("C'est mon pere"+scDaron.getRemoteAddress());
 				if(table.get(appDeco).equals(scDaron.getRemoteAddress())) {					
-					System.out.println("NONNN C4EST IMPOSSIBLE");
 					var beauDaron = scDaron.getRemoteAddress();
-					System.out.println("beauDaron " + beauDaron);
 					scDaron.close();
-					System.out.println("ole");
 					scDaron = SocketChannel.open();
-					System.out.println("open");
-
-
-					System.out.println("LETSGO");
 					selector = Selector.open();
-					System.out.println("LETSGO 2");
 //					scDaron = SocketChannel.open();
-					System.out.println("LETSGO 3");
 					scDaron.configureBlocking(false);
-					System.out.println("LETSGO 4");
 					scDaron.register(selector, SelectionKey.OP_CONNECT);
-					System.out.println("LETSGO 5");
 					
 					scDaron.connect(daronApp);
-					
-					System.out.println("LETSGO 6");
-					System.out.println("MON DARON: " + scDaron.getRemoteAddress());
 					table.removeKeyFromValue((InetSocketAddress) beauDaron);
 					
 					
 					var doa = new DataALotAddress(7,new ArrayList<InetSocketAddress>(Arrays.asList(localInet)));
-					var trm = new TrameFirstLeaf(doa);
+					var dda = new DataDoubleAddress(4,localInet,(InetSocketAddress) beauDaron);
+					var trm = new TramePingConfirmationChangementCo(dda);
+					var trme = new TrameFirstLeaf(doa);
+					daronContext.queueTrame(trm);
+					selector.wakeup();
+					
 					if(!isroot) {
 						daronContext.queueTrame(trm);
 						selector.wakeup();
-						System.out.println("ENVOI");
 					}
-//					System.out.println("YO");
 //					table = new RouteTable((InetSocketAddress)ssc.getLocalAddress());
 //					
 //					var doa = new DataOneAddress(5,appDeco);
@@ -951,26 +820,23 @@ public class Application {
 		case 5 -> {
 			var tmp5 = (TrameSuppression) tramez;
 			var addressDeco = tmp5.doa().Address();
-			
+			table.removeKeyFromValue(addressDeco);
 			table.deleteRouteTable(addressDeco);
+			System.out.println(addressDeco + " <- add deco");
 			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
-//			if(isroot) {
-//				//var list = new ArrayList<>(reseau);
-//				var list = table.getAllAddress();
-//				list.add(localInet);
-////				System.out.println("J4ENVOI CETTE LISTE ET JE SUIS LA " + list); ----------------------------------------------------------------------
-//				var ndla = new DataALotAddress(8, list);
-//				var caca = new TrameFullTree(ndla);
-//				broadCast(caca);
-//			}
+			if(isroot) {
+				var list = table.getAllAddress();
+				list.add(localInet);
+				var ndla = new DataALotAddress(8, list);
+				var brc = new TrameFullTree(ndla);
+				broadCast(brc);
+			}
 			//enlever l'app dans la table de routage
 		}
 
 		case 7 -> {
-//			System.out.println("Celui qui m'a envoye le 7 est : " + recu.getRemoteAddress());
 			var tmp7 = (TrameFirstLeaf) tramez;
 			var listo = tmp7.dla().list();
-//			System.out.println("TAILLE DU PAQUET 7 :" + listo.size());
 			var route = listo.get(listo.size()-1);
 			for(int i = 0; i != listo.size();i++) {
 				if(!listo.get(i).equals(localInet)) {
@@ -981,12 +847,11 @@ public class Application {
 				}
 				
 			}
-//			System.out.println("LES VALEURS DES ADDRESSES\n" + listo);
 			if(!isroot) {//pas root
 				if(connexions.size()!=1){
 					System.out.println( listo.removeIf(e -> e.equals(localInet)));
 					listo.add(localInet);
-//					System.out.println("JE VAIS ENVOYER CETTE LISTE BATARD" + listo);
+
 					var ndla = new DataALotAddress(7,listo);
 					var trm = new TrameFirstLeaf(ndla);
 					daronContext.queueTrame(trm);
@@ -995,7 +860,6 @@ public class Application {
 			}
 			else {//root
 				var list = new ArrayList<>(reseau);
-//				System.out.println(list+"     mon réseau");
 				list.add(localInet);
 				var ndla = new DataALotAddress(8, list);
 				var caca = new TrameFullTree(ndla);
@@ -1168,23 +1032,6 @@ public class Application {
 		return internBuffer.flip();
 	}
 
-//	/**
-//	 * Deconnect the application
-//	 */
-//	void deconnexion() {
-//		logger.info("---------------------\nDisconnecting the node ...");
-//		try {
-//			ssc.close();
-//			Thread.currentThread().interrupt();
-//		} catch (IOException e) {
-//			logger.info("Disconnected Succesfully\n---------------------");
-//			System.exit(0);
-//		}
-//		logger.info("Disconnected Succesfully\n---------------------");
-//
-//	}
-
-
 	/**
 	 * BroadCast the buffer to all connections apart the address that the frame come
 	 * from
@@ -1307,11 +1154,21 @@ public class Application {
 						selector.wakeup();
 					}
 					else {
-						broadCast(tame);
-						selector.wakeup();
+						try{
+							broadCast(tame);
+							selector.wakeup();
+						}finally{
+							silentlyClose(daronContext.key);
+							Thread.currentThread().interrupt();
+							logger.info("Disconnected Succesfully\n---------------------");
+							System.exit(0);
+						}
 					}
 				} catch (IOException e) {
-					logger.info("ProcessCommand IOException");
+					System.out.println(".");
+					Thread.currentThread().interrupt();
+					logger.info("Disconnected Succesfully\n---------------------");
+					System.exit(0);
 				}
 			}
 				

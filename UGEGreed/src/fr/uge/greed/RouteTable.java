@@ -108,19 +108,18 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 		if(newAdress != me){
 			Objects.requireNonNull(newAdress);
 			Objects.requireNonNull(route);
-			routeTable.putIfAbsent(newAdress, route);
+			routeTable.put(newAdress, route);
 		}
 
 		
 	} 
 	
-	
 	public void removeKeyFromValue(InetSocketAddress address){
-		System.out.println("VALUE TO REMOVE" + address);
-		for(var e : routeTable.entrySet()){
-			if(address.equals(e.getValue())){
-				System.out.println("THE GET VALUE" + e.getValue());
-				routeTable.remove(e.getKey());
+		Iterator<InetSocketAddress> iterator = routeTable.keySet().iterator();
+		while(iterator.hasNext()){
+			InetSocketAddress key = iterator.next();
+			if(routeTable.get(key).equals(address)){
+				iterator.remove();
 			}
 		}
 	}
