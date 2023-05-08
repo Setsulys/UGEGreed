@@ -89,14 +89,14 @@ L'application sur laquelle on initie la tâche va pinger toute les applications 
 Lorsque l'on reçoit une tâche, via une trame, on regarde l'URL ou bien le chemin par lequel on doit passer pour accéder au jar  et aussi on prend en compte le fichier dans lequel doit être sauvegardé les données. 
 \paragraph{}
 A chaque fois que l'on doit fait une conjecture, le résultat sera directement mis dans le fichier. Une fois la tache fini l'application se met en attente d'une nouvelle tache
+
+
+
+
+
+
+
 \pagebreak
-
-
-
-
-
-
-
 \section{UGEGreed}
 \subsection{RFC}
 \paragraph{}
@@ -208,38 +208,489 @@ Si dans le terminal il y est marqué autre chose que ces deux dernières command
 
 \pagebreak
 \section{Évolutions depuis la Beta}
-\paragraph{}
-Lors de la soutenance Beta notre code contenait pas encore les tout les reader, nous et nous partions sans le savoir sur un serveur bloquant.
-Nous n'avions non plus pas le lanceur de tâches 
-\subsection{Maniere de traiter}
-
-
-
-
-
-
-\section{Fonctionnalités}
-\subsection{Actives}
-\paragraph{•} La connexion des applications entre elles.
-\paragraph{•} Reconnexion d'une application vers une autre avec mise à jour partielle de la table de routage.
-\subsection{Active Partiellement ou pas implémenté}
-\paragraph{•} Les trames
+\paragraph{Ce qu'il manquait}
 \begin{itemize}
+\item Lors de la soutenance Beta notre code contenait pas encore les tout les reader, nous et nous partions sans le savoir sur un serveur bloquant. et nous n'avions non plus pas le lanceur de tâches 
+\item La table de routage était utilisé avec des InetSocketAddress, l'enseignant nous a dit qu'il était préférable que ce soit des contextes.
+\end{itemize}
+\paragraph{Ce qui à été ajouté}
+\begin{itemize}
+\item Les methodes ne sont pas bloquantes
+\item Nous avons les readers qui sont fonctionnels
+\item Nous avons aussi ajouté les trames qui se lancent bien.
+\item La console permetant de Deconnecter et de Lancer une tache est présente (mais on ne peux pas encore lancer de tache (voir point suivant))
+\item Le launcher de conjectures est présent mais pas implémenté dans le projet (voir README)
+\item La deconnexion n'est pour l'instant possible que pour les feuilles
+\end{itemize}
+\paragraph{Ce qui n'a pas pu être ajouté}
+\begin{itemize}
+\item Nous n'avons pas changé les clés valeurs de la table de routage par les Contextes comme demandé car nous n'en n'avons pas eu le temps, nous préférions nous concentrer sur les autres aspect du code que nous trouvions bien plus importante
+\item La déconnexion d'une application interne et re-connexion de ses fils vers l'application supérieur
+\end{itemize}
+
+\subsection{Maniere de traiter}
+\subsubsection{L'analyseur de trames (dans la classe Application)}
+\begin{lstlisting}
+void analyseur(Trame tramez) throws IOException {
+	Objects.requireNonNull(tramez);
+	switch (tramez.getOp()) {
+	case 3 -> {
+		var tmp3 = (TrameAnnonceIntentionDeco) tramez;
+		var appDeco = tmp3.dda().AddressSrc();
+		var daronApp = tmp3.dda().AddressDst();	
+		if(daronApp.equals(localInet)) {
+				System.out.println("aefaefaefaefaef" + appDeco);
+				table.deleteRouteTable(appDeco);
+				var doa = new DataOneAddress(5,appDeco);
+				TrameSuppression supp = new TrameSuppression(doa);
+				broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), supp);
+				var dda = new DataDoubleAddress(4,localInet,appDeco);
+				var trameConfirmation  = new TramePingConfirmationChangementCo(dda);
+				var context = getContextFromSocket(recu);
+				context.queueTrame(trameConfirmation);
+		}
+		else {
+			System.out.println("C'est mon pere"+scDaron.getRemoteAddress());
+			if(table.get(appDeco).equals(scDaron.getRemoteAddress())) {
+				System.out.println("NONNN C4EST IMPOSSIBLE");
+			}
+		}
+	}
+	case 4 -> {
+		var tmp4 = (TramePingConfirmationChangementCo) tramez;
+		var addressDeco = tmp4.dda().AddressDst();
+		var addressChangement = tmp4.dda().AddressSrc();
+		if(addressDeco.equals(localInet)) { //c'est nous qui se barrons
+			if(connexions.size() == 1) {
+				silentlyClose(daronContext.key);
+				Thread.currentThread().interrupt();
+				logger.info("Disconnected Succesfully\n---------------------");
+				System.exit(0);
+			}
+		}
+	}
+	case 5 -> {
+		var tmp5 = (TrameSuppression) tramez;
+		var addressDeco = tmp5.doa().Address();
+		table.deleteRouteTable(addressDeco);
+		if(isroot) {
+			var list = table.getAllAddress();
+			list.add(localInet);
+			var ndla = new DataALotAddress(8, list);
+			var caca = new TrameFullTree(ndla);
+			broadCast(caca);
+		}
+	}
+	case 7 -> {
+		var tmp7 = (TrameFirstLeaf) tramez;
+		var listo = tmp7.dla().list();
+		var route = listo.get(listo.size()-1);
+		for(int i = 0; i != listo.size();i++) {
+			if(!listo.get(i).equals(localInet)) {
+				table.addToRouteTable(listo.get(i), route);
+				if(!reseau.contains(listo.get(i))) {
+					reseau.add(listo.get(i));
+				}
+			}
+		}
+		if(!isroot) {//pas root
+			if(connexions.size()!=1){
+				listo.add(localInet);
+				var ndla = new DataALotAddress(7,listo);
+				var trm = new TrameFirstLeaf(ndla);
+				daronContext.queueTrame(trm);
+			}
+		}
+		else {
+			var list = new ArrayList<>(reseau);
+			list.add(localInet);
+			var ndla = new DataALotAddress(8, list);
+			var caca = new TrameFullTree(ndla);
+			broadCast(caca);
+		}
+		selector.wakeup();
+	}
+	case 8 -> {
+		var tmp8 = (TrameFullTree) tramez;
+		var listz = tmp8.dla().list();
+		table.removeKeyIf(listz);
+		for(int i = 0; i != listz.size(); i++){
+			if(!listz.get(i).equals(localInet)) {
+				table.addToRouteTable(listz.get(i),(InetSocketAddress) recu.getRemoteAddress());
+				if(reseau.contains(listz.get(i))) {
+					reseau.add(listz.get(i));
+				}
+			}
+		}
+		if(!isroot && connexions.size() > 1){
+			listz.removeIf(e -> e.equals(localInet));
+			listz.add(localInet);
+			var ndla = new DataALotAddress(8, listz);
+			var trm = new TrameFullTree(ndla);
+			broadCastWithoutFrom((InetSocketAddress)scDaron.getRemoteAddress(),trm);
+		}
+	}
+	case 10 -> {
+		TramePingEnvoi tmp = (TramePingEnvoi) tramez;
+		var address = tmp.doa().Address();
+		if(connexions.size() > 1) {
+			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+			selector.wakeup();
+		}
+		DataResponse dr;
+		
+		if(bufferDonnee.position() != 0 || dispo!=null) {
+			dispo = address;
+			dr = new DataResponse(11,localInet,address,false);
+		} else {
+			dr = new DataResponse(11,localInet,address,true);
+		}
+		var trm = new TramePingReponse(dr);
+		var con = getContextFromSocket(recu);
+		con.queueTrame(trm);
+		selector.wakeup();
+	}
+	case 11 -> {
+		var tmp11 = (TramePingReponse) tramez;
+		var addressSrc = tmp11.dr().addressSrc();
+		var addressDest = tmp11.dr().addressDst();
+		var resp = tmp11.dr().boolByte();
+		if(!addressDest.toString().equals(localInet.toString().replace("localhost", ""))) {
+			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+		}else {
+			if(resp ==false) {
+				if(commande.computeIfPresent(addressSrc, (k,v) -> v = false)==null){
+					commande.put(addressSrc,false);
+				}
+			}
+			if(resp == true) {
+				if(commande.computeIfPresent(addressSrc, (k,v) -> v = true)==null){
+					commande.put(addressSrc,true);
+				}
+			}
+			System.out.println("ICI -------------------------------> \n"+commande);
+		}
+	}
+	default -> {
+		return;
+	}
+	}
+}
+\end{lstlisting}
+\pagebreak
+\subsubsection{Classe Pour lire une addresse}
+\begin{lstlisting}
+public class AddressReader implements Reader<InetSocketAddress>{
+	private enum State{
+		DONE,WAITING_IP,WAITING_TYPE,WAITING_HOST,ERROR
+	}
+
+	private static int BUFFER_SIZE = 1024;
+	private final ByteBuffer bufferType =  ByteBuffer.allocate(Byte.BYTES);
+	private final ByteBuffer bufferHost = ByteBuffer.allocate(Short.BYTES);
+	private final ByteBuffer bufferAddress = ByteBuffer.allocate(BUFFER_SIZE);
+	private byte ipType;
+	
+	private InetSocketAddress address;
+	private  Short host;
+	private State state = State.WAITING_TYPE;
+	
+	private int IPV4 = 4 * Byte.BYTES;
+	private int IPV6 = 16 * Byte.BYTES;
+	
+	@Override
+	public ProcessStatus process(ByteBuffer bb) {
+		if(state == State.DONE || state == State.ERROR) {
+			throw new IllegalStateException();
+		}
+		bb.flip();
+		try {
+			if(state == State.WAITING_TYPE) {
+				
+				if(bb.remaining() <= bufferType.remaining()) {
+					bufferType.put(bb);
+				}
+				else {
+					var oldLimit = bb.limit();
+					bb.limit(bufferType.remaining()+ bb.position());
+					bufferType.put(bb);
+					bb.limit(oldLimit);
+				}
+				if(bufferType.remaining() != 0) {
+					return ProcessStatus.REFILL;
+				}
+				ipType = bufferType.flip().get();
+				if(ipType != 4 && ipType != 6) {
+					System.out.println("ip error");
+					return ProcessStatus.ERROR;
+				}
+				state = State.WAITING_IP;
+			}
+			if(state == State.WAITING_IP) {
+				if(ipType == 4) {
+					while(bb.hasRemaining() && bufferAddress.position() < IPV4 && bufferAddress.hasRemaining()) {
+						bufferAddress.put(bb.get());
+					}
+					if(bufferAddress.position() < IPV4) {
+						return ProcessStatus.REFILL;
+					}
+				}
+				else {
+					while(bb.hasRemaining() && bufferAddress.position()  < IPV6 && bufferAddress.hasRemaining()) {
+						bufferAddress.put(bb.get());
+					}
+					if(bufferAddress.position() < IPV6) {
+						return ProcessStatus.REFILL;
+					}
+				}
+				state = State.WAITING_HOST;
+			}
+			if(state == State.WAITING_HOST) {
+				if(bb.remaining() <= bufferHost.remaining() ) {
+					bufferHost.put(bb);
+					
+				}
+				else {
+					var oldLimit = bb.limit();
+					bb.limit(bufferHost.remaining()+bb.position());
+					bufferHost.put(bb);
+					bb.limit(oldLimit);
+				}
+				if(bufferHost.remaining() != 0) {
+					return ProcessStatus.REFILL;
+				}
+				host = bufferHost.flip().getShort();
+			}
+		}finally {
+			bb.compact();
+		}
+		try {
+			InetAddress inetAddress = null;
+			if(ipType == 4) {
+				byte[] addressBytes = new byte[4];
+				bufferAddress.flip();
+				bufferAddress.get(addressBytes);
+				inetAddress = Inet4Address.getByAddress(addressBytes);
+				address = new InetSocketAddress(inetAddress,host);
+			}
+			else {
+				byte[] addressBytes = new byte[16];
+				bufferAddress.flip();
+				bufferAddress.get(addressBytes);
+				inetAddress = InetAddress.getByAddress(addressBytes);
+				address = new InetSocketAddress(inetAddress,host);
+			}
+		}catch(IOException e){ //UnknownHostException
+			
+		}
+		state = State.DONE;
+		return ProcessStatus.DONE;
+	}
+
+	@Override
+	public InetSocketAddress get() {
+		if(state == State.DONE) {
+			return address;
+		}
+		throw new IllegalStateException();
+	}
+
+	@Override
+	public void reset() {
+		state = State.WAITING_TYPE;
+		bufferAddress.clear();
+		bufferType.clear();
+		bufferHost.clear();
+	}
+
+	
+}
+\end{lstlisting}
+\pagebreak
+\subsubsection{Classe lisant plusieurs addresses dans une trame}
+\begin{lstlisting}
+public class LotAddressReader implements Reader<ArrayList<InetSocketAddress>>{
+	private enum State{
+		DONE,WAITING,ERROR
+	}
+	private State state = State.WAITING;
+	private final AddressReader reader = new AddressReader();
+	private final IntReader intReader = new IntReader();
+	private  int nbAddress;
+	private ArrayList<InetSocketAddress> list = new ArrayList<>();
+	@Override
+	public ProcessStatus process(ByteBuffer bb) {
+		if(state == State.DONE || state == State.ERROR) {
+			throw new IllegalStateException();
+		}
+
+		bb.flip();
+		var readerState = intReader.process(bb);
+		if(readerState == ProcessStatus.DONE) { // On recupere le nombre d'addresse que la trame possede
+			nbAddress = intReader.get();
+			intReader.reset();
+
+			var nb = 0;
+			while(nb < nbAddress) {//On recupere chaque addresse qu'on met dans une liste
+				readerState = reader.process(bb);
+				if(readerState == ProcessStatus.DONE) {
+					list.add(reader.get());
+					reader.reset();
+				}
+				else {
+					return readerState;
+				}
+				nb++;
+				
+			}
+			
+		}
+		else {
+			return readerState;
+		}
+		list = list.stream().distinct().collect(Collectors.toCollection(ArrayList::new));
+		state = State.DONE;
+		return ProcessStatus.DONE;
+	}
+	@Override
+	public ArrayList<InetSocketAddress> get() {
+		if(state == State.DONE) {
+			return list;
+		}
+		throw new IllegalStateException();
+	}
+	@Override
+	public void reset() {
+		state = State.WAITING;
+		list = new ArrayList<>();
+		reader.reset();
+		intReader.reset();
+	}
+	
+}
+\end{lstlisting}
+\pagebreak
+\subsubsection{Console}
+\begin{lstlisting}
+private void consoleRun() {
+	try {
+		try(var scanner = new Scanner(System.in)){
+			while(scanner.hasNextLine()){
+				var msg = scanner.nextLine();
+				sendCommands(msg);
+			}
+		}
+		logger.info("Console thread has stopped");
+	} catch(InterruptedException e){
+		logger.info("Console thread interrupted");
+	}
+}
+
+private void sendCommands(String msg) throws InterruptedException{
+	if(msg == null) {
+		return;
+	}
+	commandQueue.add(msg);
+	selector.wakeup();
+}
+
+private void processCommands() {
+	if(commandQueue.isEmpty()) {
+		return;
+	}
+	var commands = commandQueue.poll();
+	if(commands.equals("DISCONNECT")) {
+		if(isroot) {
+			logger.info("---------------------\nDisconnecting the node ...");
+			
+			var trameFullDeco = new TrameFullDeco(77);
+			try {
+				broadCast(trameFullDeco);
+				System.out.println("DISCONNECTING ALL NODES");
+			}catch (IOException e) {
+				logger.info("Deco IOException");
+			}finally {
+			
+			Thread.currentThread().interrupt();
+			logger.info("Disconnected Succesfully\n---------------------");
+			System.exit(0);
+			}
+		}
+		else {
+			try {
+				var ddl = new DataDoubleAddress(3,localInet,(InetSocketAddress) scDaron.getRemoteAddress());
+				var tame = new TrameAnnonceIntentionDeco(ddl);
+				logger.info("---------------------\nDisconnecting the node ...");
+				if(connexions.size()==1) {
+					System.out.println("ok");
+					daronContext.queueTrame(tame);
+					selector.wakeup();
+				}
+				else {
+					broadCast(tame);
+					selector.wakeup();
+				}
+			} catch (IOException e) {
+				logger.info("ProcessCommand IOException");
+			}
+		}
+			
+	}
+	else if(commands.startsWith("START")) {
+		var lst = Arrays.asList(commands.split(" ")) ;
+		if(lst.size()!=6) {
+			launchUsage();
+			return;
+		}
+		System.out.println(lst);
+		try{
+			String jar = lst.get(1);
+			String qualifiedName = lst.get(2);
+			long start = Long.parseLong(lst.get(3));
+			long end = Long.parseLong(lst.get(4));
+			String fileName = lst.get(5);
+			putInData(jar, qualifiedName, start, end, fileName);
+		}catch(NumberFormatException e){
+			logger.info(" WRONG START");
+			launchUsage();
+		}
+	}
+	else {
+		allUsage();
+	}
+}
+\end{lstlisting}
+
+
+
+\pagebreak
+\section{Fonctionnalités}
+\subsection{Fonctionnel}
+\begin{itemize}
+\item La connexion des applications entre elles
+\item La table de routage lors d'une connexion
+\item La table de routage lors d'une déconnexion
 \item Trame d'Annonce d'intention de déconnexion
 \item Trame de Confirmation de changement de connexion
-\item Trame FirstRoot : Que la Root envoi pour ping qui est dans le réseau
+\item Trame de suppression des tables de routage
 \item Trame FirstLeaf : Que les feuilles renvoient vers la root pour mettre à jour les tables de routage par le bas
 \item Trame FullTree : Que la root renvoi à tout le monde pour mettre à jour les tables de routages par le haut
 \item Trame Ping Envoi : Qui permet de verifier si une application est disponible
 \item Trame Ping Réponse : En réponse à la trame ping Envoi répond si l'application actuelle est disponible( donc n'as pas de taches)
 \end{itemize}
-\paragraph{•} La table de routage n'est pas encore complètement implementé, il nous faut vérifier que via les trames transmises, la table de routage de toutes les applications sont mis a jours correctement, cependant la table de routage de l'application avec les applications connexe est bonne.
-\paragraph{•} Nous avons fait la partie traitement du JAR et lancement des fonctions, cependant ce n'est pas encore connecté au reste de l'application
-\subsection{Non Active}
+
+\subsection{Fonctionnel Partiellement ou pas entièrement implémenté}
 \begin{itemize}
-\item Trame de suppression
+\item Trame  d'envoi des données aux applications en attente
+\item Trame d'envoi des données de déconnexion à traiter aux applications connexes
+\item Traitement des Checkers : cette partie n'a pas encore été intégré au code mais cela fonctionne a part.
+\item Deconnexion, on peut déconnecter une feuille et la table de routage de toute le réseau se change mais pour l'instant la déconnexion d'une application qui n'est pas une feuille ne fonctionne pas encore.
 \end{itemize}
-\paragraph{•} Tansfert des données lors d'une déconnexion
+\subsection{Non Fonctionnel}
+\begin{itemize}
+\item Reconnexion d'une application a une autre lors de la déconnexion de son père.
+\item Convertion du projet en JAR
+\end{itemize}
 
 
 
@@ -247,28 +698,30 @@ Nous n'avions non plus pas le lanceur de tâches
 \pagebreak
 \section{Difficulté rencontré}
 \subsection{Difficulté sur la RFC}
-\paragraph{}
+\paragraph{Avant la soutenance}
 Au début n'ayant pas le sujet assez clair en tête, nous avons commencé à faire une RFC qui n'était pas du tout en rapport avec le sujet du projet, cependant à l'aide de Monsieur Carayol, nous avons mieux appréhendé le sujet et avons pu partir sur de bonnes bases. (On précise que ceci c'est passé bien avant la soutenance)
-\paragraph{}
+\paragraph{Après la soutenance}
 Cependant, lors de la soutenance de la RFC, il nous a été montré que notre RFC n'était pas vraiment ce qui était attendu, mais rien de grave, c'étaient quelques petites choses à corriger.
 Nous avons alors demandé à notre enseignant de plus amples explications pour mieux cerner ce qui était demandé et améliorer notre RFC, aussi pendant ce temps nous avons essayé de commencer à travailler sur la partie code du protocole.
 \subsection{Difficulté sur le code}
-\paragraph{}
+\paragraph{Comment commencer}
 Au début du projet, nous ne savions pas exactement comment commencer, mais après avoir pataugé un peu, on a essayé plusieurs choses ce qui nous a permis  de nous débloquer.
 Aussi, nous avons eu un problème de compilation lorsque l'on devait utiliser la classe des Tables de Routages dans la classe principale, la classe de routage n'était pas reconnue lors de la compilation et après avoir fait plusieurs tests et demandé au professeur, il s'avérait que le problème ne venait pas de nous, mais de notre terminal, en effet nous utilisions un terminal Windows pour compiler et lancer le code.
 Nous avons réglé notre problème en ajoutant l'option -cp lors du démarrage des applications
-\paragraph{}
+\paragraph{Les socketChannel}
 Un autre problème que nous avons rencontré mais que nous nous y attendions déjà était le fait de reconnaître de quel socketChannel à été envoyé la trame.
 Nous avons décidé de changer un peu par rapport a la rfc et d'ajouter l'adresse qui a envoyé la trame et en regardant la table de routage on regardais de quel valeur venait l'adresse.
-\paragraph{}
+\paragraph{La table de routage}
 La table de routage aussi a fait partis des difficulté de ce projet, en effet lorsque l'on supprimais les connexions la table de routage ne se mettais pas à jour. elle ne se mettais à jour uniquement si on ajoutais des éléments, on a cependant réussi, au début on pensait utiliser des trames et envoyer pour mettre a jour la table de routage pour les applications à proximité mais nous avons trouvé une méthode pour le faire sans, cependant la table de routage des autres applications doivent être modifier pour supprimer l'application qui s'est déconnecté.
-\paragraph{}
+\paragraph{Les trames}
 Après la soutenance Beta nous avons rencontré un problème majeur qui provenait des trames envoyé mais que nous avons essayé de régler, cependant lorsque nous avons soit disant réglé le problème des trames, nous avons eu un problème d'envoi des paquets, en effet les paquet s'envoyaient parfois mais parfois ne s'envoyaient pas.
 Nous pensons avoir réglé ce problème mais maintenant à par intermittence le terminal qui est sensé recevoir la trame boucle sans rien récupérer et est en mode write.
-
-\paragraph{}
+\paragraph{Le débugage}
 Malgré beaucoup de commits sur le git et de test, nous avons passé beaucoup de temps a débugger le code, une erreur pouvait en entrainer une autre et une erreur pouvait aussi quand elle était résolue en cacher une autre. Pour pouvoir débugger nous regardions a chaque fois les problème qu'affichait le terminal mais quand on ne trouvait vraiment pas, Monsieur Carayol nous a bien prêté main forte. 
-
+\paragraph{La gestion du temps}
+Nous avons d'abord voulus vraiment bien peaufiner la RFC avant de vraiment nous attaquer au code ce qui nous a pris un peu de temps, donc on a commencé à codé avec un peu de retard.
+Mais aussi lors des examens nous avons préféré mettre le projet de coté pour nous consacrer aux révisions pour les examens.
+Nous trouvons que avec les autres projet a coté et le début des stages nous n'avions pas assez de temps après la fin des cours pour se consacrer un maximum sur le projet, surtout que lorsque l'on pouvait on passait une après-midi à essayer de trouver et corriger des bugs.
 
 
 
@@ -285,9 +738,6 @@ Pour la RFC, on a beaucoup travaillé de notre coté, mais on faisait des points
 \subsection{Rapport}
 \paragraph{}
 Le rapport à été mis à jours par une seule personne, cependant l'autre binôme donnait des points qu'il fallait changer ou qu'il fallait ajouter.
-
-
-
 
 
 \section{Annexe}

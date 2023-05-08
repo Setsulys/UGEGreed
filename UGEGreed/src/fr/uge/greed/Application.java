@@ -23,23 +23,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
-//import fr.uge.greed.data.DataALotAddress;
-//import fr.uge.greed.data.DataDoubleAddress;
-//import fr.uge.greed.data.DataOneAddress;
-//import fr.uge.greed.data.DataResponse;
-//import fr.uge.greed.reader.Reader;
-//import fr.uge.greed.reader.TrameReader;
-//import fr.uge.greed.trame.Trame;
-//import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
-//import fr.uge.greed.trame.TrameFirstLeaf;
-//import fr.uge.greed.trame.TrameFirstRoot;
-//import fr.uge.greed.trame.TrameFullTree;
-//import fr.uge.greed.trame.TrameNewLeaf;
-//import fr.uge.greed.trame.TramePingConfirmationChangementCo;
-//import fr.uge.greed.trame.TramePingEnvoi;
-//import fr.uge.greed.trame.TramePingReponse;
-//import fr.uge.greed.trame.TrameSuppression;
-
 import fr.uge.greed.trame.*;
 import fr.uge.greed.reader.*;
 import fr.uge.greed.data.*;
@@ -154,15 +137,6 @@ public class Application {
 			}
 			op = tramez.getOp();
 			switch (tramez.getOp()) {
-			case 0 -> {
-				return;
-			} // ______DUMP
-			case 1 -> {
-				return;
-			} // ______DUMP
-			case 2 -> {
-				return;
-			} // ______DUMP
 			case 3 -> {// dataDoubleAddress
 				if (bufferOut.remaining() < Integer.BYTES + (34 * Byte.BYTES)) {
 					loggerC.warning("Buffer doesn't have  enough room");
@@ -237,14 +211,6 @@ public class Application {
 				
 				bufferOut.put(addressTrame(tmp3.doa().Address()));
 			}
-			case 6 -> {// op
-				if (bufferOut.remaining() < Integer.BYTES ) {	//first root
-					loggerC.warning("Buffer doesn't have  enough room");
-					return;
-				}
-				bufferOut.putInt(tramez.getOp());
-				
-			}
 
 			case 7 -> {
 				// dataALotAddress
@@ -292,25 +258,6 @@ public class Application {
 					}
 					bufferOut.put(addressTrame(tmp999.dla().list().get(i)));
 				}
-			}
-
-			case 9 -> {// dataOneAddress
-				if (bufferOut.remaining() < Integer.BYTES + (16 * Byte.BYTES)) {
-					loggerC.warning("Buffer doesn't have  enough room");
-					return;
-				}
-				var tmp4 = (TrameNewLeaf) tramez;
-				bufferOut.putInt(tramez.getOp());
-				if (tmp4.doa().Address().getAddress().getClass() == Inet4Address.class) {
-					byte aaa = 4;
-					bufferOut.put(aaa);
-				}
-				if (tmp4.doa().Address().getAddress().getClass() == Inet6Address.class) {
-					byte aaa = 6;
-					bufferOut.put(aaa);
-				}
-				
-				bufferOut.put(addressTrame(tmp4.doa().Address()));
 			}
 
 			case 10 -> { // dataOneAddress
@@ -370,17 +317,49 @@ public class Application {
 			case 13 -> {
 				return;
 			} // TODO
-			case 14 -> {
-				return;
-			}
-			case 77 ->{
-				System.out.println("im here");
-				if (bufferOut.remaining() < Integer.BYTES ) {	//first root
-					loggerC.warning("Buffer doesn't have  enough room");
-					return;
-				}
-				bufferOut.putInt(tramez.getOp());
-			}
+//			case 0 -> {
+//				return;
+//			} // ______DUMP
+//			case 1 -> {
+//				return;
+//			} // ______DUMP
+//			case 2 -> {
+//				return;
+//			} // ______DUMP
+//			case 6 -> {// op
+//				if (bufferOut.remaining() < Integer.BYTES ) {	//first root
+//					loggerC.warning("Buffer doesn't have  enough room");
+//					return;
+//				}
+//				bufferOut.putInt(tramez.getOp());
+//				
+//			}
+//			case 9 -> {// dataOneAddress
+//				if (bufferOut.remaining() < Integer.BYTES + (16 * Byte.BYTES)) {
+//					loggerC.warning("Buffer doesn't have  enough room");
+//					return;
+//				}
+//				var tmp4 = (TrameNewLeaf) tramez;
+//				bufferOut.putInt(tramez.getOp());
+//				if (tmp4.doa().Address().getAddress().getClass() == Inet4Address.class) {
+//					byte aaa = 4;
+//					bufferOut.put(aaa);
+//				}
+//				if (tmp4.doa().Address().getAddress().getClass() == Inet6Address.class) {
+//					byte aaa = 6;
+//					bufferOut.put(aaa);
+//				}
+//				
+//				bufferOut.put(addressTrame(tmp4.doa().Address()));
+//			}
+//			case 77 ->{
+//				System.out.println("im here");
+//				if (bufferOut.remaining() < Integer.BYTES ) {	//first root
+//					loggerC.warning("Buffer doesn't have  enough room");
+//					return;
+//				}
+//				bufferOut.putInt(tramez.getOp());
+//			}
 			}
 
 		}
@@ -845,15 +824,7 @@ public class Application {
 		Objects.requireNonNull(tramez);
 		System.out.println(tramez.getOp());
 		switch (tramez.getOp()) {
-		case 0 -> {
-			
-		}
-		case 1 -> {
-			//DUMP
-		}
-		case 2 -> {
-			//DUMP
-		}
+
 		case 3 -> {
 			var tmp3 = (TrameAnnonceIntentionDeco) tramez;
 			var appDeco = tmp3.dda().AddressSrc();
@@ -953,19 +924,7 @@ public class Application {
 			}
 			//enlever l'app dans la table de routage
 		}
-		case 6 -> {
-			if(connexions.size()!=1) {
-				broadCastWithoutFrom((InetSocketAddress) scDaron.getRemoteAddress(),tramez);
-			}
-			else {
-				var listo = new ArrayList<InetSocketAddress>();
-				listo.add(localInet);
-				var truc = new DataALotAddress(7,listo);
-				TrameFirstLeaf fL = new TrameFirstLeaf(truc);
-				daronContext.queueTrame(fL);
-			}
-			//faire passer la FR à ses gosses ou l'envoyer au daron si feuille
-		}
+
 		case 7 -> {
 //			System.out.println("Celui qui m'a envoye le 7 est : " + recu.getRemoteAddress());
 			var tmp7 = (TrameFirstLeaf) tramez;
@@ -1027,16 +986,7 @@ public class Application {
 			}
 
 		}
-		case 9 -> {
-			var tmp9 = (TrameNewLeaf) tramez;
-			var nouvAddress = tmp9.doa().Address();
-			
-			table.addToRouteTable(nouvAddress,(InetSocketAddress) recu.getRemoteAddress());
-			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
-			System.out.println("MA TABLE" + table);
-			System.out.println("JE BROADCAST LA NEWLEAF à tout le monde sauf " + (InetSocketAddress) recu.getRemoteAddress());
-			sendFullTreeTo(recu);
-		}
+
 		case 10 -> {
 			TramePingEnvoi tmp = (TramePingEnvoi) tramez; // A verif
 			var address = tmp.doa().Address();
@@ -1085,18 +1035,50 @@ public class Application {
 			
 			
 		}
-		case 77 ->{
-			try {
-				var tmp77 = (TrameFullDeco) tramez;
-				broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), tmp77);
-				selector.wakeup();
-			}finally {
-				silentlyClose(daronContext.key);
-				Thread.currentThread().interrupt();
-				logger.info("Disconnected Succesfully\n---------------------");
-				System.exit(0);
-			}
-		}
+//		case 0 -> {
+//		
+//		}
+//		case 1 -> {
+//		//DUMP
+//		}
+//		case 2 -> {
+//		//DUMP
+//		}
+//		case 6 -> {
+//			if(connexions.size()!=1) {
+//				broadCastWithoutFrom((InetSocketAddress) scDaron.getRemoteAddress(),tramez);
+//			}
+//			else {
+//				var listo = new ArrayList<InetSocketAddress>();
+//				listo.add(localInet);
+//				var truc = new DataALotAddress(7,listo);
+//				TrameFirstLeaf fL = new TrameFirstLeaf(truc);
+//				daronContext.queueTrame(fL);
+//			}
+//			//faire passer la FR à ses gosses ou l'envoyer au daron si feuille
+//		}
+//		case 9 -> {
+//			var tmp9 = (TrameNewLeaf) tramez;
+//			var nouvAddress = tmp9.doa().Address();
+//			
+//			table.addToRouteTable(nouvAddress,(InetSocketAddress) recu.getRemoteAddress());
+//			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+//			System.out.println("MA TABLE" + table);
+//			System.out.println("JE BROADCAST LA NEWLEAF à tout le monde sauf " + (InetSocketAddress) recu.getRemoteAddress());
+//			sendFullTreeTo(recu);
+//		}
+//		case 77 ->{
+//			try {
+//				var tmp77 = (TrameFullDeco) tramez;
+//				broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), tmp77);
+//				selector.wakeup();
+//			}finally {
+//				silentlyClose(daronContext.key);
+//				Thread.currentThread().interrupt();
+//				logger.info("Disconnected Succesfully\n---------------------");
+//				System.exit(0);
+//			}
+//		}
 		default -> {
 			return;
 		}
@@ -1201,38 +1183,27 @@ public class Application {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/*
+	 * Show the usage of DISCONNECT and START
+	 */
 	private static void allUsage(){
 		System.out.println("Disconnect Usage :");
 		System.out.println("DISCONNECT");
 		launchUsage();
 	}
 	
+	/**
+	 * Show the usage of START
+	 */
 	private static void launchUsage(){
 		System.out.println("Start Usage :");
 		System.out.println("START <url-jar> <fully-qualified-name> <start-range> <end-range> <filename>");	
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 * Scan prompt in terminal and put it in a queue
+	 */
 	private void consoleRun() {
 		try {
 			try(var scanner = new Scanner(System.in)){
@@ -1247,6 +1218,11 @@ public class Application {
 		}
 	}
 	
+	/**
+	 * Put the message in a queue
+	 * @param msg
+	 * @throws InterruptedException
+	 */
 	private void sendCommands(String msg) throws InterruptedException{
 		if(msg == null) {
 			return;
@@ -1255,6 +1231,9 @@ public class Application {
 		selector.wakeup();
 	}
 	
+	/**
+	 * Process if the message is right or not
+	 */
 	private void processCommands() {
 		if(commandQueue.isEmpty()) {
 			return;
@@ -1322,6 +1301,14 @@ public class Application {
 	}
 	
 	
+	/**
+	 * If all the argument of START is good put all the element in a buffer
+	 * @param jar
+	 * @param qualifiedName
+	 * @param start
+	 * @param end
+	 * @param fileName
+	 */
 	void putInData(String jar,String qualifiedName,long start,long end,String fileName) {
 		var charset = StandardCharsets.UTF_8;
 		

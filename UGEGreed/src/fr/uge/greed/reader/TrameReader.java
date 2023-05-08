@@ -2,21 +2,6 @@ package fr.uge.greed.reader;
 
 import java.nio.ByteBuffer;
 
-//import fr.uge.greed.data.DataALotAddress;
-//import fr.uge.greed.data.DataDoubleAddress;
-//import fr.uge.greed.data.DataOneAddress;
-//import fr.uge.greed.data.DataResponse;
-//import fr.uge.greed.trame.Trame;
-//import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
-//import fr.uge.greed.trame.TrameFirstLeaf;
-//import fr.uge.greed.trame.TrameFirstRoot;
-//import fr.uge.greed.trame.TrameFullTree;
-//import fr.uge.greed.trame.TrameNewLeaf;
-//import fr.uge.greed.trame.TramePingConfirmationChangementCo;
-//import fr.uge.greed.trame.TramePingEnvoi;
-//import fr.uge.greed.trame.TramePingReponse;
-//import fr.uge.greed.trame.TrameSuppression;
-
 import fr.uge.greed.data.*;
 import fr.uge.greed.trame.*;
 
@@ -46,15 +31,7 @@ public class TrameReader implements Reader<Trame> {
 			System.out.println("op reader : "+ op);
 			intReader.reset();
 			switch(op){
-				case 0 ->{//Demande de connexion_________DUMP
-						System.out.println("hellow");
-					}
-				case 1 ->{//Acceptation de connexion_______DUMP
-						System.out.println("hellow");
-					}
-				case 2 ->{//Demande de reconnexion_______DUMP
-						System.out.println("hellow");
-					}
+
 				case 3 ->{//Annonce intention de deconnexion
 					System.out.println("JE PASSE PAR LA");
 						var doubleAddReaderState = doubleAddReader.process(bb);
@@ -93,13 +70,7 @@ public class TrameReader implements Reader<Trame> {
 						else{
 							return addReaderState;
 						}
-					}
-					
-					
-				case 6 ->{
-				}//Trame First ROOT
-					//ONLY OP 
-					
+					}					
 				case 7 ->{//Trame Firstt LEAF
 						var lotAddReaderState = lotAddReader.process(bb);
 						if(lotAddReaderState == ProcessStatus.DONE){
@@ -120,19 +91,6 @@ public class TrameReader implements Reader<Trame> {
 						return lotAddReaderStateFT;
 					}
 				}
-				case 9-> {//Trame New LEAF
-					var addReaderStateNL = addReader.process(bb);
-					if(addReaderStateNL == ProcessStatus.DONE){
-						var address = addReader.get();
-						dataOneAddress = new DataOneAddress(op,address);
-						//reset addReader
-					}
-					else{
-						return addReaderStateNL;
-					}
-				}
-				
-
 				case 10 -> {//Trame ping d'envoie'
 						var addReaderStatePE = addReader.process(bb);
 						if(addReaderStatePE == ProcessStatus.DONE){
@@ -165,13 +123,33 @@ public class TrameReader implements Reader<Trame> {
 				case 13->{
 					System.out.println("hellow");//envoi de donnee deco
 				}
-					
-				case 14->{//envoi de donnee traitee
-					System.out.println("hellow");
-				}
-				case 77 ->{
-					
-				}
+				
+//				case 0 ->{//Demande de connexion_________DUMP
+//				System.out.println("hellow");
+//			}
+//		case 1 ->{//Acceptation de connexion_______DUMP
+//				System.out.println("hellow");
+//			}
+//		case 2 ->{//Demande de reconnexion_______DUMP
+//				System.out.println("hellow");
+//			}
+//				case 6 ->{
+//				}//Trame First ROOT
+//					//ONLY OP 
+//				case 9-> {//Trame New LEAF
+//					var addReaderStateNL = addReader.process(bb);
+//					if(addReaderStateNL == ProcessStatus.DONE){
+//						var address = addReader.get();
+//						dataOneAddress = new DataOneAddress(op,address);
+//						//reset addReader
+//					}
+//					else{
+//						return addReaderStateNL;
+//					}
+//				}
+//				case 77 ->{
+//					
+//				}
 					
 			}
 			
@@ -189,55 +167,53 @@ public class TrameReader implements Reader<Trame> {
 			return null;
 		}
 		switch (op) {
-		case 0->{
-			return null; // ______DUMP
-		}
-		case 1 -> {
-			return null; // ______DUMP
-		}
-		case 2 -> {
-			return null; // ______DUMP
-		}
-		case 3 -> {
-			return new TrameAnnonceIntentionDeco(dataDoubleAddress);
-		}
-		case 4 -> {
-			return new TramePingConfirmationChangementCo(dataDoubleAddress);
-		}
-		case 5 -> {
-			return new TrameSuppression(dataOneAddress);
-		}
-		case 6 -> {
-			return new TrameFirstRoot(op);
-		}
-		case 7 -> {
-			return new TrameFirstLeaf(dataALotAddress);
-		}
-		case 8->{
-			return new TrameFullTree(dataALotAddress);
-		}
-		case 9 -> {
-			return new TrameNewLeaf(dataOneAddress);
-		}
-		case 10 -> {
-			return new TramePingEnvoi(dataOneAddress);
-		}
-		case 11 -> {
-			return new TramePingReponse(dataResponse);
-		}
-		case 12 -> {
-			return null; // TODO
-		}	
-		case 13 -> {
-			return null; // TODO
-		}
-		case 14 -> {
-			return null; // TODO
-		}
-		case 77 ->{
-			
-		}
-		}
+
+			case 3 -> {
+				return new TrameAnnonceIntentionDeco(dataDoubleAddress);
+			}
+			case 4 -> {
+				return new TramePingConfirmationChangementCo(dataDoubleAddress);
+			}
+			case 5 -> {
+				return new TrameSuppression(dataOneAddress);
+			}
+			case 7 -> {
+				return new TrameFirstLeaf(dataALotAddress);
+			}
+			case 8->{
+				return new TrameFullTree(dataALotAddress);
+			}
+			case 10 -> {
+				return new TramePingEnvoi(dataOneAddress);
+			}
+			case 11 -> {
+				return new TramePingReponse(dataResponse);
+			}
+			case 12 -> {
+				return null; // TODO
+			}	
+			case 13 -> {
+				return null; // TODO
+			}
+		//		case 0->{
+		//		return null; // ______DUMP
+		//	}
+		//	case 1 -> {
+		//		return null; // ______DUMP
+		//	}
+		//	case 2 -> {
+		//		return null; // ______DUMP
+		//	}
+		//		case 6 -> {
+		//		return new TrameFirstRoot(op);
+		//	}
+		//		case 9 -> {
+		//		return new TrameNewLeaf(dataOneAddress);
+		//	}
+		//		case 77 ->{
+		//			
+		//		}
+			}
 
 		return null;
 	}
