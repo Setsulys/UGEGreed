@@ -158,12 +158,9 @@ RFC Ly-Ieng-Debats
             Application initiant une tache ayant une application déjà déconnecté : L,M
             URL de l'application sera l'URL Z
 
-            Des que les elements seront traités, ils seront stocké dans un fichier réponses instantanément
-
-            Buffer Contenant les element non traités (que l'application Z va séparer et envoyé à A et B)
-             ---------------------------------------------------------------
-            | Taille URL Z (long) | URL Z | taille nom | fichier Z | 4 | 10 |
-             ---------------------------------------------------------------
+            Dès que les éléments seront traités, ils seront stockés dans un fichier réponses instantanément
+            Les éléments en cours de traitement seront stockés dans des champs
+            Si des champs ne sont pas vides on ne pourra pas initier une nouvelle tâche
 
             Buffer de stockage d'element d'application déja déconnecté (que l'application Z va séparer et envoyé à A et B)
              -----------------------------------------------------------------------------------------------------------------------------------
