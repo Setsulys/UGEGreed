@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  8 MAY 2023 22:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 23.1) (preloaded format=pdflatex 2023.3.28)  8 MAY 2023 23:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -543,13 +543,22 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-0.1638pt}.
 
-[16] [17] (Rapport_UGEGreed.aux)
+[16]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 12.1638pt, for example:
+(fancyhdr)                \setlength{\headheight}{12.1638pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-0.1638pt}.
+
+[17] [18] (Rapport_UGEGreed.aux)
 Package rerunfilecheck Info: File `Rapport_UGEGreed.out' has not changed.
 (rerunfilecheck)             Checksum: D2CAAF0456EA04010FC4DFAD3C9243B1;4207.
  ) 
 Here is how much of TeX's memory you used:
- 12593 strings out of 476334
- 194031 string characters out of 5787499
+ 12595 strings out of 476334
+ 194049 string characters out of 5787499
  2228382 words of memory out of 5000000
  32294 multiletter control sequences out of 15000+600000
  524846 words of font info for 56 fonts, out of 8000000 for 9000
@@ -569,9 +578,9 @@ ven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk> <C:\Us
 ers\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk>
  <C:\Users\Steven\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1
 728.pk>
-Output written on Rapport_UGEGreed.pdf (18 pages, 272120 bytes).
+Output written on Rapport_UGEGreed.pdf (19 pages, 278539 bytes).
 PDF statistics:
- 1328 PDF objects out of 1440 (max. 8388607)
- 586 named destinations out of 1000 (max. 500000)
+ 1346 PDF objects out of 1440 (max. 8388607)
+ 588 named destinations out of 1000 (max. 500000)
  241 words of extra memory for PDF output out of 10000 (max. 10000000)
 

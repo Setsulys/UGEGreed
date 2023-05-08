@@ -29,7 +29,7 @@
 }
 
 \renewcommand{\thesection}{\arabic{section}}
-\renewcommand{\contentsname}{UgeGreed}
+\renewcommand{\contentsname}{UgeGreed Ly-Ieng Debats}
 \title{Rapport sur le projet UGEGreed}
 \date{}
 \author{DEBATS Julien - LY-IENG Steven}
@@ -704,7 +704,7 @@ private void processCommands() {
 \item Trame FullTree : Que la root renvoi à tout le monde pour mettre à jour les tables de routages par le haut
 \item Trame Ping Envoi : Qui permet de verifier si une application est disponible
 \item Trame Ping Réponse : En réponse à la trame ping Envoi répond si l'application actuelle est disponible( donc n'as pas de taches)
-\item Déconnexion d'une application et re-connexion des application enfant à l'application père de l'application.
+\item Deconnexion d'une feuille
 \end{itemize}
 
 \subsection{Fonctionnel Partiellement ou pas entièrement implémenté}
@@ -712,7 +712,8 @@ private void processCommands() {
 \item Trame  d'envoi des données aux applications en attente (pas implémenté)
 \item Trame d'envoi des données de déconnexion à traiter aux applications connexes(pas implémenté)
 \item Traitement des Checkers : cette partie n'a pas encore été intégré au code mais cela fonctionne a part.
-\item Reconnexion d'une application a une autre lors de la déconnexion de son père.
+\item Reconnexion d'une application a une autre lors de la déconnexion de son père.(La route table ne se modifie pas)
+\item Déconnexion d'une application et re-connexion des application enfant à l'application père de l'application. (la route table ne se modifie pas)
 \end{itemize}
 \subsection{Non Fonctionnel}
 \begin{itemize}
@@ -745,6 +746,8 @@ Après la soutenance Beta nous avons rencontré un problème majeur qui provenai
 Nous pensons avoir réglé ce problème mais maintenant à par intermittence le terminal qui est sensé recevoir la trame boucle sans rien récupérer et est en mode write.
 \paragraph{Le débugage}
 Malgré beaucoup de commits sur le git et de test, nous avons passé beaucoup de temps a débugger le code, une erreur pouvait en entrainer une autre et une erreur pouvait aussi quand elle était résolue en cacher une autre. Pour pouvoir débugger nous regardions a chaque fois les problème qu'affichait le terminal mais quand on ne trouvait vraiment pas, Monsieur Carayol nous a bien prêté main forte. 
+\paragraph{La deconnexion et la route table}
+Nous avions réussi a faire que la table de routage se modifie lorsque une application se déconnecte et se connecte cependant après plusieurs modifications, cette fonctionnalité n'a plus marché on ne sait pas pourquoi.
 \paragraph{La gestion du temps}
 Nous avons d'abord voulus vraiment bien peaufiner la RFC avant de vraiment nous attaquer au code ce qui nous a pris un peu de temps, donc on a commencé à codé avec un peu de retard.
 Mais aussi lors des examens nous avons préféré mettre le projet de coté pour nous consacrer aux révisions pour les examens.

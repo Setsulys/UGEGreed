@@ -64,17 +64,18 @@
 \contentsline {paragraph}{La table de routage}{16}{section*.42}%
 \contentsline {paragraph}{Les trames}{16}{section*.43}%
 \contentsline {paragraph}{Le débugage}{16}{section*.44}%
-\contentsline {paragraph}{La gestion du temps}{16}{section*.45}%
-\contentsline {section}{\numberline {8}Division du travail}{17}{section.0.8}%
-\contentsline {paragraph}{}{17}{section*.46}%
-\contentsline {subsection}{\numberline {8.1}RFC}{17}{subsection.0.8.1}%
-\contentsline {paragraph}{}{17}{section*.47}%
-\contentsline {subsection}{\numberline {8.2}Code}{17}{subsection.0.8.2}%
-\contentsline {paragraph}{}{17}{section*.48}%
-\contentsline {subsection}{\numberline {8.3}Rapport}{17}{subsection.0.8.3}%
-\contentsline {paragraph}{}{17}{section*.49}%
-\contentsline {section}{\numberline {9}Annexe}{17}{section.0.9}%
-\contentsline {subsection}{\numberline {9.1}Commentaires}{17}{subsection.0.9.1}%
-\contentsline {paragraph}{}{17}{section*.50}%
-\contentsline {subsection}{\numberline {9.2}Remerciement}{17}{subsection.0.9.2}%
-\contentsline {paragraph}{}{17}{section*.51}%
+\contentsline {paragraph}{La deconnexion et la route table}{16}{section*.45}%
+\contentsline {paragraph}{La gestion du temps}{16}{section*.46}%
+\contentsline {section}{\numberline {8}Division du travail}{18}{section.0.8}%
+\contentsline {paragraph}{}{18}{section*.47}%
+\contentsline {subsection}{\numberline {8.1}RFC}{18}{subsection.0.8.1}%
+\contentsline {paragraph}{}{18}{section*.48}%
+\contentsline {subsection}{\numberline {8.2}Code}{18}{subsection.0.8.2}%
+\contentsline {paragraph}{}{18}{section*.49}%
+\contentsline {subsection}{\numberline {8.3}Rapport}{18}{subsection.0.8.3}%
+\contentsline {paragraph}{}{18}{section*.50}%
+\contentsline {section}{\numberline {9}Annexe}{18}{section.0.9}%
+\contentsline {subsection}{\numberline {9.1}Commentaires}{18}{subsection.0.9.1}%
+\contentsline {paragraph}{}{18}{section*.51}%
+\contentsline {subsection}{\numberline {9.2}Remerciement}{18}{subsection.0.9.2}%
+\contentsline {paragraph}{}{18}{section*.52}%
