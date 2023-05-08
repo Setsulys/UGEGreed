@@ -114,6 +114,17 @@ public class RouteTable implements Iterable<InetSocketAddress> {
 		
 	} 
 	
+	
+	public void removeKeyFromValue(InetSocketAddress address){
+		System.out.println("VALUE TO REMOVE" + address);
+		for(var e : routeTable.entrySet()){
+			if(address.equals(e.getValue())){
+				System.out.println("THE GET VALUE" + e.getValue());
+				routeTable.remove(e.getKey());
+			}
+		}
+	}
+	
 	public void removeKeyIf(ArrayList<InetSocketAddress> addresses){
 		for(var e : routeTable.entrySet()) {
 			if(!addresses.contains(e.getKey())) {

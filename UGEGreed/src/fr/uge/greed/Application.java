@@ -328,6 +328,7 @@ public class Application {
 			}
 
 			case 12 -> {
+				 
 				return;
 			} // TODO
 			case 13 -> {
@@ -633,6 +634,7 @@ public class Application {
 	 * @param key
 	 */
 	private void doConnect(SelectionKey key) {
+		System.out.println("DO CONNECTTTTT");
 		try {
 			if (!scDaron.finishConnect()) {
 				return;
@@ -748,13 +750,13 @@ public class Application {
 						
 							
 							
-									var doa = new DataALotAddress(7,new ArrayList<InetSocketAddress>(Arrays.asList(localInet)));
-									var trm = new TrameFirstLeaf(doa);
-									if(!isroot) {
-										daronContext.queueTrame(trm);
-										selector.wakeup();
-										System.out.println("ENVOI");
-									}
+				var doa = new DataALotAddress(7,new ArrayList<InetSocketAddress>(Arrays.asList(localInet)));
+				var trm = new TrameFirstLeaf(doa);
+				if(!isroot) {
+					daronContext.queueTrame(trm);
+					selector.wakeup();
+					System.out.println("ENVOI");
+				}
 									
 //							try{
 //							Thread.currentThread().sleep(15000);
@@ -870,9 +872,10 @@ public class Application {
 			}
 			else {
 				System.out.println("C'est mon pere"+scDaron.getRemoteAddress());
-				if(table.get(appDeco).equals(scDaron.getRemoteAddress())) {
+				if(table.get(appDeco).equals(scDaron.getRemoteAddress())) {					
 					System.out.println("NONNN C4EST IMPOSSIBLE");
-					
+					var beauDaron = scDaron.getRemoteAddress();
+					System.out.println("beauDaron " + beauDaron);
 					scDaron.close();
 					System.out.println("ole");
 					scDaron = SocketChannel.open();
@@ -890,9 +893,19 @@ public class Application {
 					System.out.println("LETSGO 5");
 					
 					scDaron.connect(daronApp);
+					
 					System.out.println("LETSGO 6");
 					System.out.println("MON DARON: " + scDaron.getRemoteAddress());
+					table.removeKeyFromValue((InetSocketAddress) beauDaron);
 					
+					
+					var doa = new DataALotAddress(7,new ArrayList<InetSocketAddress>(Arrays.asList(localInet)));
+					var trm = new TrameFirstLeaf(doa);
+					if(!isroot) {
+						daronContext.queueTrame(trm);
+						selector.wakeup();
+						System.out.println("ENVOI");
+					}
 //					System.out.println("YO");
 //					table = new RouteTable((InetSocketAddress)ssc.getLocalAddress());
 //					
@@ -909,6 +922,7 @@ public class Application {
 			
 		}
 		case 4 -> {
+			System.out.println("OMG CONFIRMATION ");
 			var tmp4 = (TramePingConfirmationChangementCo) tramez;
 			var addressDeco = tmp4.dda().AddressDst();
 			var addressChangement = tmp4.dda().AddressSrc();
