@@ -81,7 +81,7 @@ La ROOT transmettra aussi cette trame vers ses applications enfants qui ne lui o
 
 \subsubsection{Déconnexion}
 \paragraph{}
-Lors d'une demande de déconnexion l'application va envoyer une trame signalant à toutes les applications du réseau sa mise en déconnexion pour qu'elles suppriment cette application de leurs table de routage mais aussi pour que les applications connexes se connectent entre eux pour délaisser l'application qui se déconnecte. 
+Lors d'une demande de déconnexion l'application va envoyer une trame signalant à toutes les applications du réseau sa mise en déconnexion pour qu'elles suppriment cette application de leurs table de routage mais aussi pour que les applications connexes se connectent entre eux pour délaisser l'application qui se déconnecte. En même temps avant de se déconnecter l'application répartie et envoi ses taches a ses enfant si c'est un enfant sinon il l'envoi a son père.
 \subsubsection{Lancement de la tache}
 \paragraph{}
 L'application sur laquelle on initie la tâche va pinger toute les applications du réseau pour savoir lesquels sont libre, celles qui seront libres enverrons un ping réponse disant si elles sont libre ou non. Celle qui seront libre se feront attribuer une partie de la tache.
