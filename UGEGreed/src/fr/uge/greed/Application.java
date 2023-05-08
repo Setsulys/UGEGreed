@@ -953,15 +953,16 @@ public class Application {
 			var addressDeco = tmp5.doa().Address();
 			
 			table.deleteRouteTable(addressDeco);
-			if(isroot) {
-				//var list = new ArrayList<>(reseau);
-				var list = table.getAllAddress();
-				list.add(localInet);
-//				System.out.println("J4ENVOI CETTE LISTE ET JE SUIS LA " + list);
-				var ndla = new DataALotAddress(8, list);
-				var caca = new TrameFullTree(ndla);
-				broadCast(caca);
-			}
+			broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(),tramez);
+//			if(isroot) {
+//				//var list = new ArrayList<>(reseau);
+//				var list = table.getAllAddress();
+//				list.add(localInet);
+////				System.out.println("J4ENVOI CETTE LISTE ET JE SUIS LA " + list); ----------------------------------------------------------------------
+//				var ndla = new DataALotAddress(8, list);
+//				var caca = new TrameFullTree(ndla);
+//				broadCast(caca);
+//			}
 			//enlever l'app dans la table de routage
 		}
 
