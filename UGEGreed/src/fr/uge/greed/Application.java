@@ -6,12 +6,12 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,9 +23,20 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
-import fr.uge.greed.trame.*;
-import fr.uge.greed.reader.*;
-import fr.uge.greed.data.*;
+import fr.uge.greed.data.DataALotAddress;
+import fr.uge.greed.data.DataDoubleAddress;
+import fr.uge.greed.data.DataOneAddress;
+import fr.uge.greed.data.DataResponse;
+import fr.uge.greed.reader.Reader;
+import fr.uge.greed.reader.TrameReader;
+import fr.uge.greed.trame.Trame;
+import fr.uge.greed.trame.TrameAnnonceIntentionDeco;
+import fr.uge.greed.trame.TrameFirstLeaf;
+import fr.uge.greed.trame.TrameFullTree;
+import fr.uge.greed.trame.TramePingConfirmationChangementCo;
+import fr.uge.greed.trame.TramePingEnvoi;
+import fr.uge.greed.trame.TramePingReponse;
+import fr.uge.greed.trame.TrameSuppression;
 
 public class Application {
 
@@ -67,19 +78,24 @@ public class Application {
 
 		private void updateInterestOps() {
 			System.out.println("update");
-			var ops = 0;
-			if (!closed && bufferIn.hasRemaining()) {
-				ops |= SelectionKey.OP_READ;
+			try {
+				var ops = 0;
+				if (!closed && bufferIn.hasRemaining()) {
+					ops |= SelectionKey.OP_READ;
+				}
+				if (bufferOut.position() != 0) {
+					ops |= SelectionKey.OP_WRITE;
+				}
+				if (ops == 0 && closed) {
+					silentlyClose();
+					return;
+				} 
+				System.out.println("update ICI "+ops);
+				key.interestOps(ops);
+			} catch (CancelledKeyException e) {
+				System.out.println("CATCHED");
 			}
-			if (bufferOut.position() != 0) {
-				ops |= SelectionKey.OP_WRITE;
-			}
-			if (ops == 0 && closed) {
-				silentlyClose();
-				return;
-			} 
-			System.out.println("update"+ops);
-			key.interestOps(ops);
+			
 		}
 
 		/**
@@ -457,15 +473,20 @@ public class Application {
 	private ByteBuffer bufferDonneeDeco = ByteBuffer.allocate(BUFFER_SIZE);
 	private ByteBuffer bufferEnvoie = ByteBuffer.allocate(BUFFER_SIZE);
 	private HashSet<InetSocketAddress> reseau = new HashSet<>();
-
 	private InetSocketAddress dispo = null;
 	private LinkedHashMap<InetSocketAddress,Boolean> commande = new LinkedHashMap<>();
-
 	static private final int BUFFER_SIZE = 4096;
-
-	
 	private final BlockingQueue<String> commandQueue = new ArrayBlockingQueue<>(10);
 	private final Thread console;
+	
+	
+	private String urlJar =null;
+	private String fullQualifiedName =null;
+	private String fileName =null;
+	private long startValue;
+	private long endValue;
+	
+	
 	/**
 	 * Start the application in mode Root
 	 * 
@@ -835,38 +856,43 @@ public class Application {
 				
 				System.out.println(localInet +" "+ appDeco);
 					System.out.println("aefaefaefaefaef" + appDeco);
-					table.deleteRouteTable(appDeco);
+					//table.deleteRouteTable(appDeco);
 					
 					
 					var doa = new DataOneAddress(5,appDeco);
-					TrameSuppression supp = new TrameSuppression(doa);
-					broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), supp);
+//					TrameSuppression supp = new TrameSuppression(doa);
+//					broadCastWithoutFrom((InetSocketAddress) recu.getRemoteAddress(), supp);
 					
 					var dda = new DataDoubleAddress(4,localInet,appDeco);
 					var trameConfirmation  = new TramePingConfirmationChangementCo(dda);
 					var context = getContextFromSocket(recu);
-					context.queueTrame(trameConfirmation);
+					//context.queueTrame(trameConfirmation);
 			}
 			else {
 				System.out.println("C'est mon pere"+scDaron.getRemoteAddress());
 				if(table.get(appDeco).equals(scDaron.getRemoteAddress())) {
 					System.out.println("NONNN C4EST IMPOSSIBLE");
-//					
-//					ssc.close();
-//					ssc = null;
-//					System.out.println("ole");
-//					ssc = ServerSocketChannel.open();
-//					System.out.println("open");
-//
-//					localInet = daronApp;
-//					System.out.println("new localinet");
-//					ssc.bind(localInet);
-//					System.out.println("LETSGO");
-//					selector = Selector.open();
+					
+					scDaron.close();
+					System.out.println("ole");
+					scDaron = SocketChannel.open();
+					System.out.println("open");
+
+
+					System.out.println("LETSGO");
+					selector = Selector.open();
+					System.out.println("LETSGO 2");
 //					scDaron = SocketChannel.open();
-//					scDaron.configureBlocking(false);
-//					scDaron.register(selector, SelectionKey.OP_CONNECT);
-//					scDaron.connect(daronApp);
+					System.out.println("LETSGO 3");
+					scDaron.configureBlocking(false);
+					System.out.println("LETSGO 4");
+					scDaron.register(selector, SelectionKey.OP_CONNECT);
+					System.out.println("LETSGO 5");
+					
+					scDaron.connect(daronApp);
+					System.out.println("LETSGO 6");
+					System.out.println("MON DARON: " + scDaron.getRemoteAddress());
+					
 //					System.out.println("YO");
 //					table = new RouteTable((InetSocketAddress)ssc.getLocalAddress());
 //					
@@ -1127,21 +1153,21 @@ public class Application {
 		return internBuffer.flip();
 	}
 
-	/**
-	 * Deconnect the application
-	 */
-	void deconnexion() {
-		logger.info("---------------------\nDisconnecting the node ...");
-		try {
-			ssc.close();
-			Thread.currentThread().interrupt();
-		} catch (IOException e) {
-			logger.info("Disconnected Succesfully\n---------------------");
-			System.exit(0);
-		}
-		logger.info("Disconnected Succesfully\n---------------------");
-
-	}
+//	/**
+//	 * Deconnect the application
+//	 */
+//	void deconnexion() {
+//		logger.info("---------------------\nDisconnecting the node ...");
+//		try {
+//			ssc.close();
+//			Thread.currentThread().interrupt();
+//		} catch (IOException e) {
+//			logger.info("Disconnected Succesfully\n---------------------");
+//			System.exit(0);
+//		}
+//		logger.info("Disconnected Succesfully\n---------------------");
+//
+//	}
 
 
 	/**
@@ -1243,26 +1269,25 @@ public class Application {
 			if(isroot) {
 				logger.info("---------------------\nDisconnecting the node ...");
 				
-				var trameFullDeco = new TrameFullDeco(77);
-				try {
-					broadCast(trameFullDeco);
-					System.out.println("DISCONNECTING ALL NODES");
-				}catch (IOException e) {
-					logger.info("Deco IOException");
-				}finally {
-				
+//				var trameFullDeco = new TrameFullDeco(77);
+//				try {
+//					broadCast(trameFullDeco);
+//					System.out.println("DISCONNECTING ALL NODES");
+//				}catch (IOException e) {
+//					logger.info("Deco IOException");
+//				}finally {
 				Thread.currentThread().interrupt();
 				logger.info("Disconnected Succesfully\n---------------------");
 				System.exit(0);
-				}
+//				}
 			}
 			else {
 				try {
 					var ddl = new DataDoubleAddress(3,localInet,(InetSocketAddress) scDaron.getRemoteAddress());
 					var tame = new TrameAnnonceIntentionDeco(ddl);
 					logger.info("---------------------\nDisconnecting the node ...");
-					if(connexions.size()==1) {
-						System.out.println("ok");
+					if(connexions.size()==1) { //LEAF
+						System.out.println("Deco SOLO");
 						daronContext.queueTrame(tame);
 						selector.wakeup();
 					}
@@ -1284,12 +1309,21 @@ public class Application {
 			}
 			System.out.println(lst);
 			try{
-				String jar = lst.get(1);
-				String qualifiedName = lst.get(2);
-				long start = Long.parseLong(lst.get(3));
-				long end = Long.parseLong(lst.get(4));
-				String fileName = lst.get(5);
-				putInData(jar, qualifiedName, start, end, fileName);
+				if(urlJar==null && fullQualifiedName==null && fileName == null){
+					urlJar = lst.get(1);
+					fullQualifiedName = lst.get(2);
+					fileName = lst.get(5);
+					long start = Long.parseLong(lst.get(3));
+					long end = Long.parseLong(lst.get(4));
+					if(end < start){
+						logger.warning("End Value must be Greater than start Value");
+						return;
+					}
+					startValue = start;
+					endValue = end;
+				}
+
+				
 			}catch(NumberFormatException e){
 				logger.info(" WRONG START");
 				launchUsage();
@@ -1301,29 +1335,52 @@ public class Application {
 	}
 	
 	
-	/**
-	 * If all the argument of START is good put all the element in a buffer
-	 * @param jar
-	 * @param qualifiedName
-	 * @param start
-	 * @param end
-	 * @param fileName
-	 */
-	void putInData(String jar,String qualifiedName,long start,long end,String fileName) {
-		var charset = StandardCharsets.UTF_8;
+	
+	
+	void splitData(String jar,String qualifiedName,long start,long end,String fileName,int divide){
+		var list = new ArrayList<ArrayList<Long>>();
+		long divided = (end - start)/divide;
+		long i = start;
 		
-		var bJar = charset.encode(jar);
-		bufferDonnee.put(bJar);
-		
-		var bQN = charset.encode(qualifiedName);
-		bufferDonnee.put(bQN);
-		
-		bufferDonnee.putLong(start);
-		bufferDonnee.putLong(end);
-		
-		var bFN = charset.encode(fileName);
-		bufferDonnee.put(bFN);
-		
+		long subStart=0;
+		long subEnd=0;
+		while(i < end){
+			subStart = i;
+			i+= divided;
+			if(i >= end){
+				i = end;
+				subEnd = i;
+			}
+			else{
+				subEnd = i-1;
+			}
+			list.add(new ArrayList<Long>(Arrays.asList(subStart,subEnd)));
+		}
 	}
+//	
+//	/**
+//	 * If all the argument of START is good put all the element in a buffer
+//	 * @param jar
+//	 * @param qualifiedName
+//	 * @param start
+//	 * @param end
+//	 * @param fileName
+//	 */
+//	void putInData(String jar,String qualifiedName,long start,long end,String fileName) {
+//		var charset = StandardCharsets.UTF_8;
+//		
+//		var bJar = charset.encode(jar);
+//		bufferDonnee.put(bJar);
+//		
+//		var bQN = charset.encode(qualifiedName);
+//		bufferDonnee.put(bQN);
+//		
+//		bufferDonnee.putLong(start);
+//		bufferDonnee.putLong(end);
+//		
+//		var bFN = charset.encode(fileName);
+//		bufferDonnee.put(bFN);
+//		
+//	}
  
 }
